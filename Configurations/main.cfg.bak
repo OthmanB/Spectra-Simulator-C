@@ -1,0 +1,21 @@
+# Configuration in order to generate an ensemble of spectra automatically using [val_min] and [val_max] as the limits of the parameter space
+# Seven inputs are required: 
+# 		- model_name : Name of the model, as defined in models_database.pro
+#		- The name of the parameters as defined in models_database.pro, for the subfunction [model_name]
+#		- val_min : vector listing the initial parameters of the model [model_name]. See models_database.pro for more information about those parameters
+# 		- val_max:  vector of same size as [val_min] with the final parameters of the model.
+#		- Tobs and Cadence: Observation duration (in days) and the Cadence of observation (in seconds)
+#		- forest_type: either grid or random. Currently, only random (uniform) is implemented.
+#               - erase_old_file: If 1, then (1) the combination file is overwritten and (2) the model number (identifier) is reset to 0. 
+#                                 If 0, then (1) append the combination file and (2) model number = last model number + 1
+random 100 # forest_type, followed by the forest_params. If forest_type=random, then forest_params is a single value that corresponds to the Number of samples
+generate_cfg_asymptotic_act_asym_Hgauss	 		# Name of the model
+numax Dnu  epsilon  D0   maxH   Gamma   lmax   Nmax   a1     a3    b    alfa   beta    i   Hnoise1   tau1   p1  Hnoise2   tau2   p2    N0
+3000.  100.  0.     2.00   1.    1.      2.     10.   0.4   0.03   0.    1       0    0.     0.01     10    2     0.001    30     2    0.02   #val_min
+3000.  100.  0.     2.00   1.    1.      2.     10.   0.4   0.03   0.    1       0    90.    0.01     10    2     0.001    30     2    0.02    #val_max
+  0.    0.   0.     0.     0.    0.      0.     0.     0     0      0     0       0    1      0        0    0     0         0     0     0     #If forest_type="random" ==> 1=Variable OR 0=Constant. If forest_type="grid" then must be the stepsize of the grid
+Tobs   Cadence  Naverage
+30.    120       10
+0     # It is erase_old_files
+0     # Do you want plots ? 0 = No, 1 = Yes
+0     # Do you list values of the input model in the output ascii file?

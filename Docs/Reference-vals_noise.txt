@@ -1,0 +1,101 @@
+Values for the Harvey-like profiles (ignore the first line which is A0/B0/p0 fixed to 0) of 
+of 10 stars, fitted over the range 300-5000 microHz
+
+The model is: A/(1 + (tau*nu)^p)
+
+Units are:
+	A : ppm^2/muHz
+	tau: kilo-sec
+	p  : no unit
+	
+List of parameters for different stars:
+
+# Noise parameters: A0/B0/p0, A1/B1/p1, A2/B2/p2, N0
+       0.0000000       0.0000000       1.0000000
+       67.795647       3037.9919       2.0000000
+       5.6353779       2.6935122       2.0000000
+      0.49261388
+      
+      
+# Noise parameters: A0/B0/p0, A1/B1/p1, A2/B2/p2, N0
+       0.0000000       0.0000000       1.0000000
+       722.13717       34.703748       2.0000000
+       22.399835       20.070079       2.0000000
+       1.6826220
+       
+# Noise parameters: A0/B0/p0, A1/B1/p1, A2/B2/p2, N0
+       0.0000000       0.0000000       1.0000000
+       181.50882       21.838507       2.0000000
+       11.812028       9.9211168       2.0000000
+      0.67854810
+      
+# Noise parameters: A0/B0/p0, A1/B1/p1, A2/B2/p2, N0
+       0.0000000       0.0000000       1.0000000
+       380.32361       36.661068       2.0000000
+       2.9680972       3.0692108       2.0000000
+      0.61677092
+
+# Noise parameters: A0/B0/p0, A1/B1/p1, A2/B2/p2, N0
+       0.0000000       0.0000000       1.0000000
+   2.1285203e-19       240310.71       2.0000000
+       4.7846010       2.6392883       2.0000000
+      0.36148109
+      
+# Noise parameters: A0/B0/p0, A1/B1/p1, A2/B2/p2, N0
+       0.0000000       0.0000000       1.0000000
+       11.123511       34.395587       2.0000000
+       3.0403727       2.1357630       2.0000000
+      0.73397475
+      
+# Noise parameters: A0/B0/p0, A1/B1/p1, A2/B2/p2, N0
+       0.0000000       0.0000000       1.0000000
+       6.0202932       240212.06       2.0000000
+       7.4760656       3.3053782       2.0000000
+      0.44550660
+      
+# Noise parameters: A0/B0/p0, A1/B1/p1, A2/B2/p2, N0
+       0.0000000       0.0000000       1.0000000
+       19.433075       81.405731       2.0000000
+       3.4963834       1.9464644       2.0000000
+      0.25539529
+      
+# Noise parameters: A0/B0/p0, A1/B1/p1, A2/B2/p2, N0
+       0.0000000       0.0000000       1.0000000
+       1.2709550       49.575897       2.0000000
+       2.6596093       1.5192964       2.0000000
+   5.1731238e-08
+   
+# Noise parameters: A0/B0/p0, A1/B1/p1, A2/B2/p2, N0
+       0.0000000       0.0000000       1.0000000
+       82.675076       55.787164       2.0000000
+       3.5340529       2.3240420       2.0000000
+      0.40250556
+      
+# Noise parameters: A0/B0/p0, A1/B1/p1, A2/B2/p2, N0
+       0.0000000       0.0000000       1.0000000
+       303.67401       71.346100       2.0000000
+       2.6334760       1.5471169       2.0000000
+     0.099158213
+     
+# Noise parameters: A0/B0/p0, A1/B1/p1, A2/B2/p2, N0
+       0.0000000       0.0000000       1.0000000
+       0.0000000       103641.79       2.0000000
+       2.4091680       1.4834650       2.0000000
+      0.11738112
+      
+      
+----- From this, we get minimum/maximum values for the noise parameters ----
+Values of p are often considered to be either 2 (granulation/macrogranulation) or 4 (activity)
+But there is a strong degeneracy between p/tau and A, so that fixing it does not change 
+the features of the power spectrum in overall (not in the range of the pulsations)
+
+
+Min:
+A1~ 0   tau1~10   p1=2
+A2~1    tau2~1	  p2=2
+N0~0
+
+Max:
+A1~5000  20000   2
+A2~50    30	  2
+N0~2
