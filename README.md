@@ -161,6 +161,6 @@ No external contribution is expected. This project is constantly improved, so pl
 
 ### Who do I talk to? ###
 
-* Owner: Othman Benomar (NAOJ Research Fellow)
-* Contact: ob19@nyu.edu
+* Owner: Othman Benomar (NAOJ Research Fellow, Visiting Scientist at NYU Abu Dhabi)
+* Contact: othman.benomar@nao.ac.jp   ob19@nyu.edu
 
