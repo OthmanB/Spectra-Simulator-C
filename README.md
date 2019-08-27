@@ -124,9 +124,7 @@ Follows the general description given above
 
 * Heights: 
 	- Variations of heights are rescaled using Solar Heights for l=0 modes
-	- Heights of l=1 mixed modes are set equal to l=0 modes, modulo the bolometric visbility. 
-	    		WARNING: THIS IS AN INACCURATE ASSUMPTION ACCORDING TO MY PAPER. BUT NO FORMAL EXPRESSION 
-			                        IS KNOWN SO FAR SO THAT THIS IS THE BEST I CAN DO
+	- Due to the fact that we impose Inertia(l=1).Width(l=1) = Inertia(l=0).Width(l=0), the Heights of l=1 mixed modes are function of sqrt(1-ksi) and scale with the height of l=0 modes, modulo the bolometric visbility [Valid since an update on 27 August 2019]. This is the result from discussion with Kevin Belkacem. Note however that this assumption might only be valid for not-too-evolved RGB stars and for subgiants (see Belkacem+2018, 'Angular momentum redistribution by mixed modes in evolved low-mass stars')
 	- Bolometric visibilities in height are assumed to be V(l=0) = 1, V(l=1) = 1.5, V(l=2) =0.5 , V(l=3) =0.07
 
 * Widths:
