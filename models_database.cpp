@@ -106,13 +106,17 @@ void asymptotic_mm_v1(VectorXd input_params, std::string file_out_modes, std::st
 	
 	// b. Call the external function
 	//const std::string str="python3 -c \"import bump_DP; bump_DP.main_star_generator(config_file='external/ARMM-solver/star_params.global', output_file='external/ARMM-solver/star_params.modes')\" ";
-	const std::string str="python3 -c \"import bump_DP; bump_DP.main_star_generator(config_file='external/ARMM-solver/star_params.global', output_file='" + file_out_modes + "')\" ";
+	//const std::string str="python3 -c \"import bump_DP; bump_DP.main_star_generator(config_file='external/ARMM-solver/star_params.global', output_file='" + file_out_modes + "')\" ";
+	const std::string str="python3 -c \"import bump_DP; bump_DP.main_star_generator(config_file='external/ARMM-solver/star_params.global', output_file='" + file_out_modes + "', output_file_range='external/ARMM-solver/star_params.range')\" ";
 	const char *command = str.c_str(); 
-	std::cout << "Executing command line: " + str << std::endl;
+	std::cout << "Executing command line: " << std::endl;
+	std::cout << "    "  << str << std::endl;
+	
 	if (Dnu <= 15){
 		std::cout << "    Model with small Dnu ==> many mixed modes. This might be long to find the solutions..." << std::endl; 
 	}
 	system(command);
+	//std::cout << external_path << std::endl;
 	//exit(EXIT_SUCCESS);
 		
 

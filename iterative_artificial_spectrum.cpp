@@ -44,7 +44,7 @@ void iterative_artificial_spectrum(std::string dir_core){
 	int Nmodel;
 	std::vector<std::string> param_names;
 
-	std::string cfg_file, file_out_modes, file_out_noise, file_cfg_mm, file_out_mm, file_out_combi;
+	std::string cfg_file, file_out_modes, file_out_noise, file_cfg_mm, file_out_mm, file_out_mm2, file_out_combi;
 	std::string external_path;
 	Config_Data cfg;
 
@@ -53,6 +53,7 @@ void iterative_artificial_spectrum(std::string dir_core){
 	file_out_modes=dir_core + "Configurations/tmp/modes_tmp.cfg";
 	file_out_noise=dir_core + "Configurations/tmp/noise_tmp.cfg";
 	file_cfg_mm=dir_core + "external/ARMM-solver/star_params.global"; // Used only for models with mixed modes and interfaced with the Python solver
+	
 	file_out_combi=dir_core + "Data/Combinations.txt";
 
 	std::cout << "1. Read the configuration file..." << std::endl;
@@ -212,7 +213,7 @@ void generate_random(Config_Data cfg, std::vector<std::string> param_names, std:
 			lastid=0; // If no Combi file while erase_old_files is set to 1
 			std::cout << "                 erase_old_files=0..."<< std::endl;
 			std::cout << "                 ... but no older combi file was found" << std::endl;
-			std::cout << "                 The program will therefore behave as if erase_old_files=0" << std::endl;
+			std::cout << "                 The program will therefore behave as if erase_old_files=1" << std::endl;
 		}
 	} else {
 		lastid=0; // If no Combi file while erase_old_files is set to 1
@@ -284,6 +285,9 @@ bool call_model(std::string model_name, VectorXd input_params, std::string file_
 		str="cp " + file_cfg_mm + " " + dir_core + "Data/Spectra_info/" + strtrim(id_str) + ".python.global";
 		const char *command = str.c_str(); 
 		system(command);
+		str="cp " + dir_core + "external/ARMM-solver/star_params.range " + dir_core + "Data/Spectra_info/" + strtrim(id_str) + ".python.range";
+		const char *command2 = str.c_str(); 
+		system(command2);
 		passed=1;
 	}
 
