@@ -139,20 +139,22 @@ Follows the general description given above
 		```nu(n,l) = ( n + epsilon + l/2) Dnu - l(l+1)D0```
   - The frequencies of the l=1 modes follow exactly the asymptotitc relation for the mixed modes	
 	
-* Rotation and inclination:
-		Splitting and inclination is not implemented at all (zero-rotation)
-		*[IN PROGRESS: Code update on 15 Oct 2019]* The splitting is now being implemented using the following assumptions:
-			* We generate a population of stars with a surface rotation randomly distributed (truncated Gaussian) between 30 and 90 days.
-			* For non-mixed modes, the splitting is assumed to be equal to the surface rotation (solid body rotation)
-			* For l=1 mixed modes, the splitting account for the degree of mixture of the modes using the ksi function and assuming a core-to-envelope rotation 
-			  ratio function of the log(g) dependence that follows the Fig 13 of Deheuvels et al. 2014 for 3.55 <=log(g)< 3.8825 (early RGB and SG regime).
-			  It is unity (solid body) if log(g)>=3.8825 (MS star).
-			  It is constant for log(g) < 3.55 (evolved RGB), at a value witch is in continuity with Fig 13 of Deheuvels et al. 2014. The flat ratio in agreement with
-			  Charlote Gehand's results. BUT THIS IS OBVIOUSLY NOT VALID FOR CLUMP STARS. 
-			* The core-to-envelope rotation contrasts from Deheuvels et al. 2014 are parametrised with a 2nd order polynomial fit, function of log(g). log(g) is determined are a pure function of the temperature: ```g = (numax/numax_sun) ( Teff / Teff_sun)^0.5```. Uncertainties on the log(g) are fixed to 0.1.
-			  Randomisation of the results are also performed using the uncertainties of the polynomial fit, but in a simplified manner. As shown in the code (bump_DP.py), weuse the quadratic mean of the relative error for stars B-E, not accounting for the uncertainties given by stars A and F. The relative uncertainty on the ratio is then fixed to 44.8%.
-		    * *[Yet to be implemented]:* Need to add Teff as a variable in the C++ code section (main.cfg), etc.. 
-			* *[Yet to be implemented]:* Need to add an isotropic distribution of stellar inclination in the python code (function main_star_generator()).  
+* Rotation and inclination: *Splitting and inclination implementation in progress* 
+  - *[Code update on 15 Oct 2019]* The splitting assumptions:
+	* We generate a population of stars with a surface rotation randomly distributed (truncated Gaussian) between 30 and 90 days.
+
+	* For non-mixed modes, the splitting is assumed to be equal to the surface rotation (solid body rotation)
+
+	* For l=1 mixed modes, the splitting account for the degree of mixture of the modes using the ksi function and assuming a core-to-envelope rotation ratio function of the log(g) dependence that follows the Fig 13 of Deheuvels et al. 2014 for 3.55 <=log(g)< 3.8825 (early RGB and SG regime).
+        
+        * It is unity (solid body) if log(g)>=3.8825 (MS star).
+
+        * It is constant for log(g) < 3.55 (evolved RGB), at a value witch is in continuity with Fig 13 of Deheuvels et al. 2014. The flat ratio in agreement with Charlote Gehand's results. BUT THIS IS OBVIOUSLY NOT VALID FOR CLUMP STARS. 
+	
+        * The core-to-envelope rotation contrasts from Deheuvels et al. 2014 are parametrised with a 2nd order polynomial fit, function of log(g). log(g) is determined are a pure function of the temperature: ```g = (numax/numax_sun) ( Teff / Teff_sun)^0.5```. Uncertainties on the log(g) are fixed to 0.1. Randomisation of the results are also performed using the uncertainties of the polynomial fit, but in a simplified manner. As shown in the code (bump_DP.py), weuse the quadratic mean of the relative error for stars B-E, not accounting for the uncertainties given by stars A and F. The relative uncertainty on the ratio is then fixed to 44.8%.
+
+        * *[Yet to be implemented]:* Need to add Teff as a variable in the C++ code section (main.cfg), etc.. 
+	* *[Yet to be implemented]:* Need to add an isotropic distribution of stellar inclination in the python code (function main_star_generator()).  
 **Noise:***
 	White noise only. No frequency-dependent noise so far implemented.
 	
