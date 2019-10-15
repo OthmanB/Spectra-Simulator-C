@@ -1,8 +1,12 @@
 # This contains all the function that describes the Bumped period spacing
 # and how they can be used to derived mode amplitudes from inertia ratio
 # as they have been developed and tested. This arises from the following publications:
-# https://arxiv.org/pdf/1509.06193.pdf
-# https://iopscience.iop.org/article/10.1088/2041-8205/781/2/L29/pdf
+# https://arxiv.org/pdf/1509.06193.pdf (Inertia and ksi relation)
+# https://www.aanda.org/articles/aa/pdf/2015/08/aa26449-15.pdf (Eq. 17 for the rotation - splitting relation)
+# https://arxiv.org/pdf/1401.3096.pdf (Fig 13 and 14 for the evolution - rotation relation in SG and RGB) 
+# https://arxiv.org/pdf/1505.06087.pdf (Eq. 3 for determining log(g) using Teff and numax, used for getting the evolution stage in conjonction with Fig. 13 from above)
+# https://iopscience.iop.org/article/10.1088/2041-8205/781/2/L29/pdf (Inertia and Height relation)
+# https://arxiv.org/pdf/1707.05989.pdf (Fig.5, distribution of surface rotation for 361 RGB stars)
 import numpy
 import matplotlib.pyplot as plt
 from scipy import interpolate
@@ -215,6 +219,131 @@ def h_l_rgb(ksi_pg):
 	#	print(ksi_pg[i], hl_h0[i])
 	return hl_h0
 
+# Splitting of modes assuming a two-zone (or two-zone averaged) rotation profile
+# rot_envelope and rot_core must be in Hz units (or micro, nano, etc...)
+# ksi_pg: The ksi function that describes the degree of mixture between p and g modes in function of the more frequency
+# rot_envelope: average rotation in the envelope. Must be a scalar
+# rot_core: average rotation in the core. Must be a scalar
+# Returns:
+#	dnu_rot: A vector of same size as ksi_pg
+def dnu_rot_2zones(ksi_pg, rot_envelope, rot_core):
+	#dnu_rot=(ksi_pg*(rot_core/2 - rot_envelope) + rot_envelope)/(2.*numpy.pi)
+	dnu_rot=ksi_pg*(rot_core/2 - rot_envelope) + rot_envelope
+	return dnu_rot
+
+# Function that determine the rotation in the envelope, here approximated to be the surface rotation.
+# Inspired by the surface rotation from Ceillier et al. 2017 (https://arxiv.org/pdf/1707.05989.pdf), Fig. 5
+# They have a skewed distribution going for ~30 days to ~160 days with a peak around 60 days. 
+# For simplicity, I just insert a truncated gaussian distribution with rotation between 30  and 90 and a median of 60.
+# The truncation happens at sigma
+# Returns: 
+#	rot_s: rotation frequency in microHz
+def rot_envelope():
+	sigma=3.
+	med=60. # in days
+	var=30./sigma # in days
+	period_s=numpy.random.normal(loc=med, scale=var)
+	if period_s < med - var*sigma:
+		period_s=med-var*sigma
+	if period_s > med + var*sigma:
+		period_s=med+var*sigma
+
+	rot_s=1e6/(86400.*period_s)
+
+	return rot_s
+
+# Use various relations from different papers for getting core rotation frequency
+# in fonction of the evolutionary stage of the RGB, and using log(g) as an age proxy
+# This can then be used by dnu_rot_2zones() to determine the rotational splittings
+# rot_envelope: The rotation of the envelope must be provided (in Hz units)
+# numax: frequency at maximum height of the modes of the star
+# Teff: Effective temperature of the star. For a RGB/SG, typically between 5500K and 4000K. 
+# sigma_logg: Uncertainty to be used on loggg if randomize==True
+# randomize_logg: If True, add some random gaussian noise to logg, as per defined in sigma_logg (absolute error)
+# randomize_core_rot: If True, add some random gaussian noise to the rotation rate of the core, as per derived by observations from Deheuvels 2014 (see below).
+# Returns: 
+# 	 (1) rot_envelope: average rotation in the envelope
+#	 (2) rot_core: average rotation in the core 
+#	 (3) rot_envelope_err: 1sigma error (or dispersion) on rot_envelope 
+#	 (4) rot_core_err: 1sigma error (or dispersion) on rot_core
+def rot_2zones_v1(rot_envelope, numax, Teff, sigma_logg=0.1, randomize_logg=True, randomize_core_rot=True):
+	# Get log(g) from T and numax using https://arxiv.org/pdf/1505.06087.pdf
+	numax_sun=2900. # THIS IS THE NUMAX IN HEIGHT
+	Teff_sun=5777.
+	gsun=28020 # cgs
+	g=(numax/numax_sun)*numpy.sqrt(Teff/Teff_sun) * gsun
+	logg=numpy.log10(g)
+	#print('log(g_star):', logg)
+	if randomize_logg == True:
+		logg=numpy.random.normal(loc=logg, scale=sigma_logg)
+	#print('log(g_star) (randomized):', logg)
+	# If an SG/RGB Use the best fit for the core/envelope contrast established using the relation from Fig. 13 of https://arxiv.org/pdf/1401.3096.pdf
+	# The used table for the fit is the following:
+	# star    / rot ratio (OLA)  / log(g) (graphic estimate)
+	# A          2.5 +/- 0.7       3.823 +/- 0.0375
+	# B          3.8 +/- 1.1       3.77  +/- 0.02
+	# C          6.9 +/ 1          3.76 +/- 0.04 
+	# D          15.1 +/- 4        3.71 +/- 0.03
+	# E          10.7 +/- 1.5      3.68 +/- 0.02
+	# F          21   +/- 8.2      3.6  +/- 0.02
+	# using polyfit (only y-uncertainty accounted for), we get:
+	# ratio(logg) = a  + b log(g)  + c log(g)^2 
+	#a = 1797.04 (+/- 2583.32)   /   b= -891.294 +/- 1374.98    /  c= 110.351  +/- 182.934
+	# Uncertainty on each data point from the fit :  2.67476      2.62932      2.79434      3.39917      5.02476      17.3518
+	# Best curve on each data point               :  2.43628      5.26652      5.87004      9.21873      11.4928      18.5280
+	# Ratio of the two                            :  1.09789     0.499253     0.476035     0.368724     0.437210     0.936516
+	# Mean relative quadratic uncertainty                   : 0.693  (69.3%)
+	# Mean quadratic uncertainty without the two extremes    : 0.448  (44.8%)
+
+	a=1797.04
+	b=-891.294
+	c=110.351
+
+	logg_min=3.55
+	logg_max=3.8825
+	if logg >= logg_min and logg < logg_max : # Case excluding old rgb and main sequence stars. 3.8825 allows slightly faster envelope vs core, but it is tolerable
+		core2envelope_star=a + b*logg + c*logg**2
+		core2envelope_err_star= core2envelope_star * 0.448 # use the average relative uncertainty calculated above without the extreme data points
+	# If an old RGB constant core/envelope contrast (ARBITRARY AS THE ROTATION IS NORMALY STILL SLOWING DOWN IN THE ENVELOPE)
+	if logg < logg_min:
+		core2envelope_star=a + b*logg_min + c*logg_min**2
+		core2envelope_err_star= core2envelope_star * 0.448 # use the average relative uncertainty calculated above without the extreme data points
+	# If a MS star, assume uniform rotation (core/envelope == 1)
+	if logg >= logg_max:
+		core2envelope_star=1.
+		core2envelope_err_star=0.1 # arbitrary error for MS case
+
+	#print('core2envelope_star:', core2envelope_star, '  +/-', core2envelope_err_star)
+
+	# Determine the core rotation
+	rot_core=core2envelope_star * rot_envelope
+
+	rot_envelope_true=rot_envelope
+	rot_core_true=rot_core
+
+	#print('True core rotation: ', rot_core_true)
+	#print('True env rotation: ', rot_envelope_true)
+	if randomize_core_rot == True:
+		# We will assume that the error contribution from the core and from the envelope is the same in relative value:
+		# err(rot_core)/rot_core = err(rot_envelope)/rot_envelope ===> core2envelope_err_star = X * sqrt(1 + core2envelope_star**2) 
+		# with X = err(rot_core)/rot_core == err(rot_envelope)/rot_envelope... X is what we need here.
+		rot_core_err=core2envelope_err_star * rot_core / numpy.sqrt(1 + core2envelope_star**2)
+		rot_envelope_err=core2envelope_err_star * rot_envelope / numpy.sqrt(1 + core2envelope_star**2)
+
+		rot_envelope=numpy.random.normal(loc=rot_envelope, scale=rot_envelope_err)
+		rot_core=numpy.random.normal(loc=rot_core, scale=rot_core_err)
+	else:
+		rot_core_err=0
+		rot_envelope_err=0
+
+	#print(' numpy.sqrt(1 + core2envelope_star**2) = ', numpy.sqrt(1 + core2envelope_star**2))
+	#print('rot_envelope_err=', rot_envelope_err)
+	#print('rot_core_err=', rot_core_err)
+	#print('rot_envelope (randomized): ', rot_envelope)
+	#print('rot_core (randomized): ', rot_core)
+	#exit()
+	return rot_envelope, rot_core, rot_envelope_true, rot_core_true
+
 #Assumptions: nu_max is derived from the requested Dnu_star parameter using the relation from Stello+2009. 
 #	Dnu ~ 0.263*numax^0.77 (no uncertainty implemented here)
 def numax_from_stello2009(Dnu_star):
@@ -256,7 +385,7 @@ def numax_from_stello2009(Dnu_star):
 #	nu_g_l1: Base p modes frequencies used to build the frequencies for the l=1 mixed modes
 #	width_lx: Widths of the l=x modes. x is between 0 and 3
 #   height_lx: Heights of the l=x modes. x is between 0 and 3 
-def make_synthetic_asymptotic_star(numax_star, Dnu_star, epsilon_star, D0_star, DP1_star, alpha_star, q_star, fmin, fmax, Hmax_l0=1., Gamma_max_l0=1.):
+def make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star, D0_star, DP1_star, alpha_star, q_star, fmin, fmax, Hmax_l0=1., Gamma_max_l0=1., rot_env_input=-1):
 
 	# Fix the resolution to 4 years (converted into microHz)
 	resol=1e6/(4*365.*86400.) 
@@ -309,6 +438,19 @@ def make_synthetic_asymptotic_star(numax_star, Dnu_star, epsilon_star, D0_star, 
 	#width_l1=gamma_l_fct1(nu_m_l1, nu_p_l1, nu_g_l1, Dnu_p, DPl, q_star, nu_l0, width_l0, el, hl_h0_ratio=1.)
 	width_l1=gamma_l_fct2(ksi_pg, nu_m_l1, nu_l0, width_l0, h1_h0_ratio, el)
 
+	# Generating splittings with a two averaged rotation rates
+	if rot_env_input <=0:
+		# Determine the envelope rotation
+		rot_env_input=rot_envelope()
+
+	rot_env, rot_c, rot_env_true, rot_c_true=rot_2zones_v1(rot_env_input, numax_star, Teff_star, sigma_logg=0.1)
+	a1_l1=dnu_rot_2zones(ksi_pg, rot_env, rot_c)
+
+	#print(rot_env, rot_c, rot_env_true, rot_c_true)
+	#print('a1_l1:')
+	#print(a1_l1)
+	#print('size(a1_l1)', len(a1_l1))
+	#exit()
 	# ------- l=2 modes -----
 	nu_l2=[]
 	for en in range(nmin, nmax):
@@ -324,6 +466,9 @@ def make_synthetic_asymptotic_star(numax_star, Dnu_star, epsilon_star, D0_star, 
 	height_l2=height_l2*Vl[2]
 	width_l2=int_fct_w0(nu_l2)
 
+	# Assume that the l=2 modes are only sensitive to the envelope rotation
+	a1_l2=numpy.repeat(rot_env, len(nu_l2))
+
 	# ------ l=3 modes ----
 	nu_l3=[]
 	for en in range(nmin, nmax):
@@ -338,7 +483,10 @@ def make_synthetic_asymptotic_star(numax_star, Dnu_star, epsilon_star, D0_star, 
 	height_l3=height_l3*Vl[3]
 	width_l3=int_fct_w0(nu_l3)
 
-	return nu_l0, nu_p_l1, nu_g_l1, nu_m_l1, nu_l2, nu_l3, width_l0, width_l1, width_l2, width_l3, height_l0, height_l1, height_l2, height_l3
+	# Assume that the l=2 modes are only sensitive to the envelope rotation
+	a1_l3=numpy.repeat(rot_env, len(nu_l3))
+
+	return nu_l0, nu_p_l1, nu_g_l1, nu_m_l1, nu_l2, nu_l3, width_l0, width_l1, width_l2, width_l3, height_l0, height_l1, height_l2, height_l3, a1_l1, a1_l2, a1_l3
 
 
 # Read a basic configuration file that contains the setup to create the whole set
@@ -369,7 +517,7 @@ def main_star_generator(config_file='star_params.global', output_file='star_para
 
 	write_range_modes(numax_star, Dnu_star, Ncoef, output_file=output_file_range)
 		
-	nu_l0, nu_p_l1, nu_g_l1, nu_m_l1, nu_l2, nu_l3, width_l0, width_m_l1, width_l2, width_l3, height_l0, height_m_l1, height_l2, height_l3=make_synthetic_asymptotic_star(numax_star, setup_pmodes[0], setup_pmodes[1], setup_pmodes[2], setup_gmodes[0], setup_gmodes[1], coupling, fmin, fmax, Hmax_l0=Hmax_l0, Gamma_max_l0=Gamma_max_l0)
+	nu_l0, nu_p_l1, nu_g_l1, nu_m_l1, nu_l2, nu_l3, width_l0, width_m_l1, width_l2, width_l3, height_l0, height_m_l1, height_l2, height_l3, a1_l1, a1_l2, a1_l3=make_synthetic_asymptotic_star(Teff_star, numax_star, setup_pmodes[0], setup_pmodes[1], setup_pmodes[2], setup_gmodes[0], setup_gmodes[1], coupling, fmin, fmax, Hmax_l0=Hmax_l0, Gamma_max_l0=Gamma_max_l0)
 	fout=open(output_file, 'w')
 	fout.write('# Configuration of mode parameters. This file was generated by bump_DP.py (external python program)')
 	fout.write('# Input mode parameters. degree / freq / H / W / splitting a1 / eta / a3 /  b (mag) / alfa (mag) / asymetry / inclination')
@@ -394,7 +542,7 @@ def main_star_generator(config_file='star_params.global', output_file='star_para
 		nu=nu_m_l1[en]
 		w=width_m_l1[en]
 		h=height_m_l1[en]
-		a1=0
+		a1=a1_l1[en]
 		eta=0
 		a3=0
 		asym=0
@@ -409,7 +557,7 @@ def main_star_generator(config_file='star_params.global', output_file='star_para
 		nu=nu_l2[en]
 		w=width_l2[en]
 		h=height_l2[en]
-		a1=0
+		a1=a1_l2[en]
 		eta=0
 		a3=0
 		asym=0
@@ -424,7 +572,7 @@ def main_star_generator(config_file='star_params.global', output_file='star_para
 		nu=nu_l3[en]
 		w=width_l3[en]
 		h=height_l3[en]
-		a1=0
+		a1=a1_l3[en]
 		eta=0
 		a3=0
 		asym=0
@@ -452,7 +600,7 @@ def write_range_modes(numax, Dnu, Ncoef, output_file='star_params.range'):
 	fout.close()
 
 # A function that allows you to test and visualise the results from make_synthetic_asymptotic_star()
-def test_asymptotic_star(Dnu_star=20, DP1_star=80, q_star=0.15):	
+def test_asymptotic_star(Dnu_star=20, DP1_star=80, q_star=0.15, Teff_star=5300.):	
 	# Define global Pulsation parameters
 	el=1.
 	#Dnu_star=30. # RGB star
@@ -473,7 +621,7 @@ def test_asymptotic_star(Dnu_star=20, DP1_star=80, q_star=0.15):
 	fmin=numax_star - 5*Dnu_star
 	fmax=numax_star + 5*Dnu_star
 
-	nu_l0, nu_p_l1, nu_g_l1, nu_m_l1, nu_l2, nu_l3, width_l0, width_m_l1, width_l2, width_l3, height_l0, height_l1, height_l2, height_l3=make_synthetic_asymptotic_star(numax_star, Dnu_star, epsilon_star, D0_star, DP1_star, alpha_star, q_star, fmin, fmax)
+	nu_l0, nu_p_l1, nu_g_l1, nu_m_l1, nu_l2, nu_l3, width_l0, width_m_l1, width_l2, width_l3, height_l0, height_l1, height_l2, height_l3, a1_l1, a1_l2, a1_l3=make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star, D0_star, DP1_star, alpha_star, q_star, fmin, fmax)
 
 	plt.plot(nu_l0, width_l0, color='Black', linestyle='--')
 	plt.plot(nu_l0, height_l0, color='Blue', linestyle='--')
@@ -497,6 +645,14 @@ def test_asymptotic_star(Dnu_star=20, DP1_star=80, q_star=0.15):
 	ksi_nu_m=ksi_fct2(nu_m_l1, nu_p_l1, nu_g_l1, Dnu_p, DPl, q_star, norm_method='slow')
 	plt.plot(nu, ksi, color='Orange')
 	plt.plot(nu_m_l1, ksi_nu_m, 'ro')
+	for p in nu_p_l1:
+		plt.axvline(x=p, color='blue', linestyle='--')
+		print(p)
+	plt.show()
+
+	plt.plot(nu_m_l1, a1_l1, color='Red', linestyle='--')
+	plt.plot(nu_m_l1, a1_l1, 'ro')
+	#plt.plot(nu_m_l1, ksi_nu_m, 'ro')
 	for p in nu_p_l1:
 		plt.axvline(x=p, color='blue', linestyle='--')
 		print(p)
