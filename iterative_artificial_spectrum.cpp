@@ -85,7 +85,8 @@ void iterative_artificial_spectrum(std::string dir_core){
 		passed=1;
 	}
 	if(cfg.model_name == "asymptotic_mm_v1"){
-		Nmodel=6;
+		Nmodel=7;
+		param_names.push_back("Teff"); 
 		param_names.push_back("Dnu"); 
 		param_names.push_back("epsilon"); 
 		param_names.push_back("alpha"); 
@@ -569,10 +570,12 @@ VectorXd order_input_params(VectorXd cte_params, VectorXd var_params, std::vecto
 	for(int i=0; i<cte_names.size(); i++){
 		names.push_back(cte_names[i]);
 	}
+	//std::cout << "constant size:" << cte_names.size() << std::endl;
+	
 	for(int i=0; i<var_names.size(); i++){
 		names.push_back(var_names[i]);
 	}
-        //std::cout << "names.size()=" << names.size() << std::endl;
+	//std::cout << "names.size()=" << names.size() << std::endl;
 	for(int i=0; i<names.size(); i++){
 		//std::cout << "param_names[i]=" << param_names[i] << std::endl;
 

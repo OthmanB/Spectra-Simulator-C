@@ -38,12 +38,13 @@ void asymptotic_mm_v1(VectorXd input_params, std::string file_out_modes, std::st
 	//std::cout << "input_params=" << input_params.transpose() << std::endl;
 	//std::cout << "input_params.size()=" << input_params.size() << std::endl;
 	// ------- Deploy the parameters ------
-	double Dnu=input_params[0];
-	double epsilon=input_params[1];
-	double alpha=input_params[2];
-	double q=input_params[3];
-	double hnr_l0=input_params[4];
-	double l0_width_at_numax=input_params[5];
+	double Teff=input_params[0];
+	double Dnu=input_params[1];
+	double epsilon=input_params[2];
+	double alpha=input_params[3];
+	double q=input_params[4];
+	double hnr_l0=input_params[5];
+	double l0_width_at_numax=input_params[6];
 	
 	double D0=Dnu/100;
 	double lmax=3;
@@ -91,8 +92,9 @@ void asymptotic_mm_v1(VectorXd input_params, std::string file_out_modes, std::st
 	rwfile.open(file_cfg_mm.c_str());
 	if(rwfile.is_open()){
 		// ---------------------
-		rwfile << "# First line: Dnu / epsilon / D0. Second line: DP1 / alpha / q. Third line coupling / how many l=0 freq on left&right of numax / hmax / width at numax for l=0" << std::endl;
-		rwfile << Dnu;
+		rwfile << "# First line: Teff / Dnu / epsilon / D0. Second line: DP1 / alpha / q. Third line coupling / how many l=0 freq on left&right of numax / hmax / width at numax for l=0" << std::endl;
+		rwfile << Teff;
+		rwfile << std::setw(Nchars_spec) << std::setprecision(precision_spec) << Dnu;
 		rwfile << std::setw(Nchars_spec) << std::setprecision(precision_spec) << epsilon << std::setw(Nchars_spec) << D0 << std::endl;
 		rwfile << DP << std::setw(Nchars_spec) << alpha << std::endl;
 		rwfile << q << std::setw(Nchars_spec) << Nmax_pm <<  std::setw(Nchars_spec)  << Hmax_l0 <<  std::setw(Nchars_spec)  << l0_width_at_numax << std::endl;

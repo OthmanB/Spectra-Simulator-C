@@ -139,9 +139,9 @@ Follows the general description given above
 		```nu(n,l) = ( n + epsilon + l/2) Dnu - l(l+1)D0```
   - The frequencies of the l=1 modes follow exactly the asymptotitc relation for the mixed modes	
 	
-* Rotation and inclination: *Splitting and inclination implementation in progress* 
-  - *[Code update on 15 Oct 2019]* The splitting assumptions:
-	* We generate a population of stars with a surface rotation randomly distributed (truncated Gaussian) between 30 and 90 days.
+* Rotation and inclination: *Splitting and inclination implementation* 
+  - *[Code update on 16 Oct 2019]* The splitting assumptions:
+	* We generate a population of stars with a surface rotation randomly distributed (truncated Gaussian) between 30 and 90 days. There is the possibility to enter your own rotation at the surface (rot_env_input variable in bump_DP.make_synthetic_asymptotic_star()), but this requires manual intervention or extra coding.
 
 	* For non-mixed modes, the splitting is assumed to be equal to the surface rotation (solid body rotation)
 
@@ -152,9 +152,9 @@ Follows the general description given above
         * It is constant for log(g) < 3.55 (evolved RGB), at a value witch is in continuity with Fig 13 of Deheuvels et al. 2014. The flat ratio in agreement with Charlote Gehand's results. BUT THIS IS OBVIOUSLY NOT VALID FOR CLUMP STARS. 
 	
         * The core-to-envelope rotation contrasts from Deheuvels et al. 2014 are parametrised with a 2nd order polynomial fit, function of log(g). log(g) is determined are a pure function of the temperature: ```g = (numax/numax_sun) ( Teff / Teff_sun)^0.5```. Uncertainties on the log(g) are fixed to 0.1. Randomisation of the results are also performed using the uncertainties of the polynomial fit, but in a simplified manner. As shown in the code (bump_DP.py), weuse the quadratic mean of the relative error for stars B-E, not accounting for the uncertainties given by stars A and F. The relative uncertainty on the ratio is then fixed to 44.8%.
-
-        * *[Yet to be implemented]:* Need to add Teff as a variable in the C++ code section (main.cfg), etc.. 
-	* *[Yet to be implemented]:* Need to add an isotropic distribution of stellar inclination in the python code (function main_star_generator()).  
+        
+	*  The stellar inclination follows an isotropic distribution (uniform in cos(i)).
+    
 **Noise:***
 	White noise only. No frequency-dependent noise so far implemented.
 	

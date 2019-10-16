@@ -54,7 +54,6 @@ void artificial_spectrum_act_asym(double Tobs, double Cadence, double Nspectra, 
 	data_modes=read_data_ascii_Ncols(file_in_modes, delimiter, verbose_data);
 	data_noise=read_data_ascii_Ncols(file_in_noise, delimiter, verbose_data);
 
-
 	df=1e6/(Tobs * 86400.);
 	Delta=1e6/Cadence/2;
 	Ndata=Delta/df;
