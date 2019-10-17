@@ -354,8 +354,6 @@ def rot_2zones_v1(rot_envelope, numax, Teff, sigma_logg=0.1, randomize_logg=True
 	rot_envelope_true=rot_envelope
 	rot_core_true=rot_core
 
-	#print('True core rotation: ', rot_core_true)
-	#print('True env rotation: ', rot_envelope_true)
 	if randomize_core_rot == True:
 		# We will assume that the error contribution from the core and from the envelope is the same in relative value:
 		# err(rot_core)/rot_core = err(rot_envelope)/rot_envelope ===> core2envelope_err_star = X * sqrt(1 + core2envelope_star**2) 
@@ -365,15 +363,23 @@ def rot_2zones_v1(rot_envelope, numax, Teff, sigma_logg=0.1, randomize_logg=True
 
 		rot_envelope=numpy.random.normal(loc=rot_envelope, scale=rot_envelope_err)
 		rot_core=numpy.random.normal(loc=rot_core, scale=rot_core_err)
+		# Failsafe to avoid negative rotation rates
+		while rot_core < 0:
+			rot_core=numpy.random.normal(loc=rot_core, scale=rot_core_err)
+		while rot_envelope < 0:
+			rot_envelope=numpy.random.normal(loc=rot_envelope, scale=rot_envelope_err)
 	else:
 		rot_core_err=0
 		rot_envelope_err=0
 
 	#print(' numpy.sqrt(1 + core2envelope_star**2) = ', numpy.sqrt(1 + core2envelope_star**2))
-	#print('rot_envelope_err=', rot_envelope_err)
-	#print('rot_core_err=', rot_core_err)
-	#print('rot_envelope (randomized): ', rot_envelope)
-	#print('rot_core (randomized): ', rot_core)
+	print('Ratio core-to-envelope rotation rate: ', core2envelope_star, '  +/-', core2envelope_err_star )
+	print('True core rotation: ', rot_core_true)
+	print('True env rotation: ', rot_envelope_true)
+	print('rot_envelope_err=', rot_envelope_err)
+	print('rot_core_err=', rot_core_err)
+	print('rot_envelope (randomized): ', rot_envelope)
+	print('rot_core (randomized): ', rot_core)
 	#exit()
 	return rot_envelope, rot_core, rot_envelope_true, rot_core_true
 
@@ -479,11 +485,6 @@ def make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star
 	rot_env, rot_c, rot_env_true, rot_c_true=rot_2zones_v1(rot_env_input, numax_star, Teff_star, sigma_logg=0.1)
 	a1_l1=dnu_rot_2zones(ksi_pg, rot_env, rot_c)
 
-	#print(rot_env, rot_c, rot_env_true, rot_c_true)
-	#print('a1_l1:')
-	#print(a1_l1)
-	#print('size(a1_l1)', len(a1_l1))
-	#exit()
 	# ------- l=2 modes -----
 	nu_l2=[]
 	for en in range(nmin, nmax):
