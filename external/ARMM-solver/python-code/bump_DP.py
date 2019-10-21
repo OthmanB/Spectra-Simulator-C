@@ -299,7 +299,7 @@ def rot_envelope():
 #	 (2) rot_core: average rotation in the core 
 #	 (3) rot_envelope_err: 1sigma error (or dispersion) on rot_envelope 
 #	 (4) rot_core_err: 1sigma error (or dispersion) on rot_core
-def rot_2zones_v1(rot_envelope, numax, Teff, sigma_logg=0.1, randomize_logg=True, randomize_core_rot=True):
+def rot_2zones_v1(rot_envelope, numax, Teff, sigma_logg=0.1, randomize_logg=True, randomize_core_rot=True, output_file_rot=""):
 	# Get log(g) from T and numax using https://arxiv.org/pdf/1505.06087.pdf
 	numax_sun=2900. # THIS IS THE NUMAX IN HEIGHT
 	Teff_sun=5777.
@@ -346,6 +346,7 @@ def rot_2zones_v1(rot_envelope, numax, Teff, sigma_logg=0.1, randomize_logg=True
 		core2envelope_star=1.
 		core2envelope_err_star=0.1 # arbitrary error for MS case
 
+
 	#print('core2envelope_star:', core2envelope_star, '  +/-', core2envelope_err_star)
 
 	# Determine the core rotation
@@ -354,8 +355,6 @@ def rot_2zones_v1(rot_envelope, numax, Teff, sigma_logg=0.1, randomize_logg=True
 	rot_envelope_true=rot_envelope
 	rot_core_true=rot_core
 
-	#print('True core rotation: ', rot_core_true)
-	#print('True env rotation: ', rot_envelope_true)
 	if randomize_core_rot == True:
 		# We will assume that the error contribution from the core and from the envelope is the same in relative value:
 		# err(rot_core)/rot_core = err(rot_envelope)/rot_envelope ===> core2envelope_err_star = X * sqrt(1 + core2envelope_star**2) 
@@ -365,11 +364,26 @@ def rot_2zones_v1(rot_envelope, numax, Teff, sigma_logg=0.1, randomize_logg=True
 
 		rot_envelope=numpy.random.normal(loc=rot_envelope, scale=rot_envelope_err)
 		rot_core=numpy.random.normal(loc=rot_core, scale=rot_core_err)
+		# Failsafe to avoid negative rotation rates
+		while rot_core < 0:
+			rot_core=numpy.random.normal(loc=rot_core, scale=rot_core_err)
+		while rot_envelope < 0:
+			rot_envelope=numpy.random.normal(loc=rot_envelope, scale=rot_envelope_err)
 	else:
 		rot_core_err=0
 		rot_envelope_err=0
 
 	#print(' numpy.sqrt(1 + core2envelope_star**2) = ', numpy.sqrt(1 + core2envelope_star**2))
+	if output_file_rot != "":
+		f=open(output_file_rot, 'w')
+		f.write("Average envelope rotation (microHz) /  Average core rotation  (microHz)\n")
+		stri='{0:.5f}   {1:.5f}'.format(rot_envelope, rot_core)
+		f.write(stri)
+		f.write('\n')
+		f.close()
+	#print('Ratio core-to-envelope rotation rate: ', core2envelope_star, '  +/-', core2envelope_err_star )
+	#print('True core rotation: ', rot_core_true)
+	#print('True env rotation: ', rot_envelope_true)
 	#print('rot_envelope_err=', rot_envelope_err)
 	#print('rot_core_err=', rot_core_err)
 	#print('rot_envelope (randomized): ', rot_envelope)
@@ -418,7 +432,7 @@ def numax_from_stello2009(Dnu_star):
 #	nu_g_l1: Base p modes frequencies used to build the frequencies for the l=1 mixed modes
 #	width_lx: Widths of the l=x modes. x is between 0 and 3
 #   height_lx: Heights of the l=x modes. x is between 0 and 3 
-def make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star, D0_star, DP1_star, alpha_star, q_star, fmin, fmax, Hmax_l0=1., Gamma_max_l0=1., rot_env_input=-1):
+def make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star, D0_star, DP1_star, alpha_star, q_star, fmin, fmax, Hmax_l0=1., Gamma_max_l0=1., rot_env_input=-1, output_file_rot='star_params.rot'):
 
 	# Fix the resolution to 4 years (converted into microHz)
 	resol=1e6/(4*365.*86400.) 
@@ -476,14 +490,11 @@ def make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star
 		# Determine the envelope rotation
 		rot_env_input=rot_envelope()
 
-	rot_env, rot_c, rot_env_true, rot_c_true=rot_2zones_v1(rot_env_input, numax_star, Teff_star, sigma_logg=0.1)
+	rot_env, rot_c, rot_env_true, rot_c_true=rot_2zones_v1(rot_env_input, numax_star, Teff_star, sigma_logg=0.1, randomize_core_rot=True, output_file_rot=output_file_rot)
+	#print('Rot env:', rot_env, ' true:', rot_env_true)
+	#print('Rot c :', rot_c,  ' true:', rot_c_true)
 	a1_l1=dnu_rot_2zones(ksi_pg, rot_env, rot_c)
 
-	#print(rot_env, rot_c, rot_env_true, rot_c_true)
-	#print('a1_l1:')
-	#print(a1_l1)
-	#print('size(a1_l1)', len(a1_l1))
-	#exit()
 	# ------- l=2 modes -----
 	nu_l2=[]
 	for en in range(nmin, nmax):
@@ -524,7 +535,7 @@ def make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star
 
 # Read a basic configuration file that contains the setup to create the whole set
 # of parameters for a synthetic spectra. Those parameters are returned in an output file.
-def main_star_generator(config_file='star_params.global', output_file='star_params.modes', output_file_range='star_params.range'):
+def main_star_generator(config_file='star_params.global', output_file='star_params.modes', output_file_range='star_params.range', output_file_rot='star_params.rot'):
 
 	comments=[]
 	setup=[]
@@ -553,7 +564,7 @@ def main_star_generator(config_file='star_params.global', output_file='star_para
 	fmin=numax_star -Ncoef*Dnu_star
 	fmax=numax_star +Ncoef*Dnu_star
 
-	nu_l0, nu_p_l1, nu_g_l1, nu_m_l1, nu_l2, nu_l3, width_l0, width_m_l1, width_l2, width_l3, height_l0, height_m_l1, height_l2, height_l3, a1_l1, a1_l2, a1_l3=make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star, D0_star, DP1_star, alpha_star, coupling, fmin, fmax, Hmax_l0=Hmax_l0, Gamma_max_l0=Gamma_max_l0)
+	nu_l0, nu_p_l1, nu_g_l1, nu_m_l1, nu_l2, nu_l3, width_l0, width_m_l1, width_l2, width_l3, height_l0, height_m_l1, height_l2, height_l3, a1_l1, a1_l2, a1_l3=make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star, D0_star, DP1_star, alpha_star, coupling, fmin, fmax, Hmax_l0=Hmax_l0, Gamma_max_l0=Gamma_max_l0, output_file_rot=output_file_rot)
 	nu_m_l1=nu_m_l1[1:] # remove the first one as it has always 0 amplitude (for some unclear reason)
 	width_m_l1=width_m_l1[1:]
 	height_m_l1=height_m_l1[1:]
@@ -713,7 +724,7 @@ def test_asymptotic_star(Dnu_star=20, DP1_star=80, q_star=0.15, Teff_star=5300.)
 	plt.plot(nu_m_l1, ksi_nu_m, 'ro')
 	for p in nu_p_l1:
 		plt.axvline(x=p, color='blue', linestyle='--')
-		print(p)
+		#print(p)
 	plt.show()
 
 	plt.plot(nu_m_l1, a1_l1, color='Red', linestyle='--')
@@ -721,7 +732,7 @@ def test_asymptotic_star(Dnu_star=20, DP1_star=80, q_star=0.15, Teff_star=5300.)
 	#plt.plot(nu_m_l1, ksi_nu_m, 'ro')
 	for p in nu_p_l1:
 		plt.axvline(x=p, color='blue', linestyle='--')
-		print(p)
+		#print(p)
 	plt.show()
 
 

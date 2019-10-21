@@ -15,6 +15,10 @@
 #include <boost/random/normal_distribution.hpp>
 #include "artificial_spectrum.h"
 #include "models_database.h"
+#include "version.h"
+
+void showversion();
+int  options(int argc, char* argv[]);
 
 void iterative_artificial_spectrum(std::string dir_core);
 std::vector<double> where(std::vector<double> vec, std::string condition, double value, bool return_values);
@@ -47,6 +51,7 @@ void iterative_artificial_spectrum(std::string dir_core){
 	std::string cfg_file, file_out_modes, file_out_noise, file_cfg_mm, file_out_mm, file_out_mm2, file_out_combi;
 	std::string external_path;
 	Config_Data cfg;
+
 
 	external_path=dir_core + "external/";
 	cfg_file=dir_core + "Configurations/main.cfg";
@@ -289,6 +294,9 @@ bool call_model(std::string model_name, VectorXd input_params, std::string file_
 		str="cp " + dir_core + "external/ARMM-solver/star_params.range " + dir_core + "Data/Spectra_info/" + strtrim(id_str) + ".python.range";
 		const char *command2 = str.c_str(); 
 		system(command2);
+		str="cp " + dir_core + "external/ARMM-solver/star_params.rot " + dir_core + "Data/Spectra_info/" + strtrim(id_str) + ".python.rot";
+		const char *command3 = str.c_str(); 
+		system(command3);
 		passed=1;
 	}
 
@@ -645,10 +653,95 @@ std::string identifier2chain(std::string identifier){
 }
 
 
+void showversion()
+{
+    std::cout << APP_NAME " " APP_VERSION "\n built on " __DATE__ << std::endl;
 
-int main(){
+#   if defined(__clang__)
+    	printf(" with clang " __clang_version__);
+#   elif defined(__GNUC__)
+    	printf(" with GCC");
+    	printf(" %d.%d.%d", __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__);
+#   elif defined(_MSC_VER)
+    	printf(" with MSVC");
+    	printf(" %d", MSVC_VERSION);
+#   else
+    printf(" unknown compiler");
+#   endif
+
+    std::cout << "\n features:";
+#   if defined(__i386__) || defined(_M_IX86)
+    std::cout << " i386" << std::endl;
+#   elif defined(__x86_64__) || defined(_M_AMD64)
+    std::cout << " x86_64" << std::endl;
+#   endif
+    std::cout << " Author: " << APP_COPYRIGHT << std::endl;
+
+}
+
+int options(int argc, char* argv[]){
+
+	std::string arg1, arg2;
+	int val;
+	
+	val=-2;
+	arg1="";
+	
+	//std::cout << argc << std::endl;
+	if(argc == 1){
+		val=-1; // Code for do nothing here (no options)
+		//std::cout << "No option passed, continuing..." << std::endl;
+		std::cout << " ------------" << std::endl;
+		showversion();
+		std::cout << " ------------" << std::endl << std::endl;
+		
+		
+	}
+	if(argc > 1){
+		arg1=argv[1];
+	}
+	if(argc > 2){
+		std::cout << "Too many arguments. Allowed number: 1. " << std::endl;
+		std::cout << "Extra arguments will be ignored" << std::endl;	
+		//arg2=argv[2];
+	}
+	if(argc == 2){
+		if(arg1 == "version"){
+			 val=0;
+		} else{
+			std::cout << "Unknown argument. Allowed arguments: "<< std::endl;
+			std::cout << "    version : Returns the version of the code and exit" << std::endl;
+		}
+	}
+
+	if (val == -2){ // Error code
+		exit(EXIT_FAILURE);
+	} 
+	if (val == 0){ // Version code
+		showversion(); 
+		exit(EXIT_SUCCESS);
+	}
+	if (val >= -1 ){
+		return val; // Execution code val
+	} else{
+		return -2; // Default value is to return an error code
+	}
+}
+
+
+int main(int argc, char* argv[]){
 
 	boost::filesystem::path full_path( boost::filesystem::current_path() );
+
+// -------- Options Handling ------
+	int msg_code;
+	msg_code=options(argc, argv);
+	if(msg_code == -2){
+		std::cout << "Error detected in options. Cannot proceed. Debug required." << std::endl;
+		std::cout << "The program will exit now" << std::endl;
+		exit(EXIT_FAILURE);
+	} 
+	// -------------------------------
 
 	iterative_artificial_spectrum(full_path.string() + "/");
 

@@ -109,7 +109,8 @@ void asymptotic_mm_v1(VectorXd input_params, std::string file_out_modes, std::st
 	// b. Call the external function
 	//const std::string str="python3 -c \"import bump_DP; bump_DP.main_star_generator(config_file='external/ARMM-solver/star_params.global', output_file='external/ARMM-solver/star_params.modes')\" ";
 	//const std::string str="python3 -c \"import bump_DP; bump_DP.main_star_generator(config_file='external/ARMM-solver/star_params.global', output_file='" + file_out_modes + "')\" ";
-	const std::string str="python3 -c \"import bump_DP; bump_DP.main_star_generator(config_file='external/ARMM-solver/star_params.global', output_file='" + file_out_modes + "', output_file_range='external/ARMM-solver/star_params.range')\" ";
+	//const std::string str="python3 -c \"import bump_DP; bump_DP.main_star_generator(config_file='external/ARMM-solver/star_params.global', output_file='" + file_out_modes + "', output_file_range='external/ARMM-solver/star_params.range')\" ";
+	const std::string str="python3 -c \"import bump_DP; bump_DP.main_star_generator(config_file='external/ARMM-solver/star_params.global', output_file='" + file_out_modes + "', output_file_range='external/ARMM-solver/star_params.range'" + ", output_file_rot='external/ARMM-solver/star_params.rot')\" ";
 	const char *command = str.c_str(); 
 	std::cout << "Executing command line: " << std::endl;
 	std::cout << "    "  << str << std::endl;
