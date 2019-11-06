@@ -141,7 +141,7 @@ Follows the general description given above
 	
 * Rotation and inclination: *Splitting and inclination implementation* 
   -  The splitting assumptions:
-	* We generate a population of stars with a surface rotation randomly distributed (truncated Gaussian) between 30 and 90 days. There is the possibility to enter your own rotation at the surface (rot_env_input variable in bump_DP.make_synthetic_asymptotic_star()), but this requires manual intervention or extra coding.
+	* We generate a population of stars with a surface rotation randomly distributed (truncated Gaussian) between 30 and 90 days. 
 
 	* For non-mixed modes, the splitting is assumed to be equal to the surface rotation (solid body rotation)
 
@@ -157,6 +157,29 @@ Follows the general description given above
     
 **Noise:***
 	White noise only. No frequency-dependent noise so far implemented.
+	
+
+### Assumptions for the model 'asymptotic_mm_v2' ###
+
+Same as for asymptotic_mm_v1 but with the following changes:
+
+**Modes:**
+
+* Rotation and inclination: *Splitting and inclination implementation* 
+  -  The splitting assumptions:
+	* The user can generate a population of stars with a surface rotation uniformly and randomly distributed two values (min and max). 
+	* For l=1 mixed modes, instead of imposing some relationship with the evolution of the star regarding the core-to-envelope ratio, we let the user define two bundaries for an uniform sampling of the core-to-envelope ratio (see main.cfg.v2 for a configuration example)
+    
+### Assumptions for the model 'asymptotic_mm_v3' ###
+
+Same as for asymptotic_mm_v1 but with the following changes:
+
+**Modes:**
+
+* Rotation and inclination: *Splitting and inclination implementation* 
+  -  The splitting assumptions:
+	* The user can generate a population of stars with a surface rotation uniformly and randomly distributed two values (min and max). 
+	* For l=1 mixed modes, instead of imposing some relationship with the evolution of the star regarding the core rotation rate, we let the user define two bundaries for an uniform sampling of the core rotation rate (see main.cfg.v3 for a configuration example)
 	
 
 ### QUICK START ###

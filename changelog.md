@@ -1,9 +1,16 @@
 # Version history #
 
+### v0.8.2:
+	* Added functionalities:
+		* new model: asymptotic_mm_v2. This generates a uniform population of rotation rate in the envelope and 
+		  compute the rotation rate in the core considering a uniform population of rotation in the core
+		  The envelope rotation and the envelope-to-core ratio are therefore two new variables in the main.cfg, that replaces the variable Teff (effective temperature) of asymptotic_mm_v1
+		* new model: asymptotic_mm_v3. This generates a uniform population of rotation rate in the envelope and in the core considering a uniform population in both case
+		  The envelope rotation and the core rotation are therefore two new variables in the main.cfg, that replaces the variable Teff (effective temperature) of asymptotic_mm_v1
 ### v0.8.1: Starting public revision history (*Released on 21 Oct 2019*) ### 
 
 	* Added functionalities:
-          * Added this changelog.md file
+        * Added this changelog.md file
 		* Show the version and author information at start, or using the argument 'version' on the command line
 		* adding a xxxx.python.rot file that gives the average core and average envelope rotation rate in microHz used for generating splittings
 

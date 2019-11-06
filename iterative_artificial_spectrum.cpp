@@ -107,6 +107,44 @@ void iterative_artificial_spectrum(std::string dir_core){
 		}
 		passed=1;
 	}
+	if(cfg.model_name == "asymptotic_mm_v2"){
+		Nmodel=8;
+		param_names.push_back("nurot_env"); 
+		param_names.push_back("nurot_ratio"); 
+		param_names.push_back("Dnu"); 
+		param_names.push_back("epsilon"); 
+		param_names.push_back("alpha"); 
+		param_names.push_back("q");
+		param_names.push_back("SNR");
+		param_names.push_back("maxGamma");
+		if(param_names.size() != Nmodel){
+			std::cout << "    Invalid number of parameters for model_name= 'asymptotic_mm_v2'" << std::endl;
+			std::cout << "    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size() << std::endl;
+			std::cout << "    Check your main configuration file" << std::endl;
+			std::cout << "    The program will exit now" << std::endl;
+			exit(EXIT_FAILURE);
+		}
+		passed=1;
+	}
+	if(cfg.model_name == "asymptotic_mm_v3"){
+		Nmodel=8;
+		param_names.push_back("nurot_env"); 
+		param_names.push_back("nurot_core"); 
+		param_names.push_back("Dnu"); 
+		param_names.push_back("epsilon"); 
+		param_names.push_back("alpha"); 
+		param_names.push_back("q");
+		param_names.push_back("SNR");
+		param_names.push_back("maxGamma");
+		if(param_names.size() != Nmodel){
+			std::cout << "    Invalid number of parameters for model_name= 'asymptotic_mm_v3'" << std::endl;
+			std::cout << "    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size() << std::endl;
+			std::cout << "    Check your main configuration file" << std::endl;
+			std::cout << "    The program will exit now" << std::endl;
+			exit(EXIT_FAILURE);
+		}
+		passed=1;
+	}
 
 	if(passed == 0){
 		std::cout << "    model_name= " << cfg.model_name << " is not a recognized keyword for models" << std::endl;
@@ -132,10 +170,7 @@ void iterative_artificial_spectrum(std::string dir_core){
 		exit(EXIT_FAILURE);
 	}
 
-	
-
 }
-
 
 void generate_random(Config_Data cfg, std::vector<std::string> param_names, std::string dir_core, std::string file_out_modes, 
 		std::string file_out_noise, std::string file_out_combi, int N_model,  std::string file_cfg_mm, std::string external_path){
@@ -274,7 +309,7 @@ bool call_model(std::string model_name, VectorXd input_params, std::string file_
 		std::string file_cfg_mm, std::string dir_core, std::string id_str, Config_Data cfg, std::string external_path){
 
 	std::string str;
-	bool passed=0;
+	bool passed=0, subpassed=0;
 	//std::string id_str;
 
 	if(model_name == "generate_cfg_asymptotic_act_asym_Hgauss"){
@@ -283,8 +318,26 @@ bool call_model(std::string model_name, VectorXd input_params, std::string file_
 		artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
 		passed=1;
 	}
-	if(model_name == "asymptotic_mm_v1"){
-		asymptotic_mm_v1(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path);
+	if(model_name == "asymptotic_mm_v1" || model_name == "asymptotic_mm_v2" || model_name == "asymptotic_mm_v3"){
+		if(model_name =="asymptotic_mm_v1"){
+			asymptotic_mm_v1(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path);
+			subpassed=1;
+		}
+		if(model_name =="asymptotic_mm_v2"){
+			asymptotic_mm_v2(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path);
+			subpassed=1;
+		}
+		if(model_name =="asymptotic_mm_v3"){
+			asymptotic_mm_v3(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path);
+			subpassed=1;
+		}
+		if(subpassed == 0){
+			std::cout << "Warning: The function call_model did not generate any configuration file!" << std::endl;
+			std::cout << "         Debug required in the section handling the models asymptotic_mm_vX" << std::endl;
+			std::cout << "         The program will stop now" << std::endl;
+			exit(EXIT_FAILURE);
+		}
+		
 		artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
 		std::cout << "   - [Warning DIRTY CODE IN LINE 281, iterative_artificial_spectrum.cpp] Hard coded path for saving python3 cfg in the spectra_info dir" << std::endl;
 		std::cout << "                                                                         Stable final version should avoid this" << std::endl;
@@ -503,7 +556,7 @@ std::string write_allcombi(MatrixXd allcombi, VectorXd cte_params, Config_Data c
 	VectorXd input_params, var_params;
 	std::ofstream outfile;
 
-	Nchars = 11;
+	Nchars = 14;
 	precision = 5;
 
 	if(erase_old_file == 1 && iter == 0) {
@@ -531,7 +584,7 @@ std::string write_allcombi(MatrixXd allcombi, VectorXd cte_params, Config_Data c
 			outfile << " --------------------------" << std::endl;
 			outfile << "#" << std::setw(5) << "id  ";
 			for(int s=0; s<param_names.size(); s++){
-				outfile << std::setw(11) << param_names[s];
+				outfile << std::setw(14) << param_names[s];
 			}
 			outfile << std::endl;
 		} 

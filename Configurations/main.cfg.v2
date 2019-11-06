@@ -9,10 +9,10 @@
 #               - erase_old_file: If 1, then (1) the combination file is overwritten and (2) the model number (identifier) is reset to 0. 
 #                                 If 0, then (1) append the combination file and (2) model number = last model number + 1
 random 4 # forest_type, followed by the forest_params. If forest_type=random, then forest_params is a single value that corresponds to the Number of samples
-asymptotic_mm_v3	 		# Name of the model. asymptotic_mm_v3 is a basic model to generate a star with mixed modes
-nurot_env nurot_core   Dnu  epsilon    alpha    q      SNR    maxGamma 
-0.1286      0.1286      10.    0.       0.00     0.1    5.     0.1      #val_min
-0.3858      3.858       30.    0.2      0.04     0.3    100.    0.5     #val_max
+asymptotic_mm_v2	 		# Name of the model. asymptotic_mm_v2 is a basic model to generate a star with mixed modes
+nurot_env nurot_ratio   Dnu  epsilon    alpha    q      SNR    maxGamma 
+0.1286       0.1           10.    0.       0.00     0.1    5.     0.1      #val_min
+0.3858       10.           30.    0.2      0.04     0.3    100.    0.5     #val_max
 1.        1.            1.     1.       1.       1.     1.      1.      #If forest_type="random" ==> 1=Variable OR 0=Constant. If forest_type="grid" then must be the stepsize of the grid
 Tobs   Cadence  Naverage
 1460.    300       1
