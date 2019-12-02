@@ -2,7 +2,9 @@
 # of the mixed modes, as they have been tested during their development
 # All this arise from reading few papers from Benoit Mosser and 
 # The PhD thesis from Charlotte Gehand:
-# https://arxiv.org/pdf/1203.0689.pdf
+# https://arxiv.org/pdf/1203.0689.pdf (Mosser paper on mixed modes)
+# https://arxiv.org/pdf/1004.0449.pdf (older Mosser paper on scaling relations for gaussian_width, Amp etc.. - 2010 -)
+# https://arxiv.org/pdf/1011.1928.pdf (The universal pattern introduced with the curvature - Fig. 3 - )
 # https://arxiv.org/pdf/1411.1082.pdf
 # https://tel.archives-ouvertes.fr/tel-02128409/document
 

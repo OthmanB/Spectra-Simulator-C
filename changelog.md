@@ -1,5 +1,19 @@
 # Version history #
 
+### v0.8.3 [DEV]:
+	* Added functionalities:
+		* new model:asymptotic_mm_freeDp_numaxspread_curvepmodes_v1, v2 and v3. These are similar to asymptotic_mm_vx, 
+		but I put the DP as a free parameter and the numax(Dnu) relation is not strictly enforced. The user has the possibility 
+		To add a uniform spread around the numax(Dnu) relation. Recommended value is 0.2 (20%).
+		Development status: 
+			[1] Changes in main.cfg  [100%]
+			[2] Templates from main.cfg.freeDP_curvepmodes.v1, v2 and v3 [100%]
+			[3] Changes in models_database.cpp:
+					- asymptotic_mm_freeDp_numaxspread_curvepmodes_v1 [100%]
+					- asymptotic_mm_freeDp_numaxspread_curvepmodes_v2 [100%]
+					- asymptotic_mm_freeDp_numaxspread_curvepmodes_v3 [100%]
+			[4] Changes in iterative_artificial_spectrum [100%]
+			[5] Changes in bump_DP [100%]
 ### v0.8.2:
 	* Added functionalities:
 		* new model: asymptotic_mm_v2. This generates a uniform population of rotation rate in the envelope and 
@@ -7,6 +21,7 @@
 		  The envelope rotation and the envelope-to-core ratio are therefore two new variables in the main.cfg, that replaces the variable Teff (effective temperature) of asymptotic_mm_v1
 		* new model: asymptotic_mm_v3. This generates a uniform population of rotation rate in the envelope and in the core considering a uniform population in both case
 		  The envelope rotation and the core rotation are therefore two new variables in the main.cfg, that replaces the variable Teff (effective temperature) of asymptotic_mm_v1
+
 ### v0.8.1: Starting public revision history (*Released on 21 Oct 2019*) ### 
 
 	* Added functionalities:

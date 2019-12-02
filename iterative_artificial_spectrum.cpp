@@ -145,7 +145,68 @@ void iterative_artificial_spectrum(std::string dir_core){
 		}
 		passed=1;
 	}
-
+	if(cfg.model_name == "asymptotic_mm_freeDp_numaxspread_curvepmodes_v1"){
+		Nmodel=9;
+		param_names.push_back("Teff"); 
+		param_names.push_back("Dnu"); 
+		param_names.push_back("epsilon"); 
+		param_names.push_back("DP1"); 
+		param_names.push_back("alpha"); 
+		param_names.push_back("q");
+		param_names.push_back("SNR");
+		param_names.push_back("maxGamma");
+		param_names.push_back("numax_spread");		
+		if(param_names.size() != Nmodel){
+			std::cout << "    Invalid number of parameters for model_name= 'asymptotic_mm_v1'" << std::endl;
+			std::cout << "    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size() << std::endl;
+			std::cout << "    Check your main configuration file" << std::endl;
+			std::cout << "    The program will exit now" << std::endl;
+			exit(EXIT_FAILURE);
+		}
+		passed=1;
+	}
+	if(cfg.model_name == "asymptotic_mm_freeDp_numaxspread_curvepmodes_v2"){
+		Nmodel=10;
+		param_names.push_back("nurot_env"); 
+		param_names.push_back("nurot_ratio"); 
+		param_names.push_back("Dnu"); 
+		param_names.push_back("epsilon");
+		param_names.push_back("DP1"); 
+		param_names.push_back("alpha"); 
+		param_names.push_back("q");
+		param_names.push_back("SNR");
+		param_names.push_back("maxGamma");
+		param_names.push_back("numax_spread");		
+		if(param_names.size() != Nmodel){
+			std::cout << "    Invalid number of parameters for model_name= 'asymptotic_mm_v2'" << std::endl;
+			std::cout << "    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size() << std::endl;
+			std::cout << "    Check your main configuration file" << std::endl;
+			std::cout << "    The program will exit now" << std::endl;
+			exit(EXIT_FAILURE);
+		}
+		passed=1;
+	}
+	if(cfg.model_name == "asymptotic_mm_freeDp_numaxspread_curvepmodes_v3"){
+		Nmodel=10;
+		param_names.push_back("nurot_env"); 
+		param_names.push_back("nurot_core"); 
+		param_names.push_back("Dnu"); 
+		param_names.push_back("epsilon");
+		param_names.push_back("DP1");  
+		param_names.push_back("alpha"); 
+		param_names.push_back("q");
+		param_names.push_back("SNR");
+		param_names.push_back("maxGamma");
+		param_names.push_back("numax_spread");		
+		if(param_names.size() != Nmodel){
+			std::cout << "    Invalid number of parameters for model_name= 'asymptotic_mm_v3'" << std::endl;
+			std::cout << "    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size() << std::endl;
+			std::cout << "    Check your main configuration file" << std::endl;
+			std::cout << "    The program will exit now" << std::endl;
+			exit(EXIT_FAILURE);
+		}
+		passed=1;
+	}
 	if(passed == 0){
 		std::cout << "    model_name= " << cfg.model_name << " is not a recognized keyword for models" << std::endl;
 		std::cout << "    Check models_database.h to see the available model names" << std::endl;
@@ -318,7 +379,9 @@ bool call_model(std::string model_name, VectorXd input_params, std::string file_
 		artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
 		passed=1;
 	}
-	if(model_name == "asymptotic_mm_v1" || model_name == "asymptotic_mm_v2" || model_name == "asymptotic_mm_v3"){
+	if(model_name == "asymptotic_mm_v1" || model_name == "asymptotic_mm_v2" || model_name == "asymptotic_mm_v3" ||
+		model_name == "asymptotic_mm_freeDp_numaxspread_curvepmodes_v1" || model_name == "asymptotic_mm_freeDp_numaxspread_curvepmodes_v2" ||
+		model_name == "asymptotic_mm_freeDp_numaxspread_curvepmodes_v3"){
 		if(model_name =="asymptotic_mm_v1"){
 			asymptotic_mm_v1(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path);
 			subpassed=1;
@@ -329,6 +392,18 @@ bool call_model(std::string model_name, VectorXd input_params, std::string file_
 		}
 		if(model_name =="asymptotic_mm_v3"){
 			asymptotic_mm_v3(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path);
+			subpassed=1;
+		}
+		if(model_name =="asymptotic_mm_freeDp_numaxspread_curvepmodes_v1"){ 
+			asymptotic_mm_freeDp_numaxspread_curvepmodes_v1(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path);
+			subpassed=1;
+		}
+		if(model_name =="asymptotic_mm_freeDp_numaxspread_curvepmodes_v2"){ 
+			asymptotic_mm_freeDp_numaxspread_curvepmodes_v2(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path);
+			subpassed=1;
+		}
+		if(model_name =="asymptotic_mm_freeDp_numaxspread_curvepmodes_v3"){ 
+			asymptotic_mm_freeDp_numaxspread_curvepmodes_v2(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path);
 			subpassed=1;
 		}
 		if(subpassed == 0){
@@ -353,6 +428,7 @@ bool call_model(std::string model_name, VectorXd input_params, std::string file_
 		passed=1;
 	}
 
+	//exit(EXIT_SUCCESS);
 	return passed;
 }
 
@@ -649,6 +725,7 @@ VectorXd order_input_params(VectorXd cte_params, VectorXd var_params, std::vecto
 		} else {
 			if(ind.size() == 0){
 				std::cout << "Some values of cfg.labels could not be matched with param_names" << std::endl;
+				std::cout << "Searched parameter: " << param_names[i] << std::endl;
 				std::cout << "This is likely due to a mispelling" << std::endl;
 				std::cout << "Debug is required. The program will stop now" << std::endl;
 			} else {

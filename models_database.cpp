@@ -92,12 +92,12 @@ void asymptotic_mm_v1(VectorXd input_params, std::string file_out_modes, std::st
 	rwfile.open(file_cfg_mm.c_str());
 	if(rwfile.is_open()){
 		// ---------------------
-		rwfile << "# First line: Teff / Dnu / epsilon / D0. Second line: DP1 / alpha / q. Third line coupling / how many l=0 freq on left&right of numax / hmax / width at numax for l=0" << std::endl;
+		rwfile << "# First line: Teff / Dnu / epsilon / D0. Second line: DP1 / alpha / q. Third line coupling / how many l=0 freq on left&right of numax / hmax / width at numax for l=0 / max uniform spread on numax (% or <=0 if off)" << std::endl;
 		rwfile << Teff;
 		rwfile << std::setw(Nchars_spec) << std::setprecision(precision_spec) << Dnu;
 		rwfile << std::setw(Nchars_spec) << std::setprecision(precision_spec) << epsilon << std::setw(Nchars_spec) << D0 << std::endl;
 		rwfile << DP << std::setw(Nchars_spec) << alpha << std::endl;
-		rwfile << q << std::setw(Nchars_spec) << Nmax_pm <<  std::setw(Nchars_spec)  << Hmax_l0 <<  std::setw(Nchars_spec)  << l0_width_at_numax << std::endl;
+		rwfile << q << std::setw(Nchars_spec) << Nmax_pm <<  std::setw(Nchars_spec)  << Hmax_l0 <<  std::setw(Nchars_spec)  << l0_width_at_numax << std::setw(Nchars_spec) << "-1 " << std::endl;
 		rwfile.close();
 		std::cout << "Success... starting python3 external program..." << std::endl;
 	} else{
@@ -203,12 +203,12 @@ void asymptotic_mm_v2(VectorXd input_params, std::string file_out_modes, std::st
 	rwfile.open(file_cfg_mm.c_str());
 	if(rwfile.is_open()){
 		// ---------------------
-		rwfile << "# First line: rot_env / rot_ratio / Dnu / epsilon / D0. Second line: DP1 / alpha / q. Third line coupling / how many l=0 freq on left&right of numax / hmax / width at numax for l=0" << std::endl;
+		rwfile << "# First line: rot_env / rot_ratio / Dnu / epsilon / D0. Second line: DP1 / alpha / q. Third line coupling / how many l=0 freq on left&right of numax / hmax / width at numax for l=0 / max uniform spread on numax (% or <=0 if off)" << std::endl;
 		rwfile << rot_env << std::setw(Nchars_spec) << std::setprecision(precision_spec) << rot_ratio;
 		rwfile << std::setw(Nchars_spec) << std::setprecision(precision_spec) << Dnu;
 		rwfile << std::setw(Nchars_spec) << std::setprecision(precision_spec) << epsilon << std::setw(Nchars_spec) << D0 << std::endl;
 		rwfile << DP << std::setw(Nchars_spec) << alpha << std::endl;
-		rwfile << q << std::setw(Nchars_spec) << Nmax_pm <<  std::setw(Nchars_spec)  << Hmax_l0 <<  std::setw(Nchars_spec)  << l0_width_at_numax << std::endl;
+		rwfile << q << std::setw(Nchars_spec) << Nmax_pm <<  std::setw(Nchars_spec)  << Hmax_l0 <<  std::setw(Nchars_spec)  << l0_width_at_numax << std::setw(Nchars_spec) << "-1 " << std::endl;
 		rwfile.close();
 		std::cout << "Success... starting python3 external program..." << std::endl;
 	} else{
@@ -313,12 +313,12 @@ void asymptotic_mm_v3(VectorXd input_params, std::string file_out_modes, std::st
 	rwfile.open(file_cfg_mm.c_str());
 	if(rwfile.is_open()){
 		// ---------------------
-		rwfile << "# First line: rot_env / rot_core / Dnu / epsilon / D0. Second line: DP1 / alpha / q. Third line coupling / how many l=0 freq on left&right of numax / hmax / width at numax for l=0" << std::endl;
+		rwfile << "# First line: rot_env / rot_core / Dnu / epsilon / D0. Second line: DP1 / alpha. Third line coupling q / how many l=0 freq on left&right of numax / hmax / width at numax for l=0 / max uniform spread on numax (% or <=0 if off)" << std::endl;
 		rwfile << rot_env << std::setw(Nchars_spec) << std::setprecision(precision_spec) << rot_core;
 		rwfile << std::setw(Nchars_spec) << std::setprecision(precision_spec) << Dnu;
 		rwfile << std::setw(Nchars_spec) << std::setprecision(precision_spec) << epsilon << std::setw(Nchars_spec) << D0 << std::endl;
 		rwfile << DP << std::setw(Nchars_spec) << alpha << std::endl;
-		rwfile << q << std::setw(Nchars_spec) << Nmax_pm <<  std::setw(Nchars_spec)  << Hmax_l0 <<  std::setw(Nchars_spec)  << l0_width_at_numax << std::endl;
+		rwfile << q << std::setw(Nchars_spec) << Nmax_pm <<  std::setw(Nchars_spec)  << Hmax_l0 <<  std::setw(Nchars_spec)  << l0_width_at_numax << std::setw(Nchars_spec) << "-1 " << std::endl;
 		rwfile.close();
 		std::cout << "Success... starting python3 external program..." << std::endl;
 	} else{
@@ -348,6 +348,309 @@ void asymptotic_mm_v3(VectorXd input_params, std::string file_out_modes, std::st
 	write_star_noise_params(noise_params, file_out_noise);
 
 }
+
+void asymptotic_mm_freeDp_numaxspread_curvepmodes_v1(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string file_cfg_mm, std::string external_path){
+
+	int seed=(unsigned)time(NULL);
+	srand(seed);
+
+	// ----- Constants ------
+	const double PI = 3.141592653589793238462643;
+	const double G=6.667e-8;
+	const double Teff_sun=5777;
+	const double Dnu_sun=135.1;
+	const double numax_sun=3150;
+	const double R_sun=6.96342e5;
+	const double M_sun=1.98855e30;
+	const double rho_sun=M_sun*1e3/(4*PI*pow(R_sun*1e5,3)/3);
+	// ----------------------
+
+	//std::cout << "input_params=" << input_params.transpose() << std::endl;
+	//std::cout << "input_params.size()=" << input_params.size() << std::endl;
+	// ------- Deploy the parameters ------
+	double Teff=input_params[0];
+	double Dnu=input_params[1];
+	double epsilon=input_params[2];
+	double DP=input_params[3];
+	double alpha=input_params[4];
+	double q=input_params[5];
+	double hnr_l0=input_params[6];
+	double l0_width_at_numax=input_params[7];
+	double numax_spread=input_params[8];	
+
+	
+	double D0=Dnu/100;
+	double lmax=3;
+	double Nmax_pm=6; // Number of radial order to inject on each side of numax
+	double N0=1.; 
+	double Hmax_l0=hnr_l0*N0;
+	
+	double a1;
+	
+	MatrixXd noise_params(3,3);
+	VectorXd input_noise(9);
+	input_noise[0]=-1;
+	input_noise[1]=-1;
+	input_noise[2]=-1;
+	input_noise[3]=-1;
+	input_noise[4]=-1;
+	input_noise[5]=-1; // CHECK THOSE -1 ...
+	input_noise[6]=N0;
+	input_noise[7]=-2;
+	input_noise[8]=-2;
+	// ------------------------------------
+
+	// ----------- PYTHON EXTERNAL FUNCTION -------------
+	// a. Generate the configuration file for the python function
+	int Nchars_spec = 20;
+	int precision_spec = 5;
+	int sizes;
+	
+	std::string line0;
+	std::ofstream rwfile;
+	
+	std::cout << "                     - Attempting to write cfg on file " << file_cfg_mm << "..." << std::endl;
+	rwfile.open(file_cfg_mm.c_str());
+	if(rwfile.is_open()){
+		// ---------------------
+		rwfile << "# First line: Teff / Dnu / epsilon / D0. Second line: DP1 / alpha / q. Third line coupling / how many l=0 freq on left&right of numax / hmax / width at numax for l=0 / max uniform spread on numax (% or <=0 if off)" << std::endl;
+		rwfile << Teff;
+		rwfile << std::setw(Nchars_spec) << std::setprecision(precision_spec) << Dnu;
+		rwfile << std::setw(Nchars_spec) << std::setprecision(precision_spec) << epsilon << std::setw(Nchars_spec) << D0 << std::endl;
+		rwfile << DP << std::setw(Nchars_spec) << alpha << std::endl;
+		rwfile << q << std::setw(Nchars_spec) << Nmax_pm <<  std::setw(Nchars_spec)  << Hmax_l0 <<  std::setw(Nchars_spec)  << l0_width_at_numax << std::setw(Nchars_spec) << numax_spread << std::endl;
+		rwfile.close();
+		std::cout << "Success... starting python3 external program..." << std::endl;
+	} else{
+		std::cout << "Error! Could not write the configuration file the Python external routine!" << std::endl;
+		std::cout << "The program will exit now" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	
+	// b. Call the external function
+	const std::string str="python3 -c \"import bump_DP; bump_DP.main_star_generator(config_file='external/ARMM-solver/star_params.global', output_file='" + file_out_modes + "', output_file_range='external/ARMM-solver/star_params.range'" + ", output_file_rot='external/ARMM-solver/star_params.rot')\" ";
+	const char *command = str.c_str(); 
+	std::cout << "Executing command line: " << std::endl;
+	std::cout << "    "  << str << std::endl;
+	
+	if (Dnu <= 15){
+		std::cout << "    Model with small Dnu ==> many mixed modes. This might be long to find the solutions..." << std::endl; 
+	}
+	system(command);
+	// Defining the noise profile parameters
+	// Note about the noise: -1 means that it is ignored. -2 mean that the value is irrelevant
+	for(int e=0; e<3; e++){
+		for(int k=0; k<3; k++){
+			noise_params(e, k)=input_noise(3*e + k);
+		}
+	}
+	// A FUNCTION THAT WRITES THE Noise
+	write_star_noise_params(noise_params, file_out_noise);
+
+}
+
+void asymptotic_mm_freeDp_numaxspread_curvepmodes_v2(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string file_cfg_mm, std::string external_path){
+
+	int seed=(unsigned)time(NULL);
+	srand(seed);
+	
+	// ----- Constants ------
+	const double PI = 3.141592653589793238462643;
+	const double G=6.667e-8;
+	const double Teff_sun=5777;
+	const double Dnu_sun=135.1;
+	const double numax_sun=3150;
+	const double R_sun=6.96342e5;
+	const double M_sun=1.98855e30;
+	const double rho_sun=M_sun*1e3/(4*PI*pow(R_sun*1e5,3)/3);
+	// ----------------------
+
+	//std::cout << "input_params=" << input_params.transpose() << std::endl;
+	//std::cout << "input_params.size()=" << input_params.size() << std::endl;
+	// ------- Deploy the parameters ------
+	double rot_env=input_params[0];
+	double rot_ratio=input_params[1];	
+	double Dnu=input_params[2];
+	double epsilon=input_params[3];
+	double DP=input_params[4];
+	double alpha=input_params[5];
+	double q=input_params[6];
+	double hnr_l0=input_params[7];
+	double l0_width_at_numax=input_params[8];
+	double numax_spread=input_params[9];	
+	
+	double D0=Dnu/100;
+	double lmax=3;
+	double Nmax_pm=6; // Number of radial order to inject on each side of numax
+	double N0=1.; 
+	double Hmax_l0=hnr_l0*N0;
+	
+	double a1;
+	
+	MatrixXd noise_params(3,3);
+	VectorXd input_noise(9);
+	input_noise[0]=-1;
+	input_noise[1]=-1;
+	input_noise[2]=-1;
+	input_noise[3]=-1;
+	input_noise[4]=-1;
+	input_noise[5]=-1; // CHECK THOSE -1 ...
+	input_noise[6]=N0;
+	input_noise[7]=-2;
+	input_noise[8]=-2;
+	// ------------------------------------
+
+	// ----------- PYTHON EXTERNAL FUNCTION -------------
+	// a. Generate the configuration file for the python function
+	int Nchars_spec = 20;
+	int precision_spec = 5;
+	int sizes;
+	
+	std::string line0;
+	std::ofstream rwfile;
+	
+	std::cout << "                     - Attempting to write cfg on file " << file_cfg_mm << "..." << std::endl;
+	rwfile.open(file_cfg_mm.c_str());
+	if(rwfile.is_open()){
+		// ---------------------
+		rwfile << "# First line: rot_env / rot_ratio / Dnu / epsilon / D0. Second line: DP1 / alpha / q. Third line coupling / how many l=0 freq on left&right of numax / hmax / width at numax for l=0 / max uniform spread on numax (% or <=0 if off)" << std::endl;
+		rwfile << rot_env << std::setw(Nchars_spec) << std::setprecision(precision_spec) << rot_ratio;
+		rwfile << std::setw(Nchars_spec) << std::setprecision(precision_spec) << Dnu;
+		rwfile << std::setw(Nchars_spec) << std::setprecision(precision_spec) << epsilon << std::setw(Nchars_spec) << D0 << std::endl;
+		rwfile << DP << std::setw(Nchars_spec) << alpha << std::endl;
+		rwfile << q << std::setw(Nchars_spec) << Nmax_pm <<  std::setw(Nchars_spec)  << Hmax_l0;
+		rwfile <<  std::setw(Nchars_spec)  << l0_width_at_numax <<  std::setw(Nchars_spec)  << numax_spread << std::endl;
+		rwfile.close();
+		std::cout << "Success... starting python3 external program..." << std::endl;
+	} else{
+		std::cout << "Error! Could not write the configuration file the Python external routine!" << std::endl;
+		std::cout << "The program will exit now" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	
+	// b. Call the external function
+	const std::string str="python3 -c \"import bump_DP; bump_DP.main_star_generator(config_file='external/ARMM-solver/star_params.global', output_file='" + file_out_modes + "', output_file_range='external/ARMM-solver/star_params.range'" + ", output_file_rot='external/ARMM-solver/star_params.rot', version=2)\" ";
+	const char *command = str.c_str(); 
+	std::cout << "Executing command line: " << std::endl;
+	std::cout << "    "  << str << std::endl;
+	
+	if (Dnu <= 15){
+		std::cout << "    Model with small Dnu ==> many mixed modes. This might be long to find the solutions..." << std::endl; 
+	}
+	system(command);
+	// Defining the noise profile parameters
+	// Note about the noise: -1 means that it is ignored. -2 mean that the value is irrelevant
+	for(int e=0; e<3; e++){
+		for(int k=0; k<3; k++){
+			noise_params(e, k)=input_noise(3*e + k);
+		}
+	}
+	// A FUNCTION THAT WRITES THE Noise
+	write_star_noise_params(noise_params, file_out_noise);
+
+}
+
+void asymptotic_mm_freeDp_numaxspread_curvepmodes_v3(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string file_cfg_mm, std::string external_path){
+
+	int seed=(unsigned)time(NULL);
+	srand(seed);
+	
+	// ----- Constants ------
+	const double PI = 3.141592653589793238462643;
+	const double G=6.667e-8;
+	const double Teff_sun=5777;
+	const double Dnu_sun=135.1;
+	const double numax_sun=3150;
+	const double R_sun=6.96342e5;
+	const double M_sun=1.98855e30;
+	const double rho_sun=M_sun*1e3/(4*PI*pow(R_sun*1e5,3)/3);
+	// ----------------------
+
+	//std::cout << "input_params=" << input_params.transpose() << std::endl;
+	//std::cout << "input_params.size()=" << input_params.size() << std::endl;
+	// ------- Deploy the parameters ------
+	double rot_env=input_params[0];
+	double rot_core=input_params[1];	
+	double Dnu=input_params[2];
+	double epsilon=input_params[3];
+	double DP=input_params[4];
+	double alpha=input_params[5];
+	double q=input_params[6];
+	double hnr_l0=input_params[7];
+	double l0_width_at_numax=input_params[8];
+	double numax_spread=input_params[9];
+		
+	double D0=Dnu/100;
+	double lmax=3;
+	double Nmax_pm=6; // Number of radial order to inject on each side of numax
+	double N0=1.; 
+	double Hmax_l0=hnr_l0*N0;
+	
+	double a1;
+	
+	MatrixXd noise_params(3,3);
+	VectorXd input_noise(9);
+	input_noise[0]=-1;
+	input_noise[1]=-1;
+	input_noise[2]=-1;
+	input_noise[3]=-1;
+	input_noise[4]=-1;
+	input_noise[5]=-1; // CHECK THOSE -1 ...
+	input_noise[6]=N0;
+	input_noise[7]=-2;
+	input_noise[8]=-2;
+	// ------------------------------------
+
+	// ----------- PYTHON EXTERNAL FUNCTION -------------
+	// a. Generate the configuration file for the python function
+	int Nchars_spec = 20;
+	int precision_spec = 5;
+	int sizes;
+	
+	std::string line0;
+	std::ofstream rwfile;
+	
+	std::cout << "                     - Attempting to write cfg on file " << file_cfg_mm << "..." << std::endl;
+	rwfile.open(file_cfg_mm.c_str());
+	if(rwfile.is_open()){
+		// ---------------------
+		rwfile << "# First line: rot_env / rot_core / Dnu / epsilon / D0. Second line: DP1 / alpha. Third line coupling q / how many l=0 freq on left&right of numax / hmax / width at numax for l=0 / max uniform spread on numax (% or <=0 if off)" << std::endl;
+		rwfile << rot_env << std::setw(Nchars_spec) << std::setprecision(precision_spec) << rot_core;
+		rwfile << std::setw(Nchars_spec) << std::setprecision(precision_spec) << Dnu;
+		rwfile << std::setw(Nchars_spec) << std::setprecision(precision_spec) << epsilon << std::setw(Nchars_spec) << D0 << std::endl;
+		rwfile << DP << std::setw(Nchars_spec) << alpha << std::endl;
+		rwfile << q << std::setw(Nchars_spec) << Nmax_pm <<  std::setw(Nchars_spec)  << Hmax_l0 <<  std::setw(Nchars_spec)  << l0_width_at_numax << std::setw(Nchars_spec);
+		rwfile <<  std::setw(Nchars_spec)  << numax_spread << std::endl;
+		rwfile.close();
+		std::cout << "Success... starting python3 external program..." << std::endl;
+	} else{
+		std::cout << "Error! Could not write the configuration file the Python external routine!" << std::endl;
+		std::cout << "The program will exit now" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	
+	// b. Call the external function
+	const std::string str="python3 -c \"import bump_DP; bump_DP.main_star_generator(config_file='external/ARMM-solver/star_params.global', output_file='" + file_out_modes + "', output_file_range='external/ARMM-solver/star_params.range'" + ", output_file_rot='external/ARMM-solver/star_params.rot', version=3)\" ";
+	const char *command = str.c_str(); 
+	std::cout << "Executing command line: " << std::endl;
+	std::cout << "    "  << str << std::endl;
+	
+	if (Dnu <= 15){
+		std::cout << "    Model with small Dnu ==> many mixed modes. This might be long to find the solutions..." << std::endl; 
+	}
+	system(command);
+	// Defining the noise profile parameters
+	// Note about the noise: -1 means that it is ignored. -2 mean that the value is irrelevant
+	for(int e=0; e<3; e++){
+		for(int k=0; k<3; k++){
+			noise_params(e, k)=input_noise(3*e + k);
+		}
+	}
+	// A FUNCTION THAT WRITES THE Noise
+	write_star_noise_params(noise_params, file_out_noise);
+
+}
+
 
 void generate_cfg_asymptotic_act_asym_Hgauss(VectorXd input_params, std::string file_out_modes, std::string file_out_noise){
 
