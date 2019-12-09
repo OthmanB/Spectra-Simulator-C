@@ -194,7 +194,6 @@ void write_star_noise_params(MatrixXd noise_params, std::string file_out){
 
 }
 
-
 void write_spectrum(VectorXd x, VectorXd y, VectorXd z, std::string file_out, bool write_inmodel){
 
 	VectorXi Nchars(3), precision(3);

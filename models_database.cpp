@@ -12,6 +12,8 @@
 #include <fstream>
 # include <Eigen/Dense>
 #include "models_database.h"
+#include "noise_models.h"
+#include "string_handler.h"
 
 using Eigen::VectorXd;
 using Eigen::VectorXi;
@@ -652,6 +654,13 @@ void asymptotic_mm_freeDp_numaxspread_curvepmodes_v3(VectorXd input_params, std:
 }
 
 
+
+
+
+// ------------------------------------
+// ------- MAIN SEQUENCE MODELS ------
+// ------------------------------------
+
 void generate_cfg_asymptotic_act_asym_Hgauss(VectorXd input_params, std::string file_out_modes, std::string file_out_noise){
 
 	// ----- Constants ------
@@ -813,132 +822,124 @@ void generate_cfg_asymptotic_act_asym_Hgauss(VectorXd input_params, std::string 
 
 }
 
+/* same as generate_cfg_asymptotic but Height follow a gaussian.
+ The Height input is therefore the maximum height at numax
+ The Width is rescaled from the relation given by Appourchaux et al. 2014 and given for the Sun 
+*/
+void  generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string extra){
 
+	std::cout << "generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma UNDER CONSTRUCTION" << std::endl;
+	exit(EXIT_SUCCESS);
 
-/*
-void generate_cfg_asymptotic_Hgauss(VectorXd input_params, std::string file_out_modes, std::string file_out_noise){
-
-	// ----- Constants ------
-	const double PI = 3.141592653589793238462643;
-	const double G=6.667e-8;
-	const double Teff_sun=5777;
-	const double Dnu_sun=135.1;
-	const double numax_sun=3150;
-	const double R_sun=6.96342e5;
-	const double M_sun=1.98855e30;
-	const double rho_sun=M_sun*1e3/(4*PI*pow(R_sun*1e5,3)/3);
-
-	VectorXd Visibilities(4);
-	Visibilities << 1, 1.5, 0.5, 0.07;
-	// ----------------------
-
-	double ks=2; // controls the width of the gaussian for heights
-
-	// ------- Deploy the parameters ------
-	double numax=input_params[0];
-	double Dnu=input_params[1];
-	double epsilon=input_params[2];
-	double D0=input_params[3];
-	double Max_Height=input_params[4];
-	double Width=input_params[5];
-	double    lmax=input_params[6];
-	int    Nmax=input_params[7];
-	double a1=input_params[8];
-	double coef_for_a2=input_params[9];
-	double a3=input_params[10];
-	double inc=input_params[11];
-	const VectorXd input_noise=input_params.segment(12, 3*3);
-	//double N0=input_params[12];
-	// ------------------------------------
-
-
-	// --------- Variables ---------
-	int k;
-	double el, en, n_at_numax, height, a2;
-	VectorXd en_list(Nmax);
-	MatrixXd nu(int(lmax+1), Nmax), h(int(lmax+1), Nmax), w(int(lmax+1), Nmax), s_a1(int(lmax+1), Nmax), s_a2(int(lmax+1), Nmax), 
-		 s_a3(int(lmax+1), Nmax), i(int(lmax+1), Nmax), mode_params(int(lmax+1)*Nmax, 8), noise_params(3,3);
-	// -----------------------------
-
-	if((Nmax % 2) !=0){
-		std::cout << "Nmax must be a odd number. Please change that value accordingly" << std::endl;
-		std::cout << "The program will exit now" << std::endl;
-		exit(EXIT_FAILURE);
-	}
-
-	n_at_numax=numax/Dnu - epsilon + el/2 + el*(el+1)*D0/Dnu;
-	for(en=-Nmax/2 + 1; en<=Nmax/2; en++){
-		en_list[k]=floor(n_at_numax) + en;
-		k=k+1;
-	}	
-
-
-	// Define the centrifugal force effect	
-	a2=coef_for_a2 * (4./3)*PI * pow( a1*1e-6 ,2) / (G * rho_sun) * pow(Dnu_sun/Dnu,2);
-	std::cout << "Using coef_for_a2 = " << coef_for_a2 << std::endl;
-	std::cout << "   ===> Resulting coeficient a2 = " << a2 << std::endl;
-	
-	// Create a list of frequencies, Height, Width, Splitting, Centrifugal terms, latitudinal terms and stellar inclination
-	for(el=0; el<=lmax; el++){
-		for(en=0; en<Nmax; en++){
-			if(el == 0 || el == 1){
-				nu(el,en)=(en_list[k] + epsilon + el/2)*Dnu - el*(el + 1)*D0;
-			}
-			if(el == 2 || el == 3){
-				nu(el,en)=(en_list[en]-1 + epsilon + el/2)*Dnu - el*(el + 1)*D0;
-			}
-			if(el > 3){
-				std::cout << "Generating frequencies with degree higher than l=3 is not implemented" << std::endl;
-				std::cout << "Please set lmax<4" << std::endl;
-				std::cout << "The program will exit now" << std::endl;
-				exit(EXIT_FAILURE);
-			}
-			height=Max_Height*exp(-0.5 * pow( (nu(el, en) - numax)/(ks*Dnu), 2));
-			h(el, en)=height*Visibilities[el];
-
-			w(el,en)=Width;
-
-			s_a1(el,en)=a1;
-			s_a2(el,en)=a2;
-			s_a3(el,en)=a3;
-			i(el,en)=inc;
-		}
-	}
-
-	// Summarizing the information into a parameter table
-	for(el=0; el<=lmax; el++){
-		for(k=el*Nmax; k<(el+1)*Nmax; k++){
-			mode_params(k,0)=el;
-			mode_params(k,1)=nu(el , k-el*Nmax);
-			mode_params(k,2)=h(el , k-el*Nmax);
-			mode_params(k,3)=w(el , k-el*Nmax);
-			mode_params(k,4)=s_a1(el , k-el*Nmax);
-			mode_params(k,5)=s_a2(el , k-el*Nmax);
-			mode_params(k,6)=s_a3(el , k-el*Nmax);
-			mode_params(k,7)=i(el , k-el*Nmax);
-		}
-	}
-	// A FUNCTION THAT WRITES THE PARAMETERS
-	// ......
+	int lmax_ref Nmax_synthese, lmax, pos_max;
+	double HNR, a1_ov_Gamma, a3, beta_asym, inc, HNRref, Height_factor, Gamma_at_numax, a1; 
+	VectorXd tmp;
+	VectorXd nu_star, h_star, gamma_star, s_a1_star, s_a3_star, s_asym_star, inc_star;
+	star_params ref_star;
+		
+	ref_star=read_star_params(extra); // THIS FUNCTION HAS YET TO BE WRITTEN
+	lmax_ref=ref_star.mode_params.col(0).maxCoeff(); // The first column contains the degrees
 
 	// Defining the noise profile parameters
 	// Note about the noise: -1 means that it is ignored. -2 mean that the value is irrelevant
-	for(int e=0; e<3; e++){
-		for(int k=0; k<3; k++){
-			noise_params(e, k)=input_noise(3*e + k);
+	tmp.resize(ref_star.mode_params.col(0); 	
+	tmp.setConstant(0);
+	local_noise=harvey_like(noise_params, ref_star.mode_params.col(1), tmp); // Generate a list of local noise values for each frequencies
+	
+// ---- Deploy the parameters -----
+	HNR=input_params[0];
+	a1_ov_Gamma=input_params[1];
+	lmax=input_params[2];
+	a3=input_params[3];
+	beta_asym=input_params[4];
+	inc=input_params[5];
+// ---------------------------------
+
+	HNRref=(ref_star.mode_params.col(2)/local_noise).maxCoef(); // This is the maximum HNR of the reference data
+	Height_factor=HNR/HNRref;  // compute the coeficient required to get the proper max(HNR)
+
+	pos_max=where_dbl(ref_star.mode_params.col(2), ref_star.mode_params.col(2).maxCoef(), 0.001);
+	Gamma_at_numax=ref_star.mode_params(3, pos_max);
+		
+	a1=a1_ov_Gamma*Gamma_at_numax; // We do no vary the Width. We change the splitting in order to get the wished a1/Gamma0
+
+	if (local_noise.sum()!= 0){
+		N0=1; // Imposing the the Noise background is 1
+		std::cout <<  "Using N0=" << N0 << " (white noise)" << std::endl;
+		std::cout << "HNR of all modes (degree / freq / HNR):" << std::endl;
+		for(i =0; i<ref_star.mode_params.rows(); i++){
+			std::cout << ref_star.mode_params.col(0) << "  " << ref_star.mode_params.col(1) << "  " << Height_factor * ref_star.mode_params.col(2)/local_noise << std::endl;
+		}
+	} else{
+		std::cout << 'Warning: bruit_local from the stat_synthese file is 0 ==> Cannot compute N0=mean(local_noisr)' << std::endl;
+		std::cout << '         The program will stop now' << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	
+	// Defining the final size for all of the outptus
+	h_star.resize(ref_star.mode_params.rows());
+	gamma_star.resize(ref_star.mode_params.rows());
+	s_a1_star.resize(ref_star.mode_params.rows());
+	s_a3_star.resize(ref_star.mode_params.rows());	
+	s_asym_star.resize(ref_star.mode_params.rows());
+	inc_star.resize(ref_star.mode_params.rows());
+
+	// Refactoring the heights
+	h_star=Height_factor * ref_star.mode_params.col(2)* N0/local_noise; 
+
+	gamma_star=ref_star.mode_params.col(3); // In IDL, AN INTERPOLATION WAS DONE FOR l>0. HERE WE ASSUME THE .in file is whatever the true model should be (no interpolation)
+	
+	if (a1 > 0){
+		s_a1_star.setConstant(a1);
+	} else{
+		s_a1_star=ref_star.mode_params.col(4); 
 		}
 	}
-	// A FUNCTION THAT WRITES THE Noise
-	// ......
+	
+	if (a3 > 0){
+		s_a3_star.setConstant(a3);	
+	} else{
+		s_a3_star=ref_star.mode_params.col(6);	
+	}
+	if (inc > 0){ 
+		inc_star.setConstant(inc);
+	} else{
+		inc_star=ref_star.mode_params.col(10);
+	}
+	
+	
+	// CONTINUE FROM HERE....
+	std::cout << "Implemented until here..."<< std::endl;
+	exit(EXIT_SUCCESS);
+	mode_params=dblarr((lmax+1)*Nmax, 11)
+
+	for el=0, lmax do begin
+			mode_params[el*Nmax:(el+1)*Nmax-1, 0]=el
+			mode_params[el*Nmax:(el+1)*Nmax-1, 1]=nu[el,*]
+			mode_params[el*Nmax:(el+1)*Nmax-1, 2]=
+			mode_params[el*Nmax:(el+1)*Nmax-1, 3]=w[el,*]  
+			mode_params[el*Nmax:(el+1)*Nmax-1, 4]=s_a1[el,*] 
+			mode_params[el*Nmax:(el+1)*Nmax-1, 5]=0  
+			mode_params[el*Nmax:(el+1)*Nmax-1, 6]=s_a3[el,*]
+			mode_params[el*Nmax:(el+1)*Nmax-1, 7]=0
+			mode_params[el*Nmax:(el+1)*Nmax-1, 8]=0
+			mode_params[el*Nmax:(el+1)*Nmax-1, 9]=beta_asym
+			mode_params[el*Nmax:(el+1)*Nmax-1, 10]=i[el,*]  
+	endfor
 
 
-	std::cout << "WARNING: THIS FUNCTION IS NOT COMPLETELY WRITTEN" << std::endl;
-	std::cout << "The program will stop now" << std::endl;
-	exit(EXIT_FAILURE);
+	write_star_mode_params_act_asym, mode_params, file_out_modes
+	
 
-
+	noise_params=dblarr(3, 3) ; [ [H0, tau0, p0], [H1, tau1, p1], N0]
+	noise_params[0, *]=-1
+	noise_params[1, *]=-1
+	noise_params[2, 0]=N0 ; We put only a white noise
+	noise_params[2, 1:2]=-2
+	write_star_noise_params, noise_params, file_out_noise
+		
 }
-*/
+
 
 /*
 // small test program

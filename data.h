@@ -73,5 +73,14 @@ namespace gnuplotio {
     };
 }
 
+struct star_params{
+/* 
+	A data structure used by the models that need to read the parameters of a reference 
+	star from a .in file to operate
+*/
+	VectorXd spec_params; 
+	MatrixXd mode_params, noise_params;
+	std:string identifier;
+};
 
 

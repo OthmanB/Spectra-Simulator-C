@@ -8,16 +8,27 @@
 		  These models have the particularity to allow you to use a reference star as a template. On IDL, the output was on a sav binary file.
 		  Here the inputs must have the same format as the .in files
 		Development status: 
-			[1] Changes in main.cfg  [0%]
+			[1] Changes in main.cfg  [30%]
 			[2] Templates from main.cfg.synthese_file [0%]
-			[3] Changes in models_database.cpp:
-					- generate_cfg_from_synthese_file_Wscaled_act_asym_cosi [0%]
-					- generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma [0%]
-			[3] Change to allow reading in file format:
-					- Rename write_star_params.cpp and .h into io_star_params.cpp and .h  [0%]
-					- implement a reading function for in files: read_star_params()  [0%]
-			[4] Changes in iterative_artificial_spectrum [0%]
-			
+			[3] Rename write_star_params.cpp and .h into io_star_params.cpp and .h 							 [0%]
+			[4] Changes in models_database.cpp: [START WITH THIS AND CREATE EMPTY TEMPLATES FOR PREREQUISITES]
+					- generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma							 [70%]
+			[5] Prerequisite to [3]: 
+				[a] Change to allow reading in file format:
+					- Implement a reading function for in files: read_star_params() 						 [0%]
+					- Implement a structure star_params in data.h   										[100%] [Need testing]
+	                  The format of the outputs will be in a structure star_params with those parameters: 
+			          VectorXd spec_params, MatrixXd mode_params, MatrixXd noise_params, std::string identifier
+			    [b] Import noise_models.cpp and .h from TAMCMC-CPP 											[100%]
+			    [c] Update noise_modes.cpp and .h to handle MatrixXd shape inputs 							[100%] [Need Testing]
+			    [d] Import string_handler.cpp and .h from TACMMC-CPP										[100%]
+			[6] Changes in iterative_artificial_spectrum 													[0%]
+			[7] Write a function that convert sav files into .in format. 									[0%]
+					- Corrolary: Will need to update the IDLpostMCMC code to create a native .in output file [0%]
+			[8] Code the grid capability 																	[0%]
+			[9] Update the README.md regarding the compilation line: 
+				- noise_models.cpp must be added in the list of input files 								[0%]
+				- string_handler.cpp and .h also 															[0%]
 			
 ### v0.8.3 (*Released on 2 Dec 2019*)####
 	* Added functionalities:
