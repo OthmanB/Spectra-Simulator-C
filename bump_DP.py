@@ -1,4 +1,4 @@
- # This contains all the function that describes the Bumped period spacing
+# This contains all the function that describes the Bumped period spacing
 # and how they can be used to derived mode amplitudes from inertia ratio
 # as they have been developed and tested. This arises from the following publications:
 # https://arxiv.org/pdf/1509.06193.pdf (Inertia and ksi relation)
@@ -856,7 +856,7 @@ def test_asymptotic_star(Dnu_star=20, DP1_star=80, q_star=0.15, Teff_star=5300.)
 
 
 # A function that allows you to test and visualise the results from make_synthetic_asymptotic_star()
-def test_asymptotic_star_v2(Dnu_star=20, DP1_star=80, q_star=0.15, rot_envelope=30., rot_ratio=5.):	
+def test_asymptotic_star_v2(Dnu_star=55, epsilon_star=0.1, D0_percent=1./100, DP1_star=350, q_star=0.15, rot_envelope=30., rot_ratio=5.):	
 	# Define global Pulsation parameters
 	el=1.
 	#Dnu_star=30. # RGB star
@@ -866,8 +866,7 @@ def test_asymptotic_star_v2(Dnu_star=20, DP1_star=80, q_star=0.15, rot_envelope=
 	#q_star=0.15 # Fix the coupling term
 
 	# Parameters for p modes that follow exactly the asymptotic relation of p modes
-	D0_star=Dnu_star/100. 
-	epsilon_star=0.4
+	D0_star=Dnu_star*D0_percent 
 
 	# Parameters for g modes that follow exactly the asymptotic relation of g modes for a star with radiative core
 	alpha_star=0.
@@ -877,7 +876,18 @@ def test_asymptotic_star_v2(Dnu_star=20, DP1_star=80, q_star=0.15, rot_envelope=
 	fmin=numax_star - 5*Dnu_star
 	fmax=numax_star + 5*Dnu_star
 
-	nu_l0, nu_p_l1, nu_g_l1, nu_m_l1, nu_l2, nu_l3, width_l0, width_m_l1, width_l2, width_l3, height_l0, height_l1, height_l2, height_l3, a1_l1, a1_l2, a1_l3=make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star, D0_star, DP1_star, alpha_star, q_star, fmin, fmax, rot_env_input=rot_envelope, rot_ratio_input=rot_ratio)
+	Hmax_l0=1
+	Gamma_max_l0=1
+	Teff_star=-1
+	rot_core=-1
+	output_file_rot='test.rot'
+	
+	#nu_l0, nu_p_l1, nu_g_l1, nu_m_l1, nu_l2, nu_l3, width_l0, width_m_l1, width_l2, width_l3, height_l0, height_l1, height_l2, height_l3, a1_l1, a1_l2, a1_l3=make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star, D0_star, DP1_star, alpha_star, q_star, fmin, fmax, rot_env_input=rot_envelope, rot_ratio_input=rot_ratio)
+	nu_l0, nu_p_l1, nu_g_l1, nu_m_l1, nu_l2, nu_l3, width_l0, width_m_l1, width_l2, width_l3, height_l0, height_l1, height_l2, height_l3, a1_l1, a1_l2, a1_l3=make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star, D0_star, DP1_star, alpha_star, q_star, fmin, fmax, Hmax_l0=Hmax_l0, Gamma_max_l0=Gamma_max_l0, rot_env_input=rot_envelope, rot_ratio_input=rot_ratio, rot_core_input=rot_core, output_file_rot=output_file_rot)
+	print(" n + epsilon = nu_l0/Dnu_star: ", nu_l0/Dnu_star)
+	print(" n_mixed + epsilon = nu_m_l1/Dnu_star: ", nu_m_l1/Dnu_star)
+	print(" n + epsilon - 6D0/Dnu_star = nu_l2/Dnu_star: ", nu_l2/Dnu_star)
+	print(" n + epsilon - 12D0/Dnu_star = nu_l3/Dnu_star: ", nu_l3/Dnu_star)
 
 	plt.plot(nu_l0, width_l0, color='Black', linestyle='--')
 	plt.plot(nu_l0, height_l0, color='Blue', linestyle='--')
