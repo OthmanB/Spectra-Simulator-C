@@ -48,6 +48,31 @@ std::string strtrim(const std::string& str){
 	return "";
 }
 
+std::vector<std::string> strsplit2(const std::string str, const std::string delimiters){
+/*
+ * Take a string and split it each time one of the listed delimiters is detected
+*/
+	std::string str0=strtrim(str);
+	size_t pos=0;
+	std::vector<std::string> str_splitted;
+
+	while ((pos = str0.find_first_of(delimiters)) != std::string::npos) {
+		    
+		str_splitted.push_back(str0.substr(0, pos)); // get the substring
+		str0.erase(0, pos + delimiters.length());
+		/*if(pos + delimiters.length() <= 1){
+			str0.erase(0, pos + delimiters.length());
+		} else{
+			str0.erase(0, pos + delimiters.length()-1);
+		}
+		*/
+		str0=strtrim(str0); // remove any extra white space at the begining before iterating
+	}
+	str_splitted.push_back(str0); // do not forget to add the end of the string
+
+return str_splitted;
+}
+
 
 std::vector<std::string> strsplit(const std::string str, const std::string delimiters){
 //
