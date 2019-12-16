@@ -10,6 +10,7 @@
 #include <iostream>
 #include <iomanip>
 #include <fstream>
+# include <string>
 #include <Eigen/Dense>
 //# include <random>
 #include <boost/random.hpp>

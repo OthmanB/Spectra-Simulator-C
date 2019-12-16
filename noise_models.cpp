@@ -6,10 +6,13 @@
  */
 #include <math.h>
 #include <Eigen/Dense>
+#include <string>
 //#include <iostream>
 //#include <iomanip>
 
 using Eigen::VectorXd;
+using Eigen::MatrixXd;
+
 
 //VectorXd harvey_like(const VectorXd noise_params, VectorXd x, VectorXd y, const int Nharvey);
 //VectorXd harvey1985(const VectorXd noise_params, VectorXd x, VectorXd y, const int Nharvey);
@@ -47,8 +50,8 @@ VectorXd harvey_like(const MatrixXd noise_params, VectorXd x, VectorXd y){
 	   inputs are in the following order: [H0, tc0, p0, ..., Hn, tcn, pn, N0]
 	*/
 
-	std::cout << "noise_models::harvey_like UNDER CONSTRUCTION... NEED CHECKS" << std::endl;
-	exit(EXIT_SUCCESS);
+//	std::cout << "noise_models::harvey_like UNDER CONSTRUCTION... NEED CHECKS" << std::endl;
+//	exit(EXIT_SUCCESS);
 
 	const long Nx=x.size();
 	int cpt=0;
@@ -56,7 +59,7 @@ VectorXd harvey_like(const MatrixXd noise_params, VectorXd x, VectorXd y){
 	
 	const int Nrows=noise_params.rows();
 	const int Nharvey=Nrows-1; // The last line is assumed to always contain the white noise.. Then Nharvey all_lines-1
-	white_noise.setConstant(noise_params.row(Nrows-1).at(0)); // check!
+	white_noise.setConstant(noise_params(Nrows-1, 0)); // check!
 
 	for(long i=0; i<Nharvey;i++){
 		if(noise_params(i,0) > 0 && noise_params(i,1) >0 && noise_params(i,2) >0){ // If all values of the line are valid...

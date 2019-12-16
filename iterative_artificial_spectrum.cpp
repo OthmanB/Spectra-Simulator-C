@@ -10,6 +10,7 @@
 #include <iostream>
 #include <iomanip>
 #include <fstream>
+#include <string>
 #include <Eigen/Dense>
 #include <boost/random.hpp>
 #include <boost/random/normal_distribution.hpp>
@@ -21,8 +22,6 @@ void showversion();
 int  options(int argc, char* argv[]);
 
 void iterative_artificial_spectrum(std::string dir_core);
-std::vector<double> where(std::vector<double> vec, std::string condition, double value, bool return_values);
-VectorXi where_str(std::vector<std::string> vec, std::string value);
 VectorXd order_input_params(VectorXd cte_params, VectorXd var_params, std::vector<std::string> cte_names, 
 		std::vector<std::string> var_names, std::vector<std::string> param_names);
 void generate_random(Config_Data cfg, std::vector<std::string> param_names, std::string dir_core, std::string file_out_modes, 
@@ -53,7 +52,7 @@ void iterative_artificial_spectrum(std::string dir_core){
 	Config_Data cfg;
 
 
-	external_path=dir_core + "external/";
+	external_path=dir_core + "external/"; 
 	cfg_file=dir_core + "Configurations/main.cfg";
 	file_out_modes=dir_core + "Configurations/tmp/modes_tmp.cfg";
 	file_out_noise=dir_core + "Configurations/tmp/noise_tmp.cfg";
@@ -82,6 +81,23 @@ void iterative_artificial_spectrum(std::string dir_core){
 		param_names.push_back("N0");
 		if(param_names.size() != Nmodel){
 			std::cout << "    Invalid number of parameters for model_name= 'generate_cfg_asymptotic_act_asym'" << std::endl;
+			std::cout << "    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size() << std::endl;
+			std::cout << "    Check your main configuration file" << std::endl;
+			std::cout << "    The program will exit now" << std::endl;
+			exit(EXIT_FAILURE);
+		}
+		passed=1;
+	}
+	if(cfg.model_name == "generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma"){
+		Nmodel=6;
+		param_names.push_back("HNR"); 
+		param_names.push_back("a1ovGamma"); 
+		param_names.push_back("Gamma_at_numax"); 
+		param_names.push_back("a3"); 
+		param_names.push_back("beta_asym");
+		param_names.push_back("i");
+		if(param_names.size() != Nmodel){
+			std::cout << "    Invalid number of parameters for model_name= 'generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma'" << std::endl;
 			std::cout << "    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size() << std::endl;
 			std::cout << "    Check your main configuration file" << std::endl;
 			std::cout << "    The program will exit now" << std::endl;
@@ -375,9 +391,13 @@ bool call_model(std::string model_name, VectorXd input_params, std::string file_
 
 	if(model_name == "generate_cfg_asymptotic_act_asym_Hgauss"){
 		generate_cfg_asymptotic_act_asym_Hgauss(input_params, file_out_modes, file_out_noise);
-		//id_str=identifier2chain(identifier);
 		artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
 		passed=1;
+	}
+	if(model_name =="generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma"){
+		generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma(input_params, file_out_modes,  file_out_noise, cfg.extra_params); // extra_params must points towards a .in file
+		artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
+		passed=1;		
 	}
 	if(model_name == "asymptotic_mm_v1" || model_name == "asymptotic_mm_v2" || model_name == "asymptotic_mm_v3" ||
 		model_name == "asymptotic_mm_freeDp_numaxspread_curvepmodes_v1" || model_name == "asymptotic_mm_freeDp_numaxspread_curvepmodes_v2" ||
@@ -437,138 +457,6 @@ bool call_model(std::string model_name, VectorXd input_params, std::string file_
 // ------------------------- SECONDARY METHODS ---------------------------
 // -----------------------------------------------------------------------
 
-VectorXi where_str(std::vector<std::string> vec, std::string value){
-/*
- * Gives the indexes of values of an array that match the value
- *
-*/
-   int cpt;
-   VectorXi index(vec.size());
-
-	cpt=0;
-	for(int i=0; i<vec.size(); i++){
-		if(vec[i] == value){
-			index[cpt]=i;
-			cpt=cpt+1;
-		}		
-	}
-	index.conservativeResize(cpt);
-/*
-	std::cout << "in where_str()" << std::endl;
-	std::cout << index << std::endl;
-	exit(EXIT_SUCCESS);
-*/
-	return index;
- 
-}
-
-std::vector<double> where(std::vector<double> vec, std::string condition, double value, bool return_values){
-/*
- * If return_values == 0:
- * 	Gives the indexes of values of an array that fullfil the condition
- * If return_values == 1:
- * 	Gives the values of an array that fullfil the condition
- *
- * The condition can be the operator "=", "!=", ">", "<", ">=" or "<="
-*/
-	std::vector<double> index, values;
-	
-   if(return_values == 0){
-	if(condition == "="){
-		for(int i=0; i<vec.size(); i++){
-			if(vec[i] == value){
-				index.push_back(i);
-				//std::cout << "vec[" << i << "]= " << vec[i] << std::endl;
-			}		
-		}
-	}
-
-	if(condition == "!="){
-		for(int i=0; i<vec.size(); i++){
-			if(vec[i] != value){
-				index.push_back(i);
-			}		
-		}
-	}
-	if(condition == ">"){
-		for(int i=0; i<vec.size(); i++){
-			if(vec[i] > value){
-				index.push_back(i);
-			}		
-		}
-	}
-	if(condition == "<"){
-		for(int i=0; i<vec.size(); i++){
-			if(vec[i] < value){
-				index.push_back(i);
-			}		
-		}
-	}
-	if(condition == ">="){
-		for(int i=0; i<vec.size(); i++){
-			if(vec[i] >= value){
-				index.push_back(i);
-			}		
-		}
-	}
-	if(condition == "<="){
-		for(int i=0; i<vec.size(); i++){
-			if(vec[i] <= value){
-				index.push_back(i);
-			}		
-		}
-	}
-
-	return index;
-   } else {
-	if(condition == "="){
-		for(int i=0; i<vec.size(); i++){
-			if(vec[i] == value){
-				values.push_back(vec[i]);
-			}		
-		}
-	}
-	if(condition == "!="){
-		for(int i=0; i<vec.size(); i++){
-			if(vec[i] != value){
-				values.push_back(vec[i]);
-			}		
-		}
-	}
-	if(condition == ">"){
-		for(int i=0; i<vec.size(); i++){
-			if(vec[i] > value){
-				values.push_back(vec[i]);
-			}		
-		}
-	}
-	if(condition == "<"){
-		for(int i=0; i<vec.size(); i++){
-			if(vec[i] < value){
-				values.push_back(vec[i]);
-			}		
-		}
-	}
-	if(condition == ">="){
-		for(int i=0; i<vec.size(); i++){
-			if(vec[i] >= value){
-				values.push_back(vec[i]);
-			}		
-		}
-	}
-	if(condition == "<="){
-		for(int i=0; i<vec.size(); i++){
-			if(vec[i] <= value){
-				values.push_back(vec[i]);
-			}		
-		}
-	}
-
-	return values;
-   }
-
-}
-
 long read_id_allcombi(std::string file_combi){
 
  /* bool keyword_found=0, group_found=0;
@@ -599,7 +487,7 @@ long read_id_allcombi(std::string file_combi){
 	for(int i=0; i<vals_last.size(); i++){
 		std::cout << "vals_last[" << i << "]=" << vals_last[i] << std::endl;	
 	}
-	return str_to_lng(vals_last[0]);
+	return str_to_long(vals_last[0]);
 }
 
 std::string read_lastline_ascii(std::string filename){
@@ -716,7 +604,7 @@ VectorXd order_input_params(VectorXd cte_params, VectorXd var_params, std::vecto
 	for(int i=0; i<names.size(); i++){
 		//std::cout << "param_names[i]=" << param_names[i] << std::endl;
 
-		ind=where_str(names, strtrim(param_names[i])); // Assumes that only one value matches the criteria
+		ind=where_strXi(names, strtrim(param_names[i])); // Assumes that only one value matches the criteria
 		//std::cout << "ind =" << ind << std::endl;
 		if(ind.size() == 1){
 			order[i]=ind[0];

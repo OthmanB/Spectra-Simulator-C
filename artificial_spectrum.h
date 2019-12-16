@@ -8,5 +8,5 @@
 #include "write_star_params.h"
 #include "build_lorentzian.h"
 #include "plots_diags.h"
-
+#include <string>
 void artificial_spectrum_act_asym(double Tobs, double Cadence, double Nspectra, std::string dir_core, std::string identifier, bool doplots, bool write_inmodel);

@@ -131,34 +131,25 @@ void gnuplt_model(VectorXd x, VectorXd y, VectorXd model, double scoef1, double 
 }
 
 
-std::vector<double> vectXd_to_vec(VectorXd vecXd_in){
+//std::vector<double> vectXd_to_vec(VectorXd vecXd_in){
+//
+//   std::vector<double> vec;
+//   vec.resize(vecXd_in.size());
+//   VectorXd::Map(&vec[0], vecXd_in.size()) = vecXd_in;
+//   return vec;
+//}
 
-   std::vector<double> vec;
-   vec.resize(vecXd_in.size());
-   VectorXd::Map(&vec[0], vecXd_in.size()) = vecXd_in;
-   return vec;
-}
 
 
+//std::string dbl_to_str(const double ind){
+//
+//    std::stringstream ss;
+//
+//    ss.str(std::string());
+//    ss << ind;
+//
+//    return ss.str();
+//}
 
-std::string dbl_to_str(const double ind){
-
-    std::stringstream ss;
-
-    ss.str(std::string());
-    ss << ind;
-
-    return ss.str();
-}
-
-std::string lng_to_str(const long ind){
-
-    std::stringstream ss;
-
-    ss.str(std::string());
-    ss << ind;
-
-    return ss.str();
-}
 
 

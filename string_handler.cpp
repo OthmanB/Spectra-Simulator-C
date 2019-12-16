@@ -28,7 +28,7 @@ std::string strtrim(const std::string& str){
  *  	- const auto --> const string
  *      - optional argument for the separator is now hardcoded
 */
-    std::string whitespace = " \t";
+    std::string tmp, whitespace = " \t";
     size_t strBegin = str.find_first_not_of(whitespace);
     if (strBegin == std::string::npos)
         return ""; // no content
@@ -36,7 +36,16 @@ std::string strtrim(const std::string& str){
     size_t strEnd = str.find_last_not_of(whitespace);
     size_t strRange = strEnd - strBegin + 1;
 
-    return str.substr(strBegin, strRange);
+    tmp=str.substr(strBegin, strRange);
+    std::vector<char> bytes(tmp.begin(), tmp.end());
+ 	if(int(bytes[bytes.size()-1]) == 13){ // Check that CR (return) is not a last character. If so, it has to be removed
+ 			//std::cout << "Reducing size by 1" << std::endl;
+ 			return str.substr(strBegin, strRange-1);
+	} else{
+			//std::cout << "Keeping full size..." << std::endl;
+		    return str.substr(strBegin, strRange);
+	}
+	return "";
 }
 
 
@@ -59,6 +68,141 @@ std::vector<std::string> strsplit(const std::string str, const std::string delim
 		str_splitted.push_back(str0); // do not forget to add the end of the string
 	}
 return str_splitted;
+}
+
+
+
+std::vector<double> where(std::vector<double> vec, std::string condition, double value, bool return_values){
+/*
+ * If return_values == 0:
+ * 	Gives the indexes of values of an array that fullfil the condition
+ * If return_values == 1:
+ * 	Gives the values of an array that fullfil the condition
+ *
+ * The condition can be the operator "=", "!=", ">", "<", ">=" or "<="
+*/
+	std::vector<double> index, values;
+	
+   if(return_values == 0){
+	if(condition == "="){
+		for(int i=0; i<vec.size(); i++){
+			if(vec[i] == value){
+				index.push_back(i);
+				//std::cout << "vec[" << i << "]= " << vec[i] << std::endl;
+			}		
+		}
+	}
+
+	if(condition == "!="){
+		for(int i=0; i<vec.size(); i++){
+			if(vec[i] != value){
+				index.push_back(i);
+			}		
+		}
+	}
+	if(condition == ">"){
+		for(int i=0; i<vec.size(); i++){
+			if(vec[i] > value){
+				index.push_back(i);
+			}		
+		}
+	}
+	if(condition == "<"){
+		for(int i=0; i<vec.size(); i++){
+			if(vec[i] < value){
+				index.push_back(i);
+			}		
+		}
+	}
+	if(condition == ">="){
+		for(int i=0; i<vec.size(); i++){
+			if(vec[i] >= value){
+				index.push_back(i);
+			}		
+		}
+	}
+	if(condition == "<="){
+		for(int i=0; i<vec.size(); i++){
+			if(vec[i] <= value){
+				index.push_back(i);
+			}		
+		}
+	}
+
+	return index;
+   } else {
+	if(condition == "="){
+		for(int i=0; i<vec.size(); i++){
+			if(vec[i] == value){
+				values.push_back(vec[i]);
+			}		
+		}
+	}
+	if(condition == "!="){
+		for(int i=0; i<vec.size(); i++){
+			if(vec[i] != value){
+				values.push_back(vec[i]);
+			}		
+		}
+	}
+	if(condition == ">"){
+		for(int i=0; i<vec.size(); i++){
+			if(vec[i] > value){
+				values.push_back(vec[i]);
+			}		
+		}
+	}
+	if(condition == "<"){
+		for(int i=0; i<vec.size(); i++){
+			if(vec[i] < value){
+				values.push_back(vec[i]);
+			}		
+		}
+	}
+	if(condition == ">="){
+		for(int i=0; i<vec.size(); i++){
+			if(vec[i] >= value){
+				values.push_back(vec[i]);
+			}		
+		}
+	}
+	if(condition == "<="){
+		for(int i=0; i<vec.size(); i++){
+			if(vec[i] <= value){
+				values.push_back(vec[i]);
+			}		
+		}
+	}
+
+	return values;
+   }
+
+}
+
+
+VectorXi where_strXi(std::vector<std::string> vec, std::string value){
+/*
+ * Gives the indexes of values of an array that match the value
+ *
+*/
+   int cpt;
+   VectorXi index(vec.size());
+
+	cpt=0;
+	for(int i=0; i<vec.size(); i++){
+		if(vec[i] == value){
+			index[cpt]=i;
+			cpt=cpt+1;
+		}		
+	}
+	index.conservativeResize(cpt);
+/*
+	std::cout << "in where_str()" << std::endl;
+	std::cout << index << std::endl;
+	exit(EXIT_SUCCESS);
+*/
+	return index;
+ 
 }
 
 
@@ -278,6 +422,14 @@ std::vector<int> where_int(std::vector<int> vec, int value){
 	return index;
 }
 
+std::vector<double> vectXd_to_vec(VectorXd vecXd_in){
+
+   std::vector<double> vec;
+   vec.resize(vecXd_in.size());
+   VectorXd::Map(&vec[0], vecXd_in.size()) = vecXd_in;
+   return vec;
+}
+
 
 VectorXi str_to_Xiarr(const std::string str, const std::string delimiters){
 
@@ -422,6 +574,16 @@ std::string int_to_str(const int value){
 	convert << value;      // insert the textual representation of 'Number' in the characters in the stream
 
 	return convert.str(); // set 'Result' to the contents of the stream
+}
+
+std::string lng_to_str(const long ind){
+
+    std::stringstream ss;
+
+    ss.str(std::string());
+    ss << ind;
+
+    return ss.str();
 }
 
 

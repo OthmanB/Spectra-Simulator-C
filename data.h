@@ -37,6 +37,16 @@ struct gnuplt_Data {
     double y3;             // y axis series 3
 };
 
+struct Star_params{
+/* 
+    A data structure used by the models that need to read the parameters of a reference 
+    star from a .in file to operate
+*/
+    VectorXd spec_params; 
+    MatrixXd mode_params, noise_params;
+    std::string identifier;
+};
+
 struct Config_Data{
 /* 
  * Encapsulate the parameters used to generate the spectra
@@ -47,8 +57,9 @@ struct Config_Data{
     bool write_inmodel; // if set to 0, output ascii file does not contain a column with the input model
 	std::string model_name;
 	std::string forest_type;
+    std::string extra_params; // Any kind of extra parameters that would be encoded in a string (e.g. filenames separated by " ")
 	double Tobs, Cadence, Nspectra;
-	std::vector<std::string> labels;
+	std::vector<std::string> labels; 
 	std::vector<double> val_min, val_max, step, forest_params;
 
 };
@@ -71,16 +82,4 @@ namespace gnuplotio {
 
         }
     };
-}
-
-struct star_params{
-/* 
-	A data structure used by the models that need to read the parameters of a reference 
-	star from a .in file to operate
-*/
-	VectorXd spec_params; 
-	MatrixXd mode_params, noise_params;
-	std:string identifier;
 };
-
-

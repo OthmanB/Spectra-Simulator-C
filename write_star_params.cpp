@@ -14,6 +14,7 @@
 # include <vector>
 #include <string>
 #include "write_star_params.h"
+#include "string_handler.h"
 //#include "data.h"
 
 using Eigen::VectorXd;
@@ -325,6 +326,17 @@ return out;
 }
 
 
+Star_params read_star_params(const std::string file_in_name){
+
+	Star_params params;
+
+	std::cout << "YET TO BE WRITTEN" << std::endl;
+
+	exit(EXIT_SUCCESS);
+
+	return params;
+}
+
 Data_Nd read_data_ascii_Ncols(const std::string file_in_name, const std::string delimiter, const bool verbose_data){
 /*
  * This function read an input file (file_in_name) which may or may not contain a header, labels, units indicator.
@@ -453,7 +465,7 @@ return all_data_out;
 }
 
 
-std::string strtrim(const std::string& str){
+//std::string strtrim(const std::string& str){
 /*
  * Small function that remove white space at the end and at
  * the begining of a string. 
@@ -462,7 +474,7 @@ std::string strtrim(const std::string& str){
  *  	- const auto --> const string
  *      - optional argument for the separator is now hardcoded
 */
-    std::string whitespace = " \t";
+ /*   std::string whitespace = " \t";
     size_t strBegin = str.find_first_not_of(whitespace);
     if (strBegin == std::string::npos)
         return ""; // no content
@@ -472,12 +484,14 @@ std::string strtrim(const std::string& str){
 
     return str.substr(strBegin, strRange);
 }
+*/
 
-std::vector<std::string> strsplit(const std::string str, const std::string delimiters){
+// WARNING: THIS STRSPLIT2 IN STRING_HANDLER
+//std::vector<std::string> strsplit(const std::string str, const std::string delimiters){
 /*
  * Take a string and split it each time one of the listed delimiters is detected
 */
-	std::string str0=strtrim(str);
+/*	std::string str0=strtrim(str);
 	size_t pos=0;
 	std::vector<std::string> str_splitted;
 
@@ -485,18 +499,19 @@ std::vector<std::string> strsplit(const std::string str, const std::string delim
 		    
 		str_splitted.push_back(str0.substr(0, pos)); // get the substring
 		str0.erase(0, pos + delimiters.length());
-		/*if(pos + delimiters.length() <= 1){
-			str0.erase(0, pos + delimiters.length());
-		} else{
-			str0.erase(0, pos + delimiters.length()-1);
-		}
-		*/
+		//if(pos + delimiters.length() <= 1){
+		//	str0.erase(0, pos + delimiters.length());
+		//} else{
+		//	str0.erase(0, pos + delimiters.length()-1);
+		//}
+		//
 		str0=strtrim(str0); // remove any extra white space at the begining before iterating
 	}
 	str_splitted.push_back(str0); // do not forget to add the end of the string
 
 return str_splitted;
 }
+*/
 
 std::string rem_comments(std::string str0, std::string terminator){
 /*
@@ -519,21 +534,22 @@ std::string rem_comments(std::string str0, std::string terminator){
 	return str_out;
 }
 
-bool str_to_bool(const std::string str){
+/*bool str_to_bool(const std::string str){
 
 	bool bool_out;
 
 	std::stringstream(strtrim(str)) >> bool_out;
 return bool_out;
 }
+*/
 
-std::vector<double> str_to_arrdbl(const std::string str, const std::string delimiters){
+//std::vector<double> str_to_arrdbl(const std::string str, const std::string delimiters){
 	/* 
 	 * Used to extract arrays of values from a string. 
 	 * The terminator indicates the symbol that indicate the end of a line (beyond it is comments)
 	 * The delimiter indicates how the values are separated (e.g. with a "," or with " ")
 	*/
-	std::string str0;
+/*	std::string str0;
 	std::vector<std::string> vals_strs;
 	std::vector<double> dbl_out;
 
@@ -548,16 +564,16 @@ std::vector<double> str_to_arrdbl(const std::string str, const std::string delim
 
 	return dbl_out;
 }
+*/
 
-
-std::vector<double> arrstr_to_arrdbl(const std::vector<std::string> vals_strs){
+//std::vector<double> arrstr_to_arrdbl(const std::vector<std::string> vals_strs){
 	/* 
 	 * Used to extract arrays of values from a string. 
 	 * The terminator indicates the symbol that indicate the end of a line (beyond it is comments)
 	 * The delimiter indicates how the values are separated (e.g. with a "," or with " ")
 	*/
 
-	std::vector<double> dbl_out;
+/*	std::vector<double> dbl_out;
 
 	dbl_out.resize(vals_strs.size());
 	for (int i=0; i<vals_strs.size(); i++){
@@ -566,8 +582,9 @@ std::vector<double> arrstr_to_arrdbl(const std::vector<std::string> vals_strs){
 
 	return dbl_out;
 }
+*/
 
-double str_to_dbl(const std::string str){
+/*double str_to_dbl(const std::string str){
 
 	double dbl_out;
 
@@ -582,6 +599,7 @@ long str_to_lng(const std::string str){
 	std::stringstream(strtrim(str)) >> lng_out;
 return lng_out;
 }
+*/
 
 Config_Data read_main_cfg(std::string cfg_file){
 
@@ -628,8 +646,13 @@ Config_Data read_main_cfg(std::string cfg_file){
 			}
 
 			std::getline(file_in, line0);
-			cfg.model_name=rem_comments(line0, "#");
-
+			tmp_vec_str=strsplit(rem_comments(line0, "#"), " ");
+			cfg.model_name=tmp_vec_str[0];
+			if(tmp_vec_str.size() > 1){
+				for(int i=0; i<tmp_vec_str.size()-1;i++){
+					cfg.extra_params = cfg.extra_params +  strtrim(tmp_vec_str[i]) + " ";
+				}
+			}
 			std::getline(file_in, line0);
 			cfg.labels=strsplit(rem_comments(line0, "#"), " ");
 
@@ -660,6 +683,7 @@ Config_Data read_main_cfg(std::string cfg_file){
 
             std::getline(file_in, line0);
             cfg.write_inmodel=str_to_bool(rem_comments(line0, "#"));
+
 
 			file_in.close();
 	} else {
