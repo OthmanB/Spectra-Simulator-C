@@ -37,7 +37,7 @@
 			    		  Will need to investigate the effect of the changes on the code                         =======>   [Need testing]
 			    		  At the moment, the original strtrim was put in strplit2()
 			[7] Changes in iterative_artificial_spectrum 													[100%]
-			[8] Write a function that convert sav files into .in format. 									[0%]
+			[8] Write a function that convert sav files into .in format. 									[100%]
 					- Corrolary: Will need to update the IDLpostMCMC code to create a native .in output file [0%]
 			[9] Update the README.md regarding the compilation line: 
 				- noise_models.cpp must be added in the list of input files 								[100%]
