@@ -45,6 +45,8 @@ struct Star_params{
     VectorXd spec_params; 
     MatrixXd mode_params, noise_params;
     std::string identifier;
+    double cadence;
+    double Tobs;
 };
 
 struct Config_Data{

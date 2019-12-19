@@ -1,7 +1,7 @@
 # This file contains the results converted from an IDL sav file for the star with unknown ID: 
 -1 
 # Spectrum parameters. Observation duration (days) / Cadence (seconds) 
-# -1    -1 
+ -1    -1 
 # Input mode parameters. degree / freq / H / W / splitting a1 / eta / a3 / b  / alfa  / beta asym /inclination 
 0   1728.01169   0.10540   1.27502   1.1850   0.0001440100    0.05377    0    0   -41.77017    67.774
 0   1847.38684   0.17238   1.16395   1.1850   0.0001440100    0.05377    0    0   -41.77017    67.774

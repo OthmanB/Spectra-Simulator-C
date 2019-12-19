@@ -833,22 +833,21 @@ void generate_cfg_asymptotic_act_asym_Hgauss(VectorXd input_params, std::string 
 void generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string extra){
 
 	int i;
-	double N0, HNR, a1_ov_Gamma, a3, beta_asym, inc, HNRref, Height_factor, Gamma_at_numax, a1, Gamma_coef; 
-	std::vector<int> pos_max;
+	double N0, HNR, a1_ov_Gamma, a3, beta_asym, inc, HNRmaxref, Height_factor, Gamma_at_numax, a1, Gamma_coef; 
+	VectorXi pos_max;
 	VectorXd tmp;
-	VectorXd local_noise,nu_star, h_star, gamma_star, s_a1_star, s_a3_star, s_asym_star, inc_star;
+	VectorXd HNRref, local_noise,h_star, gamma_star, s_a1_star, s_a3_star, s_asym_star, inc_star;
 	Star_params ref_star;
 	MatrixXd mode_params, noise_params;
 
-	ref_star=read_star_params(extra); // THIS FUNCTION HAS YET TO BE WRITTEN
-	//lmax_ref=ref_star.mode_params.col(0).maxCoeff(); // The first column contains the degrees
+	ref_star=read_star_params(extra); 
 
 	// Defining the noise profile parameters
 	// Note about the noise: -1 means that it is ignored. -2 mean that the value is irrelevant
 	tmp.resize(ref_star.mode_params.rows()); 	
 	tmp.setConstant(0);
 	local_noise=harvey_like(ref_star.noise_params, ref_star.mode_params.col(1), tmp); // Generate a list of local noise values for each frequencies
-	
+
 // ---- Deploy the parameters -----
 	HNR=input_params[0];
 	a1_ov_Gamma=input_params[1];
@@ -858,36 +857,37 @@ void generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma(VectorXd input_p
 	inc=input_params[5];
 // ---------------------------------
 
-	tmp=ref_star.mode_params.col(2);
-	tmp=tmp*local_noise.cwiseInverse();
-	HNRref=tmp.maxCoeff(); // This is the maximum HNR of the reference data
-	Height_factor=HNR/HNRref;  // compute the coeficient required to get the proper max(HNR)
+	HNRref=ref_star.mode_params.col(2);
+	HNRref=HNRref.cwiseProduct(local_noise.cwiseInverse());
+	HNRmaxref=HNRref.maxCoeff(); // This is the maximum HNR of the reference data
+	Height_factor=HNR/HNRmaxref;  // compute the coeficient required to get the proper max(HNR)
 
-/*
 	tmp=ref_star.mode_params.col(2);
-	pos_max=where_dbl(ref_star.mode_params.col(2), tmp.maxCoef(), 0.001);
+	pos_max=where_dbl(ref_star.mode_params.col(2), tmp.maxCoeff(), 0.001);
 	if (pos_max[0] >= 0){
-		Gamma_coef=Gamma_at_numax/ref_star.mode_params(3, pos_max[0]); // Correction coeficient to apply on Gamma(nu) in order to ensure that we have Gamma(nu=numax) = Gamma_at_numax
+		Gamma_coef=Gamma_at_numax/ref_star.mode_params(pos_max[0], 3); // Correction coeficient to apply on Gamma(nu) in order to ensure that we have Gamma(nu=numax) = Gamma_at_numax
 	} else{
 		std::cout << "Error! could not find the max position for the mode Widths profile" << std::endl;
 		std::cout << "Code debug required" << std::endl;
 		exit(EXIT_FAILURE);
 	}
 
-	a1=a1_ov_Gamma*Gamma_at_numax*Gamma_at_numax; // We do no vary the Width. We change the splitting in order to get the wished a1/Gamma0
+	a1=a1_ov_Gamma*Gamma_at_numax; // We can vary the Width and splitting. But we need to change the splitting in order to get the wished a1/Gamma0
 
+	std::cout << "after a1" << std::endl;
 	if (local_noise.sum()!= 0){
 		N0=1; // Imposing the the Noise background is 1
 		std::cout <<  "Using N0=" << N0 << " (white noise)" << std::endl;
 		std::cout << "HNR of all modes (degree / freq / HNR):" << std::endl;
 		for(i =0; i<ref_star.mode_params.rows(); i++){
-			std::cout << ref_star.mode_params.col(0) << "  " << ref_star.mode_params.col(1) << "  " << Height_factor * ref_star.mode_params.col(2)/local_noise << std::endl;
+			std::cout << "     " << ref_star.mode_params(i,0) << "  " << ref_star.mode_params(i,1) << "  " << Height_factor * HNRref[i] << std::endl;
 		}
 	} else{
 		std::cout << "Warning: bruit_local from the stat_synthese file is 0 ==> Cannot compute N0=mean(local_noise)" << std::endl;
 		std::cout << "         The program will stop now" << std::endl;
 		exit(EXIT_FAILURE);
 	}
+
 	// Defining the final size for all of the outptus
 	h_star.resize(ref_star.mode_params.rows());
 	gamma_star.resize(ref_star.mode_params.rows());
@@ -897,69 +897,50 @@ void generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma(VectorXd input_p
 	inc_star.resize(ref_star.mode_params.rows());
 
 	// Refactoring the heights
-	h_star=Height_factor * ref_star.mode_params.col(2)* N0/local_noise; 
+	h_star=Height_factor * HNRref * N0; 
 
 	gamma_star=Gamma_coef*ref_star.mode_params.col(3); // In IDL, AN INTERPOLATION WAS DONE FOR l>0. HERE WE ASSUME THE .in file is whatever the true model should be (no interpolation)
 	
-	if (a1 > 0){
+	if (a1 >= 0){
 		s_a1_star.setConstant(a1);
 	} else{
 		s_a1_star=ref_star.mode_params.col(4); 
 	}
-	if (a3 > 0){
+	if (a3 >= 0){
 		s_a3_star.setConstant(a3);	
 	} else{
 		s_a3_star=ref_star.mode_params.col(6);	
 	}
-	if (beta_asym > 0){
+	if (beta_asym >= 0){
 		s_asym_star.setConstant(beta_asym);	
 	} else{
-		s_asym_star=ref_star.mode_params.col(6);	
+		s_asym_star=ref_star.mode_params.col(9);	
 	}	
-	if (inc > 0){ 
+	if (inc >= 0){ 
 		inc_star.setConstant(inc);
 	} else{
 		inc_star=ref_star.mode_params.col(10);
 	}
 	
-	// CONTINUE FROM HERE....
 	mode_params.setZero(ref_star.mode_params.rows(), 11);
 
 	mode_params.col(0)=ref_star.mode_params.col(0); // List of els
-	mode_params.col(1)=nu_star;
+	mode_params.col(1)=ref_star.mode_params.col(1); // List of frequencies
 	mode_params.col(2)=h_star;
 	mode_params.col(3)=gamma_star; 
 	mode_params.col(4)=s_a1_star; 
-	//mode_params.col(5)=0;   // Already to 0 due to initialisation
+	mode_params.col(5).setConstant(0); //ref_star.mode_params.col(5); // asphericity coefficient depends on a1, cannot use the one from the ref_star
 	mode_params.col(6)=s_a3_star;
 	//mode_params.col(7])=0;   // Already to 0 due to initialisation
 	//mode_params.col(8)=0;   // Already to 0 due to initialisation
 	mode_params.col(9)=s_asym_star;
 	mode_params.col(10)=inc_star;  
-	
-//	noise_params=dblarr(3, 3) ;// [ [H0, tau0, p0], [H1, tau1, p1], N0]
-//	noise_params[0, *]=-1;
-//	noise_params[1, *]=-1;
-//	noise_params[2, 0]=N0 ; //We put only a white noise
-//	noise_params[2, 1:2]=-2;
 
 	// A FUNCTION THAT WRITES THE PARAMETERS
 	write_star_mode_params_act_asym(mode_params, file_out_modes);
 
-    // Defining the noise profile parameters
-	// Note about the noise: -1 means that it is ignored. -2 mean that the value is irrelevant
-	//for(int e=0; e<3; e++){
-	//	for(int k=0; k<3; k++){
-	//		noise_params(e, k)=input_noise(3*e + k);
-	//	}
-	//}
-*/
 	// A FUNCTION THAT WRITES THE Noise
 	write_star_noise_params(ref_star.noise_params, file_out_noise);
-
-	std::cout << "models_database:generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma need debug..."<< std::endl;
-	exit(EXIT_SUCCESS);
-
 }
 
 /*

@@ -49,7 +49,7 @@ def sav2in_global(file_in, file_out='out.in'):
 
 	header="# Spectrum parameters. Observation duration (days) / Cadence (seconds) \n"
 	fout.write(header) 
-	header="# -1    -1 \n"
+	header=" -1    -1 \n"
 	fout.write(header) 
 	header="# Input mode parameters. degree / freq / H / W / splitting a1 / eta / a3 / b  / alfa  / beta asym /inclination \n"
 	fout.write(header)

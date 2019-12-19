@@ -3,6 +3,7 @@
 ### ROADMAP v0.9.0 (*Expected Release: 30 Dec 2019*) ####
 	* Added functionalities:
 		- Code the grid capability
+		- Implement numax variable on generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma
 
 ### ROADMAP v0.8.9 (*Expected Release: 23 Dec 2019*) ####
 	* Added functionalities:
@@ -10,31 +11,30 @@
 			[a] curvature for p modes
 			[b] random error around that curvature
 
-### IN DEV v0.8.8 (*Expected Release: 18 Dec 2019*)####
+### IN DEV v0.8.8 (*Released 19 Dec 2019*)####
 	* Added functionalities:
-		* Merging with several functions present in the IDL version 1.4. The models that have been imported are the followings:
-			- generate_cfg_from_synthese_file_Wscaled_act_asym_cosi
+		* Merging with several functions present in the IDL version 1.4. The model that is imported the followings:
 			- generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma
-		  These models have the particularity to allow you to use a reference star as a template. On IDL, the output was on a sav binary file.
+		  This model has the particularity to allow you to use a reference star as a template. On IDL, the output was on a sav binary file.
 		  Here the inputs must have the same format as the .in files
 		Development status: 
 			[1] Changes in main.cfg  [100%]
 			[2] Templates from main.cfg.synthese_file [0%]
 			[3] Rename write_star_params.cpp and .h into io_star_params.cpp and .h 							 [0%]
-			[4] update write_star_params::read_main_cfg() to accept extra string argument (e.g. filenames)   [100%]  [Need testing]
-			[5] Changes in models_database.cpp: [START WITH THIS AND CREATE EMPTY TEMPLATES FOR PREREQUISITES]
-					- generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma							 [100%] [Need checks and testing]
+			[4] update write_star_params::read_main_cfg() to accept extra string argument (e.g. filenames)   [100%]
+			[5] Changes in models_database.cpp: 
+					- generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma							 [100%]
 			[6] Prerequisite to [3]: 
 				[a] Change to allow reading in file format:
-					- Implement a reading function for in files: read_star_params() 						 [0%]
-					- Implement a structure star_params in data.h   										[100%] [Need testing]
+					- Implement a reading function for in files: read_star_params() 						 [100%]
+					- Implement a structure star_params in data.h   										[100%]
 	                  The format of the outputs will be in a structure star_params with those parameters: 
 			          VectorXd spec_params, MatrixXd mode_params, MatrixXd noise_params, std::string identifier
-			    [b] Import noise_models.cpp and .h from TAMCMC-CPP 											[100%]
-			    [c] Update noise_modes.cpp and .h to handle MatrixXd shape inputs 							[100%] [Need Testing]
+			    [b] Import noise_models.cpp and .h from TAMCMC-CPP 											[100%] 
+			    [c] Update noise_modes.cpp and .h to handle MatrixXd shape inputs 							[100%] 
 			    [d] Import string_handler.cpp and .h from TACMMC-CPP										[100%]
 			    		- WARNING: During the merging process, I found duplicate but slightly different strsplit() function
-			    		  Will need to investigate the effect of the changes on the code                         =======>   [Need testing]
+			    		  Will need to investigate the effect of the changes on the code                         =======>   [TESTED]
 			    		  At the moment, the original strtrim was put in strplit2()
 			[7] Changes in iterative_artificial_spectrum 													[100%]
 			[8] Write a function that convert sav files into .in format. 									[100%]
@@ -43,9 +43,9 @@
 				- noise_models.cpp must be added in the list of input files 								[100%]
 				- string_handler.cpp and .h also 															[100%]
 		Test status:
-			- Compilation errors: YES
-			- Quick test running the program: Not yet performed
-			- Stress test using multiple configuration: Not yet performed
+			- Compilation errors: No
+			- Quick test running the program: Tested
+			- Stress test using multiple configuration: Not performed
 
 ### v0.8.3 (*Released on 2 Dec 2019*)####
 	* Added functionalities:

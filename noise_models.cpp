@@ -7,6 +7,7 @@
 #include <math.h>
 #include <Eigen/Dense>
 #include <string>
+#include "noise_models.h"
 //#include <iostream>
 //#include <iomanip>
 
@@ -70,7 +71,6 @@ VectorXd harvey_like(const MatrixXd noise_params, VectorXd x, VectorXd y){
 		cpt=cpt+3;
 	}
 	y=y + white_noise;
-
 return y;
 }
 
