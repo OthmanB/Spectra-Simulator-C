@@ -13,7 +13,7 @@
 # include <Eigen/Dense>
 # include <vector>
 #include <string>
-#include "write_star_params.h"
+#include "io_star_params.h"
 #include "string_handler.h"
 //#include "data.h"
 

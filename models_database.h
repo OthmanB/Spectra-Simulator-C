@@ -14,7 +14,7 @@
 #include <fstream>
 #include <Eigen/Dense>
 # include <string>
-#include "write_star_params.h"
+#include "io_star_params.h"
 
 //void generate_cfg_asymptotic_Hgauss(VectorXd input_params, std::string file_out_modes, std::string file_out_noise);
 void generate_cfg_asymptotic_act_asym_Hgauss(VectorXd input_params, std::string file_out_modes, std::string file_out_noise);
