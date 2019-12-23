@@ -1,27 +1,63 @@
 # Version history #
 
-### ROADMAP v0.9.0 (*Expected Release: 30 Dec 2019*) ####
+### ROADMAP v0.9.0 (*Expected Release: Jan 2020*) ####
 	* Added functionalities:
 		- Code the grid capability
 		- Implement numax variable on generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma
 
-### ROADMAP v0.8.9 (*Expected Release: 23 Dec 2019*) ####
+### ROADMAP v0.8.95 (*Expected Release: Jan 2020*) ####
 	* Added functionalities:
-		- on models with mixed modes, add second order effects on frequencies: 
-			[a] curvature for p modes
-			[b] random error around that curvature
+		- Adding controls for Visibilities
+		- Addning controls for Nmax (?): Perhaps not necessary (just an increaser Nmax should suffice)... will see.
+		- Adding random errors around the second order asymptotic relations. Try to make them spline-consistent
 
-### IN DEV v0.8.8 (*Released 19 Dec 2019*)####
+### IN DEV v0.8.9 (*Expected Release: 23 Dec 2019*) ####
+	* Added functionalities:
+		on models with mixed modes, add second order effects on frequencies (curvature for p modes):
+		 	D0 was a fix parameter while it should be a variable. Instead of sticking to D0, I implemented the second order effect on the
+		  	asymptotic relation for p modes. Thus now, we have Eq. 22 from Mosser+2018 (https://www.aanda.org/articles/aa/pdf/2018/10/aa32777-18.pdf)
+		  	encoded. This means that we have 2 new variable (+ 1 variable change for D0):
+		  		- alpha_p : The curvature coefficient which should be around 0.076/nmax according to Mosser+2018, but it seems that 0.0076/nmax or 0.076/nmax^2 is more reasonable (typo in their paper?)
+	  			- nmax_spread : The location of the inflexion point for the parabola is described by alpha_p * (np - nmax)^2 / 2. nmax is in principle given by 
+	  			  				nmax_th= nu_max/Dnu - epsilon. But we don't necessarily want to strictly enforce that. Instead, nmax_spread allows you to depart from numax_th. The value is given in %
+	  			- delta0l : The small separation. It relates to D0 and replaces it. The relationship is: delta0l=-l(l+1) D0 /Dnu
+	  					    Note that the actual used parameter is delta0l_percent, defined in unit of l(l+1) because by definition:
+	  					    delta0l = - l(l+1) delta0l_percent / 100.
+	  		Modifications required for that implementation:
+	  			[1] Changes in solver_mm.py: compatibility changes in the test functions, update of asympt_nu_p() and introduction of solve_mm_asymptotic_O2p() to 	handle second order effects. It introduced a new test function as well specifically for O2p tests test_asymptotic()  ===> [100%] [TESTED]
+		  		[2] Changes in bump_DP.py: 
+		  			[a] Write a new test function test_asymptotic_star_O2p() to evaluate the impacts for the changes in solver_mm.py  				 [100%]
+					[b] Update make_synthetic_asymptotic_star to handle the new syntax in the file_cfg_mm created by the mixed modes models in C++   [100%]
+					[c] Update main_star_generator																									 [33%]
+	  			[3] In iterative_articial_spectrum.cpp: Add for all previous mixed modes models the 3 new parameters    							 
+	  					- asymptotic_mm_v1 																											[100%] [TESTED] 
+	  					- asymptotic_mm_v2  																										[100%] [TESTED]
+	  					- asymptotic_mm_v3  																										[100%] [NEED TESTING]
+	  					- asymptotic_mm_freeDp_numaxspread_curvepmodes_v1																			[0%] 
+	  					- asymptotic_mm_freeDp_numaxspread_curvepmodes_v2																	  		[0%] 
+	  					- asymptotic_mm_freeDp_numaxspread_curvepmodes_v3																			[0%] 
+	  			[4] In models_database.cpp: In all mixed modes models, replace D0 by the 3 new parameters for the exchange file file_cfg_mm			[33%]
+	  					- asymptotic_mm_v1 																											[100%] [TESTED]
+	  					- asymptotic_mm_v2  																										[100%] [TEST]
+	  					- asymptotic_mm_v3  																										[100%] [NEED TESTING]
+	  					- asymptotic_mm_freeDp_numaxspread_curvepmodes_v1
+	  					- asymptotic_mm_freeDp_numaxspread_curvepmodes_v2
+	  					- asymptotic_mm_freeDp_numaxspread_curvepmodes_v3
+	  			[5] Change the main.cfg.XX for all templates according to the new format 															[33%]
+
+
+
+### v0.8.8 (*Released 19 Dec 2019*)####
 	* Added functionalities:
 		* Merging with several functions present in the IDL version 1.4. The model that is imported the followings:
 			- generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma
 		  This model has the particularity to allow you to use a reference star as a template. On IDL, the output was on a sav binary file.
 		  Here the inputs must have the same format as the .in files
-		Development status: 
+		Development status [FINISHED]: 
 			[1] Changes in main.cfg  [100%]
 			[2] Templates from main.cfg.synthese_file [0%]
-			[3] Rename write_star_params.cpp and .h into io_star_params.cpp and .h 							 [0%]
-			[4] update write_star_params::read_main_cfg() to accept extra string argument (e.g. filenames)   [100%]
+			[3] Rename write_star_params.cpp and .h into io_star_params.cpp and .h 							 [100%]
+			[4] Update write_star_params::read_main_cfg() to accept extra string argument (e.g. filenames)   [100%]
 			[5] Changes in models_database.cpp: 
 					- generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma							 [100%]
 			[6] Prerequisite to [3]: 
@@ -38,7 +74,6 @@
 			    		  At the moment, the original strtrim was put in strplit2()
 			[7] Changes in iterative_artificial_spectrum 													[100%]
 			[8] Write a function that convert sav files into .in format. 									[100%]
-					- Corrolary: Will need to update the IDLpostMCMC code to create a native .in output file [0%]
 			[9] Update the README.md regarding the compilation line: 
 				- noise_models.cpp must be added in the list of input files 								[100%]
 				- string_handler.cpp and .h also 															[100%]

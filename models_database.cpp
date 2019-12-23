@@ -44,12 +44,16 @@ void asymptotic_mm_v1(VectorXd input_params, std::string file_out_modes, std::st
 	double Teff=input_params[0];
 	double Dnu=input_params[1];
 	double epsilon=input_params[2];
-	double alpha=input_params[3];
-	double q=input_params[4];
-	double hnr_l0=input_params[5];
-	double l0_width_at_numax=input_params[6];
+	double delta0l_percent=input_params[3];
+	double beta_p=input_params[4];
+	double nmax_spread=input_params[5];
+	double DP_var_percent=input_params[6];
+	double alpha=input_params[7];
+	double q=input_params[8];
+	double hnr_l0=input_params[9];
+	double l0_width_at_numax=input_params[10];
 	
-	double D0=Dnu/100;
+	//double D0=Dnu/100;
 	double lmax=3;
 	double Nmax_pm=6; // Number of radial order to inject on each side of numax
 	double N0=1.; 
@@ -79,7 +83,7 @@ void asymptotic_mm_v1(VectorXd input_params, std::string file_out_modes, std::st
 	
 	DP=a*pow(Dnu, 2) + b*Dnu + c;
 	double *r = r8vec_normal_01 ( 1, &seed );
-	DP=DP +  *r*DP*2.5/100.; // Inject a gaussian random error of 2.5%
+	DP=DP +  *r*DP*DP_var_percent/100.; // Inject a gaussian random error of DP_var_percent
 	// -----------
 
 	// ----------- PYTHON EXTERNAL FUNCTION -------------
@@ -95,10 +99,12 @@ void asymptotic_mm_v1(VectorXd input_params, std::string file_out_modes, std::st
 	rwfile.open(file_cfg_mm.c_str());
 	if(rwfile.is_open()){
 		// ---------------------
-		rwfile << "# First line: Teff / Dnu / epsilon / D0. Second line: DP1 / alpha / q. Third line coupling / how many l=0 freq on left&right of numax / hmax / width at numax for l=0 / max uniform spread on numax (% or <=0 if off)" << std::endl;
+		//rwfile << "# First line: Teff / Dnu / epsilon / D0. Second line: DP1 / alpha / q. Third line coupling / how many l=0 freq on left&right of numax / hmax / width at numax for l=0 / max uniform spread on numax (% or <=0 if off)" << std::endl;
+		rwfile << "# First line: Teff / Dnu / epsilon / delta0l_percent / beta_p / nmax_spread. Second line: DP1 / alpha / q. Third line coupling / how many l=0 freq on left&right of numax / hmax / width at numax for l=0 / max uniform spread on numax (% or <=0 if off)" << std::endl;
 		rwfile << Teff;
 		rwfile << std::setw(Nchars_spec) << std::setprecision(precision_spec) << Dnu;
-		rwfile << std::setw(Nchars_spec) << std::setprecision(precision_spec) << epsilon << std::setw(Nchars_spec) << D0 << std::endl;
+		rwfile << std::setw(Nchars_spec) << std::setprecision(precision_spec) << epsilon << std::setw(Nchars_spec) << delta0l_percent << std::setw(Nchars_spec) << beta_p;
+		rwfile << std::setw(Nchars_spec) << nmax_spread << std::endl;
 		rwfile << DP << std::setw(Nchars_spec) << alpha << std::endl;
 		rwfile << q << std::setw(Nchars_spec) << Nmax_pm <<  std::setw(Nchars_spec)  << Hmax_l0 <<  std::setw(Nchars_spec)  << l0_width_at_numax << std::setw(Nchars_spec) << "-1 " << std::endl;
 		rwfile.close();
@@ -155,12 +161,15 @@ void asymptotic_mm_v2(VectorXd input_params, std::string file_out_modes, std::st
 	double rot_ratio=input_params[1];	
 	double Dnu=input_params[2];
 	double epsilon=input_params[3];
-	double alpha=input_params[4];
-	double q=input_params[5];
-	double hnr_l0=input_params[6];
-	double l0_width_at_numax=input_params[7];
+	double delta0l_percent=input_params[4];
+	double beta_p=input_params[5];
+	double nmax_spread=input_params[6];
+	double DP_var_percent=input_params[7];
+	double alpha=input_params[8];
+	double q=input_params[9];
+	double hnr_l0=input_params[10];
+	double l0_width_at_numax=input_params[11];
 	
-	double D0=Dnu/100;
 	double lmax=3;
 	double Nmax_pm=6; // Number of radial order to inject on each side of numax
 	double N0=1.; 
@@ -190,7 +199,7 @@ void asymptotic_mm_v2(VectorXd input_params, std::string file_out_modes, std::st
 	
 	DP=a*pow(Dnu, 2) + b*Dnu + c;
 	double *r = r8vec_normal_01 ( 1, &seed );
-	DP=DP +  *r*DP*2.5/100.; // Inject a gaussian random error of 2.5%
+	DP=DP +  *r*DP*DP_var_percent/100.; // Inject a gaussian random error of 2.5%
 	// -----------
 
 	// ----------- PYTHON EXTERNAL FUNCTION -------------
@@ -206,10 +215,11 @@ void asymptotic_mm_v2(VectorXd input_params, std::string file_out_modes, std::st
 	rwfile.open(file_cfg_mm.c_str());
 	if(rwfile.is_open()){
 		// ---------------------
-		rwfile << "# First line: rot_env / rot_ratio / Dnu / epsilon / D0. Second line: DP1 / alpha / q. Third line coupling / how many l=0 freq on left&right of numax / hmax / width at numax for l=0 / max uniform spread on numax (% or <=0 if off)" << std::endl;
+		rwfile << "# First line: rot_env / rot_ratio / Dnu / epsilon / delta0l_percent / beta_p / nmax_spread. Second line: DP1 / alpha / q. Third line coupling / how many l=0 freq on left&right of numax / hmax / width at numax for l=0 / max uniform spread on numax (% or <=0 if off)" << std::endl;
 		rwfile << rot_env << std::setw(Nchars_spec) << std::setprecision(precision_spec) << rot_ratio;
 		rwfile << std::setw(Nchars_spec) << std::setprecision(precision_spec) << Dnu;
-		rwfile << std::setw(Nchars_spec) << std::setprecision(precision_spec) << epsilon << std::setw(Nchars_spec) << D0 << std::endl;
+		rwfile << std::setw(Nchars_spec) << std::setprecision(precision_spec) << epsilon << std::setw(Nchars_spec) << delta0l_percent << std::setw(Nchars_spec) << beta_p;
+		rwfile << std::setw(Nchars_spec) << nmax_spread << std::endl;
 		rwfile << DP << std::setw(Nchars_spec) << alpha << std::endl;
 		rwfile << q << std::setw(Nchars_spec) << Nmax_pm <<  std::setw(Nchars_spec)  << Hmax_l0 <<  std::setw(Nchars_spec)  << l0_width_at_numax << std::setw(Nchars_spec) << "-1 " << std::endl;
 		rwfile.close();
@@ -265,12 +275,15 @@ void asymptotic_mm_v3(VectorXd input_params, std::string file_out_modes, std::st
 	double rot_core=input_params[1];	
 	double Dnu=input_params[2];
 	double epsilon=input_params[3];
-	double alpha=input_params[4];
-	double q=input_params[5];
-	double hnr_l0=input_params[6];
-	double l0_width_at_numax=input_params[7];
-	
-	double D0=Dnu/100;
+	double delta0l_percent=input_params[4];
+	double beta_p=input_params[5];
+	double nmax_spread=input_params[6];
+	double DP_var_percent=input_params[7];
+	double alpha=input_params[8];
+	double q=input_params[9];
+	double hnr_l0=input_params[10];
+	double l0_width_at_numax=input_params[11];
+
 	double lmax=3;
 	double Nmax_pm=6; // Number of radial order to inject on each side of numax
 	double N0=1.; 
@@ -300,7 +313,7 @@ void asymptotic_mm_v3(VectorXd input_params, std::string file_out_modes, std::st
 	
 	DP=a*pow(Dnu, 2) + b*Dnu + c;
 	double *r = r8vec_normal_01 ( 1, &seed );
-	DP=DP +  *r*DP*2.5/100.; // Inject a gaussian random error of 2.5%
+	DP=DP +  *r*DP*DP_var_percent/100.; // Inject a gaussian random error of 2.5%
 	// -----------
 
 	// ----------- PYTHON EXTERNAL FUNCTION -------------
@@ -316,10 +329,11 @@ void asymptotic_mm_v3(VectorXd input_params, std::string file_out_modes, std::st
 	rwfile.open(file_cfg_mm.c_str());
 	if(rwfile.is_open()){
 		// ---------------------
-		rwfile << "# First line: rot_env / rot_core / Dnu / epsilon / D0. Second line: DP1 / alpha. Third line coupling q / how many l=0 freq on left&right of numax / hmax / width at numax for l=0 / max uniform spread on numax (% or <=0 if off)" << std::endl;
+		rwfile << "# First line: rot_env / rot_core / Dnu / epsilon / delta0l_percent / beta_p / nmax_spread. Second line: DP1 / alpha / q. Third line coupling / how many l=0 freq on left&right of numax / hmax / width at numax for l=0 / max uniform spread on numax (% or <=0 if off)" << std::endl;
 		rwfile << rot_env << std::setw(Nchars_spec) << std::setprecision(precision_spec) << rot_core;
 		rwfile << std::setw(Nchars_spec) << std::setprecision(precision_spec) << Dnu;
-		rwfile << std::setw(Nchars_spec) << std::setprecision(precision_spec) << epsilon << std::setw(Nchars_spec) << D0 << std::endl;
+		rwfile << std::setw(Nchars_spec) << std::setprecision(precision_spec) << epsilon << std::setw(Nchars_spec) << delta0l_percent << std::setw(Nchars_spec) << beta_p;
+		rwfile << std::setw(Nchars_spec) << nmax_spread << std::endl;
 		rwfile << DP << std::setw(Nchars_spec) << alpha << std::endl;
 		rwfile << q << std::setw(Nchars_spec) << Nmax_pm <<  std::setw(Nchars_spec)  << Hmax_l0 <<  std::setw(Nchars_spec)  << l0_width_at_numax << std::setw(Nchars_spec) << "-1 " << std::endl;
 		rwfile.close();

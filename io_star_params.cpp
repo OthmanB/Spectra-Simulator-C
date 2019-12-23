@@ -838,6 +838,9 @@ Config_Data read_main_cfg(std::string cfg_file){
 		std::cout << "The input vectors must gave the same size!" << std::endl;
 		std::cout << "Please check your configuration file" << std::endl;
 		std::cout << "The program will stop now" << std::endl;
+		std::cout << "cfg.step.size()=" <<  cfg.step.size() << std::endl;
+		std::cout << "cfg.val_min.size()=" << cfg.val_min.size() << std::endl;
+		std::cout << "cfg.val_max.size()=" << cfg.val_max.size() << std::endl;
 		exit(EXIT_FAILURE);
 	}
 

@@ -106,14 +106,19 @@ void iterative_artificial_spectrum(std::string dir_core){
 		passed=1;
 	}
 	if(cfg.model_name == "asymptotic_mm_v1"){
-		Nmodel=7;
+		//Nmodel=7;
 		param_names.push_back("Teff"); 
 		param_names.push_back("Dnu"); 
 		param_names.push_back("epsilon"); 
+		param_names.push_back("delta0l_percent"); 
+		param_names.push_back("beta_p_star"); 
+		param_names.push_back("nmax_spread"); 
+		param_names.push_back("DP_var_percent"); 
 		param_names.push_back("alpha"); 
 		param_names.push_back("q");
 		param_names.push_back("SNR");
 		param_names.push_back("maxGamma");
+		Nmodel=param_names.size();
 		if(param_names.size() != Nmodel){
 			std::cout << "    Invalid number of parameters for model_name= 'asymptotic_mm_v1'" << std::endl;
 			std::cout << "    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size() << std::endl;
@@ -124,15 +129,20 @@ void iterative_artificial_spectrum(std::string dir_core){
 		passed=1;
 	}
 	if(cfg.model_name == "asymptotic_mm_v2"){
-		Nmodel=8;
+		//Nmodel=12;
 		param_names.push_back("nurot_env"); 
 		param_names.push_back("nurot_ratio"); 
 		param_names.push_back("Dnu"); 
 		param_names.push_back("epsilon"); 
+		param_names.push_back("delta0l_percent"); 
+		param_names.push_back("beta_p_star"); 
+		param_names.push_back("nmax_spread"); 
+		param_names.push_back("DP_var_percent"); 
 		param_names.push_back("alpha"); 
 		param_names.push_back("q");
 		param_names.push_back("SNR");
 		param_names.push_back("maxGamma");
+		Nmodel=param_names.size();
 		if(param_names.size() != Nmodel){
 			std::cout << "    Invalid number of parameters for model_name= 'asymptotic_mm_v2'" << std::endl;
 			std::cout << "    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size() << std::endl;
@@ -143,15 +153,20 @@ void iterative_artificial_spectrum(std::string dir_core){
 		passed=1;
 	}
 	if(cfg.model_name == "asymptotic_mm_v3"){
-		Nmodel=8;
+		//Nmodel=12;
 		param_names.push_back("nurot_env"); 
 		param_names.push_back("nurot_core"); 
 		param_names.push_back("Dnu"); 
 		param_names.push_back("epsilon"); 
+		param_names.push_back("delta0l_percent"); 
+		param_names.push_back("beta_p_star"); 
+		param_names.push_back("nmax_spread"); 
+		param_names.push_back("DP_var_percent"); 
 		param_names.push_back("alpha"); 
 		param_names.push_back("q");
 		param_names.push_back("SNR");
 		param_names.push_back("maxGamma");
+		Nmodel=param_names.size();
 		if(param_names.size() != Nmodel){
 			std::cout << "    Invalid number of parameters for model_name= 'asymptotic_mm_v3'" << std::endl;
 			std::cout << "    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size() << std::endl;
@@ -459,24 +474,6 @@ bool call_model(std::string model_name, VectorXd input_params, std::string file_
 
 long read_id_allcombi(std::string file_combi){
 
- /* bool keyword_found=0, group_found=0;
-    int cpt;
-    std::string line0, char0;
-    std::vector<std::string> word;
- 
-    std::ifstream cfg_file_session;
-    cfg_file_session.open(cfg_file.c_str());
-    if (cfg_file_session.is_open()) {
-		cpt=0;
-		std::getline(cfg_file_session, line0);
-		char0=strtrim(line0.substr(0, 1));
-		while(char0 != "#" && file_sesson.eof()){ // Skip lines until we reach the "#" symbol
-			std::getline(cfg_file_session, line0);
-			char0=strtrim(line0.substr(0, 1));
-		}
-
-    }
-*/
 	std::string lastline;
 	std::vector<std::string> vals_last;
 
@@ -528,17 +525,6 @@ std::string write_allcombi(MatrixXd allcombi, VectorXd cte_params, Config_Data c
 	} else{
 		outfile.open(fileout.c_str(), std::ios::app); // append
 	}
-	/*
-	if (erase_old_file == 1) {
-		outfile.open(fileout.c_str()); // write a new file
-	} else {
-		if(iter != 0){
-			outfile.open(fileout.c_str(), std::ios::app); // append
-		} else {
-			outfile.open(fileout.c_str()); // write a new file
-		}
-	}
-	*/
 	if(outfile.is_open()){
 		//std::cout << "File opened" << std::endl;
 		if(erase_old_file == 1 && iter == 0) { // Write Header only if we do not erase the old file AND this is the first execution of the function

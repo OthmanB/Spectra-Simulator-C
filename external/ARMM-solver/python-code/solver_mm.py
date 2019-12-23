@@ -12,11 +12,40 @@
 # But note that they should be applicable to ANY set of value of:
 #	 nu_p(nu), nu_g(nu), Dnu_p(nu) and DPl(nu) (meaning handling glitches)
 import numpy
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 from scipy import interpolate
 
-def asympt_nu_p(Dnu_p, np, epsilon, l, D0):
-	return (np + epsilon + l/2.)*Dnu_p - l*(l+1)*D0
+# A small function that generate a serie of p modes using the asymptotic relation
+# If D0 is set, then it will use the first order asymptotic. Otherwise if 
+# delta0l and alpha and nmax are set, it will use the second order asymptotic relation as per
+# defined in Mosser et al. 2018, equation 22 (https://www.aanda.org/articles/aa/pdf/2018/10/aa32777-18.pdf)
+# Note that we have the following relationship between D0 and delta0l:
+#			delta0l=-l(l+1) D0 / Dnu_p
+# Such that delta0l=-l(l+1) gamma / 100, if gamma is in % of Dnu_p
+def asympt_nu_p(Dnu_p, np, epsilon, l, D0=-9999, delta0l=-9999, alpha=-9999, nmax=-9999):
+		passed=0
+		if D0 !=-9999 and delta0l == -9999 and alpha == -9999 and nmax == -9999:
+			nu_p=(np + epsilon + l/2.)*Dnu_p - l*(l+1)*D0
+			passed=1
+		else:
+			passed=-1
+		if D0 == -9999 and (delta0l != -9999 and alpha != -9999 and nmax != -9999):
+			nu_p=(np + epsilon + l/2. + delta0l + alpha*(np - nmax)**2 / 2)*Dnu_p
+			passed=1	
+		if passed == -1:
+			print("Conflicting setup in asympt_nu_p() in solver_mm.py")
+			print("You must either: ")
+			print("     [1] Use D0 alone as an argument, OR")
+			print("     [2] Set delta0l, alpha and nmax")
+			print("The program cannot continue and will exit now")
+			exit()
+		if passed == 0:
+			print("Incorrect number of argument in asympt_nu_p() in solver_mm.py. Please either set:")
+			print("     [1] D0 alone as an argument, OR")
+			print("     [2] Set delta0l, alpha and nmax")
+			print("The program cannot continue and will exit now")
+			exit()
+		return nu_p 
 
 def asympt_nu_g(DPl, ng, alpha):
 	Pl=(ng + alpha)*DPl
@@ -182,7 +211,7 @@ def solve_mm_asymptotic(Dnu_p, epsilon, el, D0, DPl, alpha, q, fmin, fmax, resol
 
 	returns_axis=True
 
-	# Use fmin and fmax to define the number of pure p modes and pure g modes to considered
+	# Use fmin and fmax to define the number of pure p modes and pure g modes to be considered
 	np_min=int(numpy.floor((fmin + D0)/Dnu_p - epsilon - el/2))
 	np_max=int(numpy.ceil((fmax + D0)/Dnu_p - epsilon - el/2))
 
@@ -198,7 +227,82 @@ def solve_mm_asymptotic(Dnu_p, epsilon, el, D0, DPl, alpha, q, fmin, fmax, resol
 	nu_m_all=[]
 	for np in range(np_min, np_max):
 		for ng in range(ng_min, ng_max):
-			nu_p=asympt_nu_p(Dnu_p, np, epsilon, el, D0)
+			nu_p=asympt_nu_p(Dnu_p, np, epsilon, el, D0=D0)
+			nu_g=asympt_nu_g(DPl, ng, alpha)
+			nu_p_all.append(nu_p)
+			nu_g_all.append(nu_g)
+			nu_m, ysol, nu,pnu, gnu=solver_mm(nu_p, nu_g, Dnu_p, DPl,  q, numin=nu_p - Dnu_p, numax=nu_p + Dnu_p, resol=resol, returns_axis=returns_axis, factor=fact)
+			if verbose == True:
+				print('==========================================')
+				print('nu_p: ', nu_p)
+				print('nu_g: ', nu_g)
+				print('solutions nu_m: ', nu_m)
+			for sol in nu_m:
+				nu_m_all.append(sol)
+
+	nu_p_all=numpy.asarray(nu_p_all)
+	nu_g_all=numpy.asarray(nu_g_all)
+
+	#print('Before removing duplicates: ', nu_m_all)
+
+	# Cleaning doubles: Solution 1 assuming exact matches (Fist Filter)
+	result=[]
+	for sol in nu_m_all:
+		if sol not in result:
+			result.append(sol)
+	result=numpy.asarray(result)
+	#print('After removing duplicates: ', result)
+
+	# Cleaning doubles: Solution 2 removing using a tolerance range (Second Filter)
+	result=numpy.sort(result)
+	nu_m_final=rem_doubles(arr=result, tol=0.01)
+	nu_m_final=numpy.asarray(nu_m_final)
+
+	rp=[]
+	rg=[]
+	if returns_pg_freqs == True:
+		for sol in nu_p_all:
+			if sol not in rp:
+				rp.append(sol)
+		for sol in nu_g_all:
+			if sol not in rg:
+				rg.append(sol)
+
+		rp=numpy.asarray(rp)
+		rg=numpy.asarray(rg)
+
+		return nu_m_final, rp, rg
+	else:
+		return nu_m_final
+
+
+# This function uses solver_mm to find solutions from a spectrum
+# of pure p modes and pure g modes following the asymptotic relations at the second order for p modes and the first order for g modes
+def solve_mm_asymptotic_O2p(Dnu_p, epsilon, el, delta0l, alpha_p, nmax, DPl, alpha, q, fmin, fmax, resol, returns_pg_freqs=True, verbose=False):
+
+	returns_axis=True
+
+	# Use fmin and fmax to define the number of pure p modes and pure g modes to be considered
+	np_min=int(numpy.floor(fmin/Dnu_p - epsilon - el/2 - delta0l))
+	np_max=int(numpy.ceil(fmax/Dnu_p - epsilon - el/2 - delta0l))
+
+	np_min=int(numpy.floor(np_min - alpha*(np_min - nmax)**2 /2.))
+	np_max=int(numpy.ceil(np_max - - alpha*(np_max - nmax)**2 /2.))
+
+	ng_min=int(numpy.floor(1e6/(fmax*DPl) - alpha))
+	ng_max=int(numpy.ceil(1e6/(fmin*DPl) - alpha))
+
+	if fmin <= 100:
+		fact=0.01
+	else:
+		fact=0.04
+	nu_p_all=[]
+	nu_g_all=[]
+	nu_m_all=[]
+	for np in range(np_min, np_max):
+		for ng in range(ng_min, ng_max):
+			#nu_p=asympt_nu_p(Dnu_p, np, epsilon, el, D0=D0)
+			nu_p=asympt_nu_p(Dnu_p, np, epsilon, el, delta0l=delta0l, alpha=alpha_p, nmax=nmax)
 			nu_g=asympt_nu_g(DPl, ng, alpha)
 			nu_p_all.append(nu_p)
 			nu_g_all.append(nu_g)
@@ -346,8 +450,8 @@ def test_rgb_asymptotic():
 	ng_max=int(numpy.ceil(1e6/(fmin*DPl) - alpha))
 
 	np=numpy.linspace(np_min, np_max, np_max - np_min + 1)
-	freqs_l0=asympt_nu_p(Dnu_p, np, epsilon, 0, D0)
-	freqs_l1_p=asympt_nu_p(Dnu_p, np, epsilon, 1, D0)
+	freqs_l0=asympt_nu_p(Dnu_p, np, epsilon, 0, D0=D0)
+	freqs_l1_p=asympt_nu_p(Dnu_p, np, epsilon, 1, D0=D0)
 
 	# ---- This is if you want an echelle diagram in Frequency ----
 	xaxis=numpy.linspace(0, DPl, 5)
@@ -375,21 +479,24 @@ def test_rgb_asymptotic():
 
 # Function to test solve_mm_asymptotic
 # The parameters are typical for a RGB in the g mode asymptotic regime
-def test_sg_asymptotic():
+# Default parameters are for an early SG... The asymptotic is not accurate then
+# consider: test_asymptotic(el=1, Dnu_p=30, beta_p=0.01, gamma0l=2., epsilon=0.4, DPl=110, alpha_g=0., q=0.15)
+# for a RGB
+def test_asymptotic(el=1, Dnu_p=60, beta_p=0.0076, gamma0l=2., epsilon=0.4, DPl=400, alpha_g=0., q=0.15):
 
 	# Define global Pulsation parameters
-	el=1.
-	Dnu_p=60 # microHz
-	DPl= 400 # microHz, typical for a RGB with Dnu_p=10 (see Fig. 1 of Mosser+2014, https://arxiv.org/pdf/1411.1082.pdf)
-	q=0.1 # Fix the coupling term
+#	el=1.
+#	Dnu_p=60 # microHz
+#	DPl= 400 # microHz, typical for a RGB with Dnu_p=10 (see Fig. 1 of Mosser+2014, https://arxiv.org/pdf/1411.1082.pdf)
+#	q=0.1 # Fix the coupling term
 
 	# Parameters for p modes that follow exactly the asymptotic relation of p modes
-	D0=Dnu_p/100. 
-	epsilon=0.4
+#	D0=Dnu_p/100. 
+#	epsilon=0.4
+	delta0l=-el*(el + 1) * gamma0l / 100.
 
 	# Parameters for g modes that follow exactly the asymptotic relation of g modes for a star with radiative core
-	#ng=10
-	alpha=0.
+	#alpha=0.
 
 	# Define the frequency range for the calculation by (1) getting numax from Dnu and (2) fixing a range around numax
 	beta0=0.263 # according to Stello+2009, we have Dnu_p ~ 0.263*numax^0.77 (https://arxiv.org/pdf/0909.5193.pdf)
@@ -399,29 +506,38 @@ def test_sg_asymptotic():
 	fmin=nu_max - 6*Dnu_p
 	fmax=nu_max + 4*Dnu_p
 
+	nmax=nu_max/Dnu_p - epsilon
+	alpha_p=beta_p/nmax
+	print("nmax= ", nmax)
+
 	# Fix the resolution to 4 years (converted into microHz)
 	resol=1e6/(4*365.*86400.) 
 
 	# Use the solver
-	freqs_mixed=solve_mm_asymptotic(Dnu_p, epsilon, el, D0, DPl, alpha, q, fmin, fmax, resol, returns_pg_freqs=False)
-
+	#freqs_mixed=solve_mm_asymptotic(Dnu_p, epsilon, el, D0, DPl, alpha, q, fmin, fmax, resol, returns_pg_freqs=False)
+	freqs_mixed=solve_mm_asymptotic_O2p(Dnu_p, epsilon, el, delta0l, alpha_p, nmax, DPl, alpha_g, q, fmin, fmax, resol, returns_pg_freqs=False)
 
 	# ---- Making an echelle diagram ------
-	np_min=int(numpy.floor((fmin + D0)/Dnu_p - epsilon - el/2))
-	np_max=int(numpy.ceil((fmax + D0)/Dnu_p - epsilon - el/2))
+	#np_min=int(numpy.floor((fmin + D0)/Dnu_p - epsilon - el/2))
+	#np_max=int(numpy.ceil((fmax + D0)/Dnu_p - epsilon - el/2))
+	np_min=int(numpy.floor(fmin/Dnu_p - epsilon - el/2 - delta0l))
+	np_max=int(numpy.ceil(fmax/Dnu_p - epsilon - el/2 - delta0l))
+	np_min=int(numpy.floor(np_min - beta_p*(np_min - nmax)**2 /2.))
+	np_max=int(numpy.ceil(np_max - - beta_p*(np_max - nmax)**2 /2.))
 
-	ng_min=int(numpy.floor(1e6/(fmax*DPl) - alpha))
-	ng_max=int(numpy.ceil(1e6/(fmin*DPl) - alpha))
+	ng_min=int(numpy.floor(1e6/(fmax*DPl) - alpha_g))
+	ng_max=int(numpy.ceil(1e6/(fmin*DPl) - alpha_g))
 
 	np=numpy.linspace(np_min, np_max, np_max - np_min + 1)
-	freqs_l0=asympt_nu_p(Dnu_p, np, epsilon, 0, D0)
-	freqs_l1_p=asympt_nu_p(Dnu_p, np, epsilon, 1, D0)
-
+	#freqs_l0=asympt_nu_p(Dnu_p, np, epsilon, 0, D0=D0)
+	#freqs_l1_p=asympt_nu_p(Dnu_p, np, epsilon, 1, D0=D0)
+	freqs_l0=asympt_nu_p(Dnu_p, np, epsilon, 0, delta0l=delta0l, alpha=beta_p, nmax=nmax)
+	freqs_l1_p=asympt_nu_p(Dnu_p, np, epsilon, 1, delta0l=delta0l, alpha=beta_p, nmax=nmax)
 
 	# ---- This is if you want an echelle diagram in Frequency ----
 	xaxis=numpy.linspace(0, Dnu_p, 5)
 	ng=numpy.linspace(ng_min, ng_max, ng_max - ng_min + 1)
-	freqs_l1_g=asympt_nu_g(DPl, ng, alpha)
+	freqs_l1_g=asympt_nu_g(DPl, ng, alpha_g)
 
 	plt.plot(freqs_l0 % Dnu_p, freqs_l0, marker='^', color='black')
 	plt.plot(freqs_l1_p % Dnu_p, freqs_l1_p, marker='s', color='blue')
