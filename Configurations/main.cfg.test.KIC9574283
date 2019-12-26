@@ -10,10 +10,10 @@
 #                                 If 0, then (1) append the combination file and (2) model number = last model number + 1
 random 1 # forest_type, followed by the forest_params. If forest_type=random, then forest_params is a single value that corresponds to the Number of samples
 asymptotic_mm_freeDp_numaxspread_curvepmodes_v2	 		# Name of the model. asymptotic_mm_freeDp_curvepmodes_v1 is a model iterating on what was learnt from asymptotic_v1, v2, v3 to generate a star with mixed modes
-nurot_env nurot_ratio   Dnu  	 epsilon    	DP1     alpha    q      SNR    maxGamma   numax_spread
-0.075      20.          29.78    0.44395779    111.   0.00     0.15   100.     0.25          0.0  #val_min
-0.075      20.          29.78.   0.44395779    111.   0.00     0.15   100.     0.25          0.0  #val_max
-0.         0.           0.       0.       		0.      0.       0.     0.      0.          0. #If forest_type="random" ==> 1=Variable OR 0=Constant. If forest_type="grid" then must be the stepsize of the grid
+nurot_env  nurot_ratio  Dnu      epsilon          delta0l_percent  beta_p_star  nmax_spread  DP1    alpha    q       SNR    maxGamma   numax_spread
+0.075      20.          29.78    0.44395779       2.               0.01         0            111    0.00     0.15    100.    0.25        20 #val_min
+0.075      20.          29.78    0.44395779       2.               0.01         0            111    0.00     0.15    100.    0.25        20 #val_max
+0.         0.           0.       0.               0.               0.           0.           0.     0.       0.      0.      0.          0. #If forest_type="random" ==> 1=Variable OR 0=Constant. If forest_type="grid" then must be the stepsize of the grid
 Tobs   Cadence  Naverage
 1000.    300       1
 1     # It is erase_old_files. If set to 1, will remove old Combination.txt and restart counting from 1. Otherwise append Combination.txt

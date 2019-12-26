@@ -482,7 +482,7 @@ def test_rgb_asymptotic():
 # Default parameters are for an early SG... The asymptotic is not accurate then
 # consider: test_asymptotic(el=1, Dnu_p=30, beta_p=0.01, gamma0l=2., epsilon=0.4, DPl=110, alpha_g=0., q=0.15)
 # for a RGB
-def test_asymptotic(el=1, Dnu_p=60, beta_p=0.0076, gamma0l=2., epsilon=0.4, DPl=400, alpha_g=0., q=0.15):
+def test_asymptotic(el=1, Dnu_p=60, beta_p=0.0076, delta0l_percent=2., epsilon=0.4, DPl=400, alpha_g=0., q=0.15):
 
 	# Define global Pulsation parameters
 #	el=1.
@@ -493,7 +493,7 @@ def test_asymptotic(el=1, Dnu_p=60, beta_p=0.0076, gamma0l=2., epsilon=0.4, DPl=
 	# Parameters for p modes that follow exactly the asymptotic relation of p modes
 #	D0=Dnu_p/100. 
 #	epsilon=0.4
-	delta0l=-el*(el + 1) * gamma0l / 100.
+	delta0l=-el*(el + 1) * delta0l_percent / 100.
 
 	# Parameters for g modes that follow exactly the asymptotic relation of g modes for a star with radiative core
 	#alpha=0.

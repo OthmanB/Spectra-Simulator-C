@@ -166,10 +166,10 @@ def width_height_MS_sun_rescaled(nu_star, Dnu_star, numax_star):
 	Ddip=4.66
 
 	# Frequencies of the l=0 of the Sun + [1650, 1750, 1850] + [4180, 4280, 4380, 4480] to avoid extrapolation and favor interpolation
-	nu_sun=[1650, 1750, 1850, 1957.4748, 2093.5983, 2228.8442, 2362.8797, 2496.3328, 2629.8436, 2764.3597, 2899.2249, 3033.9623, 3168.9156, 3303.8225, 3439.3876, 3575.2118, 3711.6045, 3848.5361, 3984.6612, 4180, 4280, 4380, 4480]
+	nu_sun=[1250, 1350, 1450, 1550, 1650, 1750, 1850, 1957.4748, 2093.5983, 2228.8442, 2362.8797, 2496.3328, 2629.8436, 2764.3597, 2899.2249, 3033.9623, 3168.9156, 3303.8225, 3439.3876, 3575.2118, 3711.6045, 3848.5361, 3984.6612, 4180, 4280, 4380, 4480, 4580, 4680, 4780, 4880, 4980, 5080, 5180, 5280]
 	nu_sun=numpy.asarray(nu_sun)
 	
-	height_sun=[0.1, 0.15, 0.20, 0.55633623, 0.71080326, 0.84916942, 1.0309479, 1.3676815, 2.0930273, 2.8720608, 3.9032770, 3.7507970, 2.8629352, 1.8167902, 0.92533429, 0.42467669, 0.17490098, 0.079882521, 0.038872344, 0.005, 0.00012, 0.0001, 0.00002]
+	height_sun=[0.01, 0.0125, 0.025, 0.05, 0.1, 0.15, 0.20, 0.55633623, 0.71080326, 0.84916942, 1.0309479, 1.3676815, 2.0930273, 2.8720608, 3.9032770, 3.7507970, 2.8629352, 1.8167902, 0.92533429, 0.42467669, 0.17490098, 0.079882521, 0.038872344, 0.005, 0.00012, 0.0001, 0.00002, 0.00001, 0.000005, 0.0000001, 0., 0., 0., 0., 0.]
 	height_sun=numpy.asarray(height_sun)
 	int_fct_hsun = interpolate.interp1d(nu_sun, height_sun)
 	height_sun_at_numax=int_fct_hsun(numax_sun)
@@ -185,15 +185,18 @@ def width_height_MS_sun_rescaled(nu_star, Dnu_star, numax_star):
 	# ------------------------------------------------------------------------------------
 
 	# Rescaling using the base frequencies given above for the Sun
-	epsilon_star=nu_star/Dnu_star % 1 
+	epsilon_star=numpy.mean(nu_star/Dnu_star % 1)
 	n_at_numax_star=numax_star/Dnu_star - epsilon_star
-	en_list_star=nu_star/Dnu_star -epsilon_star
+	en_list_star=nu_star/Dnu_star - epsilon_star
 
 #	print("--- INSIDE width_height_MS_sun_rescaled ----")
+#	print("numax_star=", numax_star)
+#	print("Dnu_star=", Dnu_star)
 #	print("epsilon_star=", epsilon_star)
-#	print("n _at_numax_star=", n_at_numax_star)
+#	print("n_at_numax_star=", n_at_numax_star)
+#	print("n_at_numax_sun=", n_at_numax_sun)
 #	print("en_list_sun - n_at_numax_sun=", en_list_sun - n_at_numax_sun)
-#	print("nu_star/Dnu_star - n_at_numax_star=", nu_star/Dnu_star - n_at_numax_star)
+#	print("en_list_star - n_at_numax_star=", en_list_star - n_at_numax_star)
 #	exit()
 	int_fct_w = interpolate.interp1d(en_list_sun - n_at_numax_sun, Gamma_sun/Gamma_sun_at_numax)
 	w=int_fct_w(en_list_star - n_at_numax_star)
@@ -447,10 +450,13 @@ def numax_from_stello2009(Dnu_star, spread=0):
 	# Define the frequency range for the calculation by (1) getting numax from Dnu and (2) fixing a range around numax
 	beta0=0.263 # according to Stello+2009, we have Dnu_p ~ 0.263*numax^0.77 (https://arxiv.org/pdf/0909.5193.pdf)
 	beta1=0.77 # according to Stello+2009, we have Dnu_p ~ 0.263*numax^0.77 (https://arxiv.org/pdf/0909.5193.pdf)
+	
 	nu_max=10**(numpy.log10(Dnu_star/beta0)/beta1)
-	if spread > 0: # Add a unifrom spread around numax, spread must be given in %
-		nu_max=nu_max + numpy.random.uniform(nu_max*(1.-spread), nu_max*(1. + spread))
-		
+#	print("nu_max=", nu_max)	
+	if numpy.abs(spread)>0: # Add a unifrom spread around numax, spread must be given in fraction (eg 5% is 0.05)
+		nu_max=numpy.random.uniform(nu_max*(1.-numpy.abs(spread)), nu_max*(1. + numpy.abs(spread)))
+#	print("spread: ", spread)
+#	print("New nu_max=", nu_max)
 	return nu_max
 
 # The main function that generate a set of parameters used to generate Lorentzian profiles
@@ -514,6 +520,7 @@ def make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star
 #	print("nmax_star=", nmax_star)
 #	print("numax_star=", numax_star)
 #	print("nu_l0=", nu_l0)
+#	exit()
 	width_l0, height_l0=width_height_MS_sun_rescaled(nu_l0, Dnu_star, numax_star)
 	height_l0=height_l0*Hmax_l0
 
@@ -703,18 +710,19 @@ def main_star_generator(config_file='star_params.global', output_file='star_para
 		exit()
 
 	fmin=numax_star -Ncoef*Dnu_star
-	fmax=numax_star +Ncoef*Dnu_star
+	fmax=numax_star +(Ncoef+2)*Dnu_star # BEWARE: ADD HOC CORRECTION FOR NCOEF HERE ===> Avoid the weird cut of power seen at high HNR
 
 	nmax_star=numax_star/Dnu_star - epsilon_star
 
+	#print("nmax_spread_star=", nmax_spread_star)
 	if nmax_spread_star > 0:
-		numax_star=nmax_star + numpy.random.uniform(nmax_star*(1.-nmax_spread_star), nmax_star*(1. + nmax_spread_star))
+		nmax_star=numpy.random.uniform(nmax_star*(1.-nmax_spread_star/100), nmax_star*(1. + nmax_spread_star/100))
 
 	alpha_p_star=beta_p_star/nmax_star
 
-#	print("delta0l_percent_star=", delta0l_percent_star)
-#	print("nmax_star=", nmax_star)
-#	print("alpha_p_star=", alpha_p_star)
+	#print("delta0l_percent_star=", delta0l_percent_star)
+	#print("nmax_star=", nmax_star)
+	#print("alpha_p_star=", alpha_p_star)
 	
 	#nu_l0, nu_p_l1, nu_g_l1, nu_m_l1, nu_l2, nu_l3, width_l0, width_m_l1, width_l2, width_l3, height_l0, height_m_l1, height_l2, height_l3, a1_l1, a1_l2, a1_l3=make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star, D0_star, DP1_star, alpha_star, coupling, fmin, fmax, Hmax_l0=Hmax_l0, Gamma_max_l0=Gamma_max_l0, rot_env_input=rot_env, rot_ratio_input=rot_ratio, rot_core_input=rot_core, output_file_rot=output_file_rot)
 	nu_l0, nu_p_l1, nu_g_l1, nu_m_l1, nu_l2, nu_l3, width_l0, width_m_l1, width_l2, width_l3, height_l0, height_m_l1, height_l2, height_l3, a1_l1, a1_l2, a1_l3=make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star, delta0l_percent_star, alpha_p_star, nmax_star, DP1_star, alpha_star, coupling, fmin, fmax, Hmax_l0=Hmax_l0, Gamma_max_l0=Gamma_max_l0, rot_env_input=rot_env, rot_ratio_input=rot_ratio, rot_core_input=rot_core, output_file_rot=output_file_rot)

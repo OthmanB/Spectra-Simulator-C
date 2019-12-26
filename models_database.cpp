@@ -388,15 +388,17 @@ void asymptotic_mm_freeDp_numaxspread_curvepmodes_v1(VectorXd input_params, std:
 	double Teff=input_params[0];
 	double Dnu=input_params[1];
 	double epsilon=input_params[2];
-	double DP=input_params[3];
-	double alpha=input_params[4];
-	double q=input_params[5];
-	double hnr_l0=input_params[6];
-	double l0_width_at_numax=input_params[7];
-	double numax_spread=input_params[8];	
+	double delta0l_percent=input_params[3];
+	double beta_p=input_params[4];
+	double nmax_spread=input_params[5];
+	double DP=input_params[6];
+	double alpha=input_params[7];
+	double q=input_params[8];
+	double hnr_l0=input_params[9];
+	double l0_width_at_numax=input_params[10];
+	double numax_spread=input_params[11];	
 
-	
-	double D0=Dnu/100;
+	//double D0=Dnu/100;
 	double lmax=3;
 	double Nmax_pm=6; // Number of radial order to inject on each side of numax
 	double N0=1.; 
@@ -430,12 +432,13 @@ void asymptotic_mm_freeDp_numaxspread_curvepmodes_v1(VectorXd input_params, std:
 	rwfile.open(file_cfg_mm.c_str());
 	if(rwfile.is_open()){
 		// ---------------------
-		rwfile << "# First line: Teff / Dnu / epsilon / D0. Second line: DP1 / alpha / q. Third line coupling / how many l=0 freq on left&right of numax / hmax / width at numax for l=0 / max uniform spread on numax (% or <=0 if off)" << std::endl;
+		rwfile << "# First line: Teff / Dnu / epsilon / delta0l_percent / beta_p / nmax_spread. Second line: DP1 / alpha / q. Third line coupling / how many l=0 freq on left&right of numax / hmax / width at numax for l=0 / max uniform spread on numax (% or <=0 if off)" << std::endl;
 		rwfile << Teff;
 		rwfile << std::setw(Nchars_spec) << std::setprecision(precision_spec) << Dnu;
-		rwfile << std::setw(Nchars_spec) << std::setprecision(precision_spec) << epsilon << std::setw(Nchars_spec) << D0 << std::endl;
+		rwfile << std::setw(Nchars_spec) << std::setprecision(precision_spec) << epsilon << std::setw(Nchars_spec) << delta0l_percent << std::setw(Nchars_spec) << beta_p;
+		rwfile << std::setw(Nchars_spec) << nmax_spread << std::endl;
 		rwfile << DP << std::setw(Nchars_spec) << alpha << std::endl;
-		rwfile << q << std::setw(Nchars_spec) << Nmax_pm <<  std::setw(Nchars_spec)  << Hmax_l0 <<  std::setw(Nchars_spec)  << l0_width_at_numax << std::setw(Nchars_spec) << numax_spread << std::endl;
+		rwfile << q << std::setw(Nchars_spec) << Nmax_pm <<  std::setw(Nchars_spec)  << Hmax_l0 <<  std::setw(Nchars_spec)  << l0_width_at_numax << std::setw(Nchars_spec) << numax_spread/100 << std::endl;
 		rwfile.close();
 		std::cout << "Success... starting python3 external program..." << std::endl;
 	} else{
@@ -489,14 +492,17 @@ void asymptotic_mm_freeDp_numaxspread_curvepmodes_v2(VectorXd input_params, std:
 	double rot_ratio=input_params[1];	
 	double Dnu=input_params[2];
 	double epsilon=input_params[3];
-	double DP=input_params[4];
-	double alpha=input_params[5];
-	double q=input_params[6];
-	double hnr_l0=input_params[7];
-	double l0_width_at_numax=input_params[8];
-	double numax_spread=input_params[9];	
+	double delta0l_percent=input_params[4];
+	double beta_p=input_params[5];
+	double nmax_spread=input_params[6];
+	double DP=input_params[7];
+	double alpha=input_params[8];
+	double q=input_params[9];
+	double hnr_l0=input_params[10];
+	double l0_width_at_numax=input_params[11];
+	double numax_spread=input_params[12];	
 	
-	double D0=Dnu/100;
+	//double D0=Dnu/100;
 	double lmax=3;
 	double Nmax_pm=6; // Number of radial order to inject on each side of numax
 	double N0=1.; 
@@ -530,13 +536,14 @@ void asymptotic_mm_freeDp_numaxspread_curvepmodes_v2(VectorXd input_params, std:
 	rwfile.open(file_cfg_mm.c_str());
 	if(rwfile.is_open()){
 		// ---------------------
-		rwfile << "# First line: rot_env / rot_ratio / Dnu / epsilon / D0. Second line: DP1 / alpha / q. Third line coupling / how many l=0 freq on left&right of numax / hmax / width at numax for l=0 / max uniform spread on numax (% or <=0 if off)" << std::endl;
+		rwfile << "# First line: rot_env / rot_ratio / Dnu / epsilon / delta0l_percent / beta_p / nmax_spread. Second line: DP1 / alpha / q. Third line coupling / how many l=0 freq on left&right of numax / hmax / width at numax for l=0 / max uniform spread on numax (% or <=0 if off)" << std::endl;
 		rwfile << rot_env << std::setw(Nchars_spec) << std::setprecision(precision_spec) << rot_ratio;
 		rwfile << std::setw(Nchars_spec) << std::setprecision(precision_spec) << Dnu;
-		rwfile << std::setw(Nchars_spec) << std::setprecision(precision_spec) << epsilon << std::setw(Nchars_spec) << D0 << std::endl;
+		rwfile << std::setw(Nchars_spec) << std::setprecision(precision_spec) << epsilon  << std::setw(Nchars_spec) << delta0l_percent << std::setw(Nchars_spec) << beta_p;
+		rwfile << std::setw(Nchars_spec) << nmax_spread << std::endl;
 		rwfile << DP << std::setw(Nchars_spec) << alpha << std::endl;
 		rwfile << q << std::setw(Nchars_spec) << Nmax_pm <<  std::setw(Nchars_spec)  << Hmax_l0;
-		rwfile <<  std::setw(Nchars_spec)  << l0_width_at_numax <<  std::setw(Nchars_spec)  << numax_spread << std::endl;
+		rwfile <<  std::setw(Nchars_spec)  << l0_width_at_numax <<  std::setw(Nchars_spec)  << numax_spread/100 << std::endl;
 		rwfile.close();
 		std::cout << "Success... starting python3 external program..." << std::endl;
 	} else{
@@ -589,15 +596,18 @@ void asymptotic_mm_freeDp_numaxspread_curvepmodes_v3(VectorXd input_params, std:
 	double rot_env=input_params[0];
 	double rot_core=input_params[1];	
 	double Dnu=input_params[2];
-	double epsilon=input_params[3];
-	double DP=input_params[4];
-	double alpha=input_params[5];
-	double q=input_params[6];
-	double hnr_l0=input_params[7];
-	double l0_width_at_numax=input_params[8];
-	double numax_spread=input_params[9];
+	double epsilon=input_params[3];	
+	double delta0l_percent=input_params[4];
+	double beta_p=input_params[5];
+	double nmax_spread=input_params[6];
+	double DP=input_params[7];
+	double alpha=input_params[8];
+	double q=input_params[9];
+	double hnr_l0=input_params[10];
+	double l0_width_at_numax=input_params[11];
+	double numax_spread=input_params[12];
 		
-	double D0=Dnu/100;
+	//double D0=Dnu/100;
 	double lmax=3;
 	double Nmax_pm=6; // Number of radial order to inject on each side of numax
 	double N0=1.; 
@@ -631,13 +641,14 @@ void asymptotic_mm_freeDp_numaxspread_curvepmodes_v3(VectorXd input_params, std:
 	rwfile.open(file_cfg_mm.c_str());
 	if(rwfile.is_open()){
 		// ---------------------
-		rwfile << "# First line: rot_env / rot_core / Dnu / epsilon / D0. Second line: DP1 / alpha. Third line coupling q / how many l=0 freq on left&right of numax / hmax / width at numax for l=0 / max uniform spread on numax (% or <=0 if off)" << std::endl;
+		rwfile << "# First line: rot_env / rot_core / Dnu / epsilon / delta0l_percent / beta_p / nmax_spread. Second line: DP1 / alpha. Third line coupling q / how many l=0 freq on left&right of numax / hmax / width at numax for l=0 / max uniform spread on numax (% or <=0 if off)" << std::endl;
 		rwfile << rot_env << std::setw(Nchars_spec) << std::setprecision(precision_spec) << rot_core;
 		rwfile << std::setw(Nchars_spec) << std::setprecision(precision_spec) << Dnu;
-		rwfile << std::setw(Nchars_spec) << std::setprecision(precision_spec) << epsilon << std::setw(Nchars_spec) << D0 << std::endl;
+		rwfile << std::setw(Nchars_spec) << std::setprecision(precision_spec) << epsilon << std::setw(Nchars_spec) << delta0l_percent << std::setw(Nchars_spec) << beta_p;
+		rwfile << std::setw(Nchars_spec) << nmax_spread << std::endl;
 		rwfile << DP << std::setw(Nchars_spec) << alpha << std::endl;
 		rwfile << q << std::setw(Nchars_spec) << Nmax_pm <<  std::setw(Nchars_spec)  << Hmax_l0 <<  std::setw(Nchars_spec)  << l0_width_at_numax << std::setw(Nchars_spec);
-		rwfile <<  std::setw(Nchars_spec)  << numax_spread << std::endl;
+		rwfile <<  std::setw(Nchars_spec)  << numax_spread/100 << std::endl;
 		rwfile.close();
 		std::cout << "Success... starting python3 external program..." << std::endl;
 	} else{
@@ -656,6 +667,7 @@ void asymptotic_mm_freeDp_numaxspread_curvepmodes_v3(VectorXd input_params, std:
 		std::cout << "    Model with small Dnu ==> many mixed modes. This might be long to find the solutions..." << std::endl; 
 	}
 	system(command);
+	
 	// Defining the noise profile parameters
 	// Note about the noise: -1 means that it is ignored. -2 mean that the value is irrelevant
 	for(int e=0; e<3; e++){
@@ -665,7 +677,6 @@ void asymptotic_mm_freeDp_numaxspread_curvepmodes_v3(VectorXd input_params, std:
 	}
 	// A FUNCTION THAT WRITES THE Noise
 	write_star_noise_params(noise_params, file_out_noise);
-
 }
 
 

@@ -8,12 +8,22 @@
 ### ROADMAP v0.8.95 (*Expected Release: Jan 2020*) ####
 	* Added functionalities:
 		- Adding controls for Visibilities
-		- Addning controls for Nmax (?): Perhaps not necessary (just an increaser Nmax should suffice)... will see.
+		- Addning controls for Nmax (?): Probably no need since the fix [6] in v0.8.9
 		- Adding random errors around the second order asymptotic relations. Try to make them spline-consistent
 
-### IN DEV v0.8.9 (*Expected Release: 23 Dec 2019*) ####
+### v0.8.9 (*Release on 26 Dec 2019*) ####
+	* Bug fix:
+		[1] numax_spread improperly doubling the value of numax instead of just adding a %age of numax [SOLVED]
+		[2] nmax_spread bug fix [SOLVED]
+		[3] interpolation of height/width from the sun failing due to a forbiden extrapolation [SOLVED]
+		[4] Incorrect numax_star inside bump_DP.width_height_MS_sun_rescaled() due to a typo between nmax_star and numax_star [SOLVED]
+		[5] The model asymptotic_mm_freeDp_numaxspread_curvepmodes_v3 was not properly linked to the function of the same name into models_database.cpp [SOLVED]
+		[6] Fix of Nmax issue: At high HNR, the fix number of generated modes can make the spectrum look 'cut' at high frequency. To solve this temporarily
+		  I generate +2 radial order at high frequency (6 below numax, 8 above number) instead of having the same number of modes. The apparent issue is 
+		  mostly due to the fact that high degree modes have extremely large FWHM, making them very visible.      [SOLVED]
+
 	* Added functionalities:
-		on models with mixed modes, add second order effects on frequencies (curvature for p modes):
+		[1] on models with mixed modes, add second order effects on frequencies (curvature for p modes):
 		 	D0 was a fix parameter while it should be a variable. Instead of sticking to D0, I implemented the second order effect on the
 		  	asymptotic relation for p modes. Thus now, we have Eq. 22 from Mosser+2018 (https://www.aanda.org/articles/aa/pdf/2018/10/aa32777-18.pdf)
 		  	encoded. This means that we have 2 new variable (+ 1 variable change for D0):
@@ -28,22 +38,24 @@
 		  		[2] Changes in bump_DP.py: 
 		  			[a] Write a new test function test_asymptotic_star_O2p() to evaluate the impacts for the changes in solver_mm.py  				 [100%]
 					[b] Update make_synthetic_asymptotic_star to handle the new syntax in the file_cfg_mm created by the mixed modes models in C++   [100%]
-					[c] Update main_star_generator																									 [33%]
-	  			[3] In iterative_articial_spectrum.cpp: Add for all previous mixed modes models the 3 new parameters    							 
+					[c] Update main_star_generator																									 [100%]
+	  			[3] In iterative_articial_spectrum.cpp: Add for all previous mixed modes models the new parameters    							 
 	  					- asymptotic_mm_v1 																											[100%] [TESTED] 
 	  					- asymptotic_mm_v2  																										[100%] [TESTED]
-	  					- asymptotic_mm_v3  																										[100%] [NEED TESTING]
-	  					- asymptotic_mm_freeDp_numaxspread_curvepmodes_v1																			[0%] 
-	  					- asymptotic_mm_freeDp_numaxspread_curvepmodes_v2																	  		[0%] 
-	  					- asymptotic_mm_freeDp_numaxspread_curvepmodes_v3																			[0%] 
-	  			[4] In models_database.cpp: In all mixed modes models, replace D0 by the 3 new parameters for the exchange file file_cfg_mm			[33%]
+	  					- asymptotic_mm_v3  																										[100%] [TESTED]
+	  					- asymptotic_mm_freeDp_numaxspread_curvepmodes_v1																			[100%] [TESTED] 
+	  					- asymptotic_mm_freeDp_numaxspread_curvepmodes_v2																	  		[100%] [TESTED]
+	  					- asymptotic_mm_freeDp_numaxspread_curvepmodes_v3																			[100%] 
+	  			[4] In models_database.cpp: In all mixed modes models, replace D0 by the new parameters for the exchange file file_cfg_mm			[100%]
 	  					- asymptotic_mm_v1 																											[100%] [TESTED]
-	  					- asymptotic_mm_v2  																										[100%] [TEST]
-	  					- asymptotic_mm_v3  																										[100%] [NEED TESTING]
-	  					- asymptotic_mm_freeDp_numaxspread_curvepmodes_v1
-	  					- asymptotic_mm_freeDp_numaxspread_curvepmodes_v2
-	  					- asymptotic_mm_freeDp_numaxspread_curvepmodes_v3
-	  			[5] Change the main.cfg.XX for all templates according to the new format 															[33%]
+	  					- asymptotic_mm_v2  																										[100%] [TESTED]
+	  					- asymptotic_mm_v3  																										[100%] [TESTED]
+	  					- asymptotic_mm_freeDp_numaxspread_curvepmodes_v1																			[100%] [TESTED] 
+	  					- asymptotic_mm_freeDp_numaxspread_curvepmodes_v2																			[100%] [TESTED] 
+	  					- asymptotic_mm_freeDp_numaxspread_curvepmodes_v3																			[100%] 
+	  			[5] Change the main.cfg.XX for all templates according to the new format 															[100%]
+
+		[2] At each iteration, remove the modes_tmp.cfg and noise_tmp.cfg in order to have a program termination if those files are not created properly [100%] [TESTED]
 
 
 

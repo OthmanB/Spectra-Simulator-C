@@ -177,16 +177,20 @@ void iterative_artificial_spectrum(std::string dir_core){
 		passed=1;
 	}
 	if(cfg.model_name == "asymptotic_mm_freeDp_numaxspread_curvepmodes_v1"){
-		Nmodel=9;
+		//Nmodel=12;
 		param_names.push_back("Teff"); 
 		param_names.push_back("Dnu"); 
 		param_names.push_back("epsilon"); 
+		param_names.push_back("delta0l_percent"); 
+		param_names.push_back("beta_p_star"); 
+		param_names.push_back("nmax_spread"); 
 		param_names.push_back("DP1"); 
 		param_names.push_back("alpha"); 
 		param_names.push_back("q");
 		param_names.push_back("SNR");
 		param_names.push_back("maxGamma");
-		param_names.push_back("numax_spread");		
+		param_names.push_back("numax_spread");
+		Nmodel=param_names.size();		
 		if(param_names.size() != Nmodel){
 			std::cout << "    Invalid number of parameters for model_name= 'asymptotic_mm_v1'" << std::endl;
 			std::cout << "    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size() << std::endl;
@@ -197,17 +201,21 @@ void iterative_artificial_spectrum(std::string dir_core){
 		passed=1;
 	}
 	if(cfg.model_name == "asymptotic_mm_freeDp_numaxspread_curvepmodes_v2"){
-		Nmodel=10;
+		//Nmodel=13;
 		param_names.push_back("nurot_env"); 
 		param_names.push_back("nurot_ratio"); 
 		param_names.push_back("Dnu"); 
 		param_names.push_back("epsilon");
+		param_names.push_back("delta0l_percent"); 
+		param_names.push_back("beta_p_star"); 
+		param_names.push_back("nmax_spread"); 
 		param_names.push_back("DP1"); 
 		param_names.push_back("alpha"); 
 		param_names.push_back("q");
 		param_names.push_back("SNR");
 		param_names.push_back("maxGamma");
-		param_names.push_back("numax_spread");		
+		param_names.push_back("numax_spread");	
+		Nmodel=param_names.size();		
 		if(param_names.size() != Nmodel){
 			std::cout << "    Invalid number of parameters for model_name= 'asymptotic_mm_v2'" << std::endl;
 			std::cout << "    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size() << std::endl;
@@ -218,17 +226,21 @@ void iterative_artificial_spectrum(std::string dir_core){
 		passed=1;
 	}
 	if(cfg.model_name == "asymptotic_mm_freeDp_numaxspread_curvepmodes_v3"){
-		Nmodel=10;
+		//Nmodel=13;
 		param_names.push_back("nurot_env"); 
 		param_names.push_back("nurot_core"); 
 		param_names.push_back("Dnu"); 
 		param_names.push_back("epsilon");
+		param_names.push_back("delta0l_percent"); 
+		param_names.push_back("beta_p_star"); 
+		param_names.push_back("nmax_spread"); 
 		param_names.push_back("DP1");  
 		param_names.push_back("alpha"); 
 		param_names.push_back("q");
 		param_names.push_back("SNR");
 		param_names.push_back("maxGamma");
-		param_names.push_back("numax_spread");		
+		param_names.push_back("numax_spread");	
+		Nmodel=param_names.size();		
 		if(param_names.size() != Nmodel){
 			std::cout << "    Invalid number of parameters for model_name= 'asymptotic_mm_v3'" << std::endl;
 			std::cout << "    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size() << std::endl;
@@ -270,7 +282,7 @@ void generate_random(Config_Data cfg, std::vector<std::string> param_names, std:
 	bool neg=0, passed=0;
 	int i, ii;
 	long lastid, id0;
-	std::string id_str;
+	std::string id_str, str_tmp;
 	VectorXd cte_params, val_min, val_max, input_params;
 	MatrixXd currentcombi, allcombi;
 	std::vector<double> pos_zero, pos_one;	
@@ -381,6 +393,14 @@ void generate_random(Config_Data cfg, std::vector<std::string> param_names, std:
 		}
 		id0=id0+1;
 		passed=0;
+
+		// Erasing the temporary files to avoid those to be loaded at vitam eternam if an error in their generetation at step c=c_err happens
+		str_tmp="rm " + file_out_modes;	
+		const char *cmd1 = str_tmp.c_str(); 
+		system(cmd1);
+		str_tmp="rm " + file_out_noise;	
+		const char *cmd2 = str_tmp.c_str(); 
+		system(cmd2);
 	}
 
 	std::cout << "All requested tasks executed succesfully" << std::endl;
@@ -438,7 +458,7 @@ bool call_model(std::string model_name, VectorXd input_params, std::string file_
 			subpassed=1;
 		}
 		if(model_name =="asymptotic_mm_freeDp_numaxspread_curvepmodes_v3"){ 
-			asymptotic_mm_freeDp_numaxspread_curvepmodes_v2(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path);
+			asymptotic_mm_freeDp_numaxspread_curvepmodes_v3(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path);
 			subpassed=1;
 		}
 		if(subpassed == 0){
