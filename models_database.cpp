@@ -52,7 +52,11 @@ void asymptotic_mm_v1(VectorXd input_params, std::string file_out_modes, std::st
 	double q=input_params[8];
 	double hnr_l0=input_params[9];
 	double l0_width_at_numax=input_params[10];
-	
+	double Vl1=input_params[11];
+	double Vl2=input_params[12];
+	double Vl3=input_params[13];
+	double H0_spread=input_params[14];
+
 	//double D0=Dnu/100;
 	double lmax=3;
 	double Nmax_pm=6; // Number of radial order to inject on each side of numax
@@ -107,6 +111,7 @@ void asymptotic_mm_v1(VectorXd input_params, std::string file_out_modes, std::st
 		rwfile << std::setw(Nchars_spec) << nmax_spread << std::endl;
 		rwfile << DP << std::setw(Nchars_spec) << alpha << std::endl;
 		rwfile << q << std::setw(Nchars_spec) << Nmax_pm <<  std::setw(Nchars_spec)  << Hmax_l0 <<  std::setw(Nchars_spec)  << l0_width_at_numax << std::setw(Nchars_spec) << "-1 " << std::endl;
+		rwfile << Vl1 << std::setw(Nchars_spec) << Vl2 << std::setw(Nchars_spec) << Vl3 << std::setw(Nchars_spec) << H0_spread << std::endl;
 		rwfile.close();
 		std::cout << "Success... starting python3 external program..." << std::endl;
 	} else{
@@ -169,7 +174,11 @@ void asymptotic_mm_v2(VectorXd input_params, std::string file_out_modes, std::st
 	double q=input_params[9];
 	double hnr_l0=input_params[10];
 	double l0_width_at_numax=input_params[11];
-	
+	double Vl1=input_params[12];
+	double Vl2=input_params[13];
+	double Vl3=input_params[14];
+	double H0_spread=input_params[15];
+
 	double lmax=3;
 	double Nmax_pm=6; // Number of radial order to inject on each side of numax
 	double N0=1.; 
@@ -222,6 +231,7 @@ void asymptotic_mm_v2(VectorXd input_params, std::string file_out_modes, std::st
 		rwfile << std::setw(Nchars_spec) << nmax_spread << std::endl;
 		rwfile << DP << std::setw(Nchars_spec) << alpha << std::endl;
 		rwfile << q << std::setw(Nchars_spec) << Nmax_pm <<  std::setw(Nchars_spec)  << Hmax_l0 <<  std::setw(Nchars_spec)  << l0_width_at_numax << std::setw(Nchars_spec) << "-1 " << std::endl;
+		rwfile << Vl1 << std::setw(Nchars_spec) << Vl2 << std::setw(Nchars_spec) << Vl3 << std::setw(Nchars_spec) << H0_spread << std::endl;
 		rwfile.close();
 		std::cout << "Success... starting python3 external program..." << std::endl;
 	} else{
@@ -283,6 +293,10 @@ void asymptotic_mm_v3(VectorXd input_params, std::string file_out_modes, std::st
 	double q=input_params[9];
 	double hnr_l0=input_params[10];
 	double l0_width_at_numax=input_params[11];
+	double Vl1=input_params[12];
+	double Vl2=input_params[13];
+	double Vl3=input_params[14];
+	double H0_spread=input_params[15];
 
 	double lmax=3;
 	double Nmax_pm=6; // Number of radial order to inject on each side of numax
@@ -336,6 +350,7 @@ void asymptotic_mm_v3(VectorXd input_params, std::string file_out_modes, std::st
 		rwfile << std::setw(Nchars_spec) << nmax_spread << std::endl;
 		rwfile << DP << std::setw(Nchars_spec) << alpha << std::endl;
 		rwfile << q << std::setw(Nchars_spec) << Nmax_pm <<  std::setw(Nchars_spec)  << Hmax_l0 <<  std::setw(Nchars_spec)  << l0_width_at_numax << std::setw(Nchars_spec) << "-1 " << std::endl;
+		rwfile << Vl1 << std::setw(Nchars_spec) << Vl2 << std::setw(Nchars_spec) << Vl3 << std::setw(Nchars_spec) << H0_spread << std::endl;
 		rwfile.close();
 		std::cout << "Success... starting python3 external program..." << std::endl;
 	} else{
@@ -396,7 +411,11 @@ void asymptotic_mm_freeDp_numaxspread_curvepmodes_v1(VectorXd input_params, std:
 	double q=input_params[8];
 	double hnr_l0=input_params[9];
 	double l0_width_at_numax=input_params[10];
-	double numax_spread=input_params[11];	
+	double numax_spread=input_params[11];
+	double Vl1=input_params[12];
+	double Vl2=input_params[13];
+	double Vl3=input_params[14];
+	double H0_spread=input_params[15];
 
 	//double D0=Dnu/100;
 	double lmax=3;
@@ -439,6 +458,7 @@ void asymptotic_mm_freeDp_numaxspread_curvepmodes_v1(VectorXd input_params, std:
 		rwfile << std::setw(Nchars_spec) << nmax_spread << std::endl;
 		rwfile << DP << std::setw(Nchars_spec) << alpha << std::endl;
 		rwfile << q << std::setw(Nchars_spec) << Nmax_pm <<  std::setw(Nchars_spec)  << Hmax_l0 <<  std::setw(Nchars_spec)  << l0_width_at_numax << std::setw(Nchars_spec) << numax_spread/100 << std::endl;
+		rwfile << Vl1 << std::setw(Nchars_spec) << Vl2 << std::setw(Nchars_spec) << Vl3 << std::setw(Nchars_spec) << H0_spread << std::endl;
 		rwfile.close();
 		std::cout << "Success... starting python3 external program..." << std::endl;
 	} else{
@@ -501,6 +521,10 @@ void asymptotic_mm_freeDp_numaxspread_curvepmodes_v2(VectorXd input_params, std:
 	double hnr_l0=input_params[10];
 	double l0_width_at_numax=input_params[11];
 	double numax_spread=input_params[12];	
+	double Vl1=input_params[13];
+	double Vl2=input_params[14];
+	double Vl3=input_params[15];
+	double H0_spread=input_params[16];
 	
 	//double D0=Dnu/100;
 	double lmax=3;
@@ -544,6 +568,7 @@ void asymptotic_mm_freeDp_numaxspread_curvepmodes_v2(VectorXd input_params, std:
 		rwfile << DP << std::setw(Nchars_spec) << alpha << std::endl;
 		rwfile << q << std::setw(Nchars_spec) << Nmax_pm <<  std::setw(Nchars_spec)  << Hmax_l0;
 		rwfile <<  std::setw(Nchars_spec)  << l0_width_at_numax <<  std::setw(Nchars_spec)  << numax_spread/100 << std::endl;
+		rwfile << Vl1 << std::setw(Nchars_spec) << Vl2 << std::setw(Nchars_spec) << Vl3 << std::setw(Nchars_spec) << H0_spread << std::endl;
 		rwfile.close();
 		std::cout << "Success... starting python3 external program..." << std::endl;
 	} else{
@@ -606,7 +631,11 @@ void asymptotic_mm_freeDp_numaxspread_curvepmodes_v3(VectorXd input_params, std:
 	double hnr_l0=input_params[10];
 	double l0_width_at_numax=input_params[11];
 	double numax_spread=input_params[12];
-		
+	double Vl1=input_params[13];
+	double Vl2=input_params[14];
+	double Vl3=input_params[15];
+	double H0_spread=input_params[16];
+
 	//double D0=Dnu/100;
 	double lmax=3;
 	double Nmax_pm=6; // Number of radial order to inject on each side of numax
@@ -649,6 +678,7 @@ void asymptotic_mm_freeDp_numaxspread_curvepmodes_v3(VectorXd input_params, std:
 		rwfile << DP << std::setw(Nchars_spec) << alpha << std::endl;
 		rwfile << q << std::setw(Nchars_spec) << Nmax_pm <<  std::setw(Nchars_spec)  << Hmax_l0 <<  std::setw(Nchars_spec)  << l0_width_at_numax << std::setw(Nchars_spec);
 		rwfile <<  std::setw(Nchars_spec)  << numax_spread/100 << std::endl;
+		rwfile << Vl1 << std::setw(Nchars_spec) << Vl2 << std::setw(Nchars_spec) << Vl3 << std::setw(Nchars_spec) << H0_spread << std::endl;
 		rwfile.close();
 		std::cout << "Success... starting python3 external program..." << std::endl;
 	} else{

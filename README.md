@@ -20,6 +20,10 @@ or without openmp (MacOS compiler does not support openmp):
 g++ -O3 -I eigen -lutil -lboost_iostreams -lboost_system -lboost_filesystem -lgsl -lgslcblas artificial_spectrum.cpp io_star_params.cpp build_lorentzian.cpp function_rot.cpp plots_diags.cpp iterative_artificial_spectrum.cpp models_database.cpp  random_JB.cpp string_handler.cpp noise_models.cpp -o ./sim.out
 ```
 
+If you use your own installation of the Eigen Library, replace ```-I eigen``` by the proper path to it. For example if you used the ```sudo apt-get install libeigen3-dev``` (e.g. in Ubuntu):
+
+```g++ -O3 -I/usr/include/eigen3 -lutil -lboost_iostreams -lboost_system -lboost_filesystem -lgsl -lgslcblas artificial_spectrum.cpp io_star_params.cpp build_lorentzian.cpp function_rot.cpp plots_diags.cpp iterative_artificial_spectrum.cpp models_database.cpp  random_JB.cpp string_handler.cpp noise_models.cpp -o ./sim.out```
+ 
 ### The program ###
 
 The Program 'Spectrum Simulator' creates synthetic spectra for asteroseismology.

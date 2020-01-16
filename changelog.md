@@ -1,17 +1,25 @@
 # Version history #
 
-### ROADMAP v0.9.0 (*Expected Release: Jan 2020*) ####
+### ROADMAP v0.9.0 (*Expected Release: Jan 2020*) ###
 	* Added functionalities:
 		- Code the grid capability
 		- Implement numax variable on generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma
-
-### ROADMAP v0.8.95 (*Expected Release: Jan 2020*) ####
-	* Added functionalities:
-		- Adding controls for Visibilities
-		- Addning controls for Nmax (?): Probably no need since the fix [6] in v0.8.9
 		- Adding random errors around the second order asymptotic relations. Try to make them spline-consistent
 
-### v0.8.9 (*Release on 26 Dec 2019*) ####
+### ROADMAP v0.8.93 (*Release on 16 Jan 2020*) ####		
+	* Added functionalities:
+		- Adding Templates database for Heights
+		- Allow random jumps between heights a templates population 
+
+### v0.8.92 (*Released on 16 Jan 2020*) ####		
+	* Added functionalities:
+		- Adding controls for Visibilities
+
+### v0.8.91 ###
+	* Bug Fix:
+		- Crash of the code due to failure in the mixed mode solver when the second order curvature is too large
+
+### v0.8.9 (*Released on 26 Dec 2019*) ###
 	* Bug fix:
 		[1] numax_spread improperly doubling the value of numax instead of just adding a %age of numax [SOLVED]
 		[2] nmax_spread bug fix [SOLVED]
@@ -59,7 +67,7 @@
 
 
 
-### v0.8.8 (*Released 19 Dec 2019*)####
+### v0.8.8 (*Released 19 Dec 2019*)###
 	* Added functionalities:
 		* Merging with several functions present in the IDL version 1.4. The model that is imported the followings:
 			- generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma

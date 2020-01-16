@@ -10,10 +10,10 @@
 #                                 If 0, then (1) append the combination file and (2) model number = last model number + 1
 random 1 # forest_type, followed by the forest_params. If forest_type=random, then forest_params is a single value that corresponds to the Number of samples
 asymptotic_mm_v1	 		# Name of the model. asymptotic_mm_v1 is a basic model to generate a star with mixed modes
-Teff   Dnu  epsilon  delta0l_percent	    beta_p_star	  nmax_spread	  DP_var_percent     alpha    q      SNR    maxGamma 
-4000.   20.    0.00      0.5                 0.00           5              2.5               0.00     0.1    5.      0.1      #val_min
-5500.   60.    1.00      3.0                 0.10           5              2.5               0.05     0.3    100.    0.5     #val_max
-1       1.     1.        1                   1              0              0.                1        1      1.      1.      #If forest_type="random" ==> 1=Variable OR 0=Constant. If forest_type="grid" then must be the stepsize of the grid
+Teff   Dnu  epsilon  delta0l_percent	    beta_p_star	  nmax_spread	  DP_var_percent     alpha    q      SNR    maxGamma     Vl1    Vl2    Vl3   H0_spread 
+4000.   20.    0.00      0.5                 0.00           5              2.5               0.00     0.1    5.      0.1         1      0.25   0.0   0.1  #val_min
+5500.   60.    1.00      3.0                 0.10           5              2.5               0.05     0.3    100.    0.5         1.75   0.80   0.1   0.1  #val_max
+1       1.     1.        1                   1              0              0.                1        1      1.      1.          1.     1.     1.    0.   #If forest_type="random" ==> 1=Variable OR 0=Constant. If forest_type="grid" then must be the stepsize of the grid
 Tobs   Cadence  Naverage
 1000.    300       1
 1     # It is erase_old_files. If set to 1, will remove old Combination.txt and restart counting from 1. Otherwise append Combination.txt

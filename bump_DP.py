@@ -490,13 +490,13 @@ def numax_from_stello2009(Dnu_star, spread=0):
 #	width_lx: Widths of the l=x modes. x is between 0 and 3
 #   height_lx: Heights of the l=x modes. x is between 0 and 3 
 #def make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star, D0_star, DP1_star, alpha_star, q_star, fmin, fmax, Hmax_l0=1., Gamma_max_l0=1., rot_env_input=-1, rot_ratio_input=-1, rot_core_input=-1, output_file_rot='star_params.rot'):
-def make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star, delta0l_percent_star, alpha_p_star, nmax_star, DP1_star, alpha_star, q_star, fmin, fmax, Hmax_l0=1., Gamma_max_l0=1., rot_env_input=-1, rot_ratio_input=-1, rot_core_input=-1, output_file_rot='star_params.rot'):
+def make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star, delta0l_percent_star, alpha_p_star, nmax_star, DP1_star, alpha_star, q_star, fmin, fmax, Hmax_l0=1., Gamma_max_l0=1., rot_env_input=-1, rot_ratio_input=-1, rot_core_input=-1, output_file_rot='star_params.rot', Vl=[1,1.5,0.5, 0.07], H0_spread=0):
 
 	# Fix the resolution to 4 years (converted into microHz)
 	resol=1e6/(4*365.*86400.) 
 
 	#Fix the bolometric visibilities
-	Vl=[1, 1.5, 0.5, 0.07]
+	#Vl=[1, 1.5, 0.5, 0.07]
 
 	# ----- l=0 modes -----
 	# This section generate l=0 modes following the asymptotic relation of p modes, and make
@@ -524,8 +524,11 @@ def make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star
 	width_l0, height_l0=width_height_MS_sun_rescaled(nu_l0, Dnu_star, numax_star)
 	height_l0=height_l0*Hmax_l0
 
+	if numpy.abs(H0_spread) > 0:
+		height_l0=numpy.random.uniform(height_l0*(1.-numpy.abs(H0_spread)), height_l0*(1. + numpy.abs(H0_spread)))
+
 	width_l0=width_l0*Gamma_max_l0
-	
+
 	# Define an interpolation base to be used when generating maximum widths of l=1 mixed modes
 	# and for heights and widths of l=2,3 modes	
 	int_fct_h0 = interpolate.interp1d(nu_l0, height_l0)
@@ -551,7 +554,7 @@ def make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star
 #	print('Len(h1_h0_ratio):',len(h1_h0_ratio))
 
 	height_l1p=int_fct_h0(nu_m_l1)
-	height_l1p=height_l1p*Vl[1] 
+	height_l1p=height_l1p*Vl[0] 
 #	print('Len(Height_l1p):', len(height_l1p))
 	height_l1=h1_h0_ratio * height_l1p 
 	#width_l1=gamma_l_fct1(nu_m_l1, nu_p_l1, nu_g_l1, Dnu_p, DPl, q_star, nu_l0, width_l0, el, hl_h0_ratio=1.)
@@ -595,7 +598,7 @@ def make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star
 	nu_l2=nu_l2[posOK]
 
 	height_l2=int_fct_h0(nu_l2)
-	height_l2=height_l2*Vl[2]
+	height_l2=height_l2*Vl[1]
 	width_l2=int_fct_w0(nu_l2)
 
 	# Assume that the l=2 modes are only sensitive to the envelope rotation
@@ -615,7 +618,7 @@ def make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star
 	nu_l3=nu_l3[posOK]
 
 	height_l3=int_fct_h0(nu_l3)
-	height_l3=height_l3*Vl[3]
+	height_l3=height_l3*Vl[2]
 	width_l3=int_fct_w0(nu_l3)
 
 	# Assume that the l=3 modes are only sensitive to the envelope rotation
@@ -650,6 +653,8 @@ def main_star_generator(config_file='star_params.global', output_file='star_para
 		Hmax_l0=numpy.double(setup[2][2]) # Maximum height for the l=0. Heights of other modes are set using visibilities (make_synthetic_asymptotic_star()).
 		Gamma_max_l0=numpy.double(setup[2][3]) # Width at numax for l=0
 		numax_spread=numpy.double(setup[2][4]) # uniform numax spread in %. If <=0, no spread is applied
+		Vl=numpy.double(setup[3][0:3]) # Visibilities for l=1,2, 3
+		H0_spread=numpy.double(setup[3][3]) # Control for the % of variance around the injected Height profile for l=0
 		Teff_star=numpy.double(setup_pmodes[0])
 		rot_env=-1
 		rot_core=-1
@@ -672,6 +677,8 @@ def main_star_generator(config_file='star_params.global', output_file='star_para
 		Hmax_l0=numpy.double(setup[2][2]) # Maximum height for the l=0. Heights of other modes are set using visibilities (make_synthetic_asymptotic_star()).
 		Gamma_max_l0=numpy.double(setup[2][3]) # Width at numax for l=0
 		numax_spread=numpy.double(setup[2][4]) # uniform numax spread in %. If <=0, no spread is applied
+		Vl=numpy.double(setup[3][0:3]) # Visibilities for l=1,2, 3
+		H0_spread=numpy.double(setup[3][3]) # Control for the % of variance around the injected Height profile for l=0
 		Teff_star=-1 # No needed in version 2
 		rot_env=numpy.double(setup_pmodes[0])
 		rot_core=-1
@@ -693,6 +700,8 @@ def main_star_generator(config_file='star_params.global', output_file='star_para
 		Hmax_l0=numpy.double(setup[2][2]) # Maximum height for the l=0. Heights of other modes are set using visibilities (make_synthetic_asymptotic_star()).
 		Gamma_max_l0=numpy.double(setup[2][3]) # Width at numax for l=0
 		numax_spread=numpy.double(setup[2][4]) # uniform numax spread in %. If <=0, no spread is applied
+		Vl=numpy.double(setup[3][0:3]) # Visibilities for l=1,2, 3
+		H0_spread=numpy.double(setup[3][3]) # Control for the % of variance around the injected Height profile for l=0
 		Teff_star=-1 # No needed in version 2
 		rot_env=numpy.double(setup_pmodes[0])
 		rot_core=numpy.double(setup_pmodes[1])
@@ -708,6 +717,8 @@ def main_star_generator(config_file='star_params.global', output_file='star_para
 		print('Error: Incorrect model version specified. The model version should be either 1, 2 or 3')
 		print('       Cannot proceed. The program will exit now')
 		exit()
+
+	#numax_star=570. # Line to force artificially numax_star to a certain value
 
 	fmin=numax_star -Ncoef*Dnu_star
 	fmax=numax_star +(Ncoef+2)*Dnu_star # BEWARE: ADD HOC CORRECTION FOR NCOEF HERE ===> Avoid the weird cut of power seen at high HNR
@@ -725,7 +736,8 @@ def main_star_generator(config_file='star_params.global', output_file='star_para
 	#print("alpha_p_star=", alpha_p_star)
 	
 	#nu_l0, nu_p_l1, nu_g_l1, nu_m_l1, nu_l2, nu_l3, width_l0, width_m_l1, width_l2, width_l3, height_l0, height_m_l1, height_l2, height_l3, a1_l1, a1_l2, a1_l3=make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star, D0_star, DP1_star, alpha_star, coupling, fmin, fmax, Hmax_l0=Hmax_l0, Gamma_max_l0=Gamma_max_l0, rot_env_input=rot_env, rot_ratio_input=rot_ratio, rot_core_input=rot_core, output_file_rot=output_file_rot)
-	nu_l0, nu_p_l1, nu_g_l1, nu_m_l1, nu_l2, nu_l3, width_l0, width_m_l1, width_l2, width_l3, height_l0, height_m_l1, height_l2, height_l3, a1_l1, a1_l2, a1_l3=make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star, delta0l_percent_star, alpha_p_star, nmax_star, DP1_star, alpha_star, coupling, fmin, fmax, Hmax_l0=Hmax_l0, Gamma_max_l0=Gamma_max_l0, rot_env_input=rot_env, rot_ratio_input=rot_ratio, rot_core_input=rot_core, output_file_rot=output_file_rot)
+	#nu_l0, nu_p_l1, nu_g_l1, nu_m_l1, nu_l2, nu_l3, width_l0, width_m_l1, width_l2, width_l3, height_l0, height_m_l1, height_l2, height_l3, a1_l1, a1_l2, a1_l3=make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star, delta0l_percent_star, alpha_p_star, nmax_star, DP1_star, alpha_star, coupling, fmin, fmax, Hmax_l0=Hmax_l0, Gamma_max_l0=Gamma_max_l0, rot_env_input=rot_env, rot_ratio_input=rot_ratio, rot_core_input=rot_core, output_file_rot=output_file_rot)
+	nu_l0, nu_p_l1, nu_g_l1, nu_m_l1, nu_l2, nu_l3, width_l0, width_m_l1, width_l2, width_l3, height_l0, height_m_l1, height_l2, height_l3, a1_l1, a1_l2, a1_l3=make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star, delta0l_percent_star, alpha_p_star, nmax_star, DP1_star, alpha_star, coupling, fmin, fmax, Hmax_l0=Hmax_l0, Gamma_max_l0=Gamma_max_l0, rot_env_input=rot_env, rot_ratio_input=rot_ratio, rot_core_input=rot_core, output_file_rot=output_file_rot, Vl=Vl, H0_spread=H0_spread)
 	nu_m_l1=nu_m_l1[1:] # remove the first one as it has always 0 amplitude (for some unclear reason)
 	width_m_l1=width_m_l1[1:]
 	height_m_l1=height_m_l1[1:]
