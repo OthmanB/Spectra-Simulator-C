@@ -525,7 +525,7 @@ def make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star
 	height_l0=height_l0*Hmax_l0
 
 	if numpy.abs(H0_spread) > 0:
-		height_l0=numpy.random.uniform(height_l0*(1.-numpy.abs(H0_spread)), height_l0*(1. + numpy.abs(H0_spread)))
+		height_l0=numpy.random.uniform(height_l0*(1.-numpy.abs(H0_spread)/100.), height_l0*(1. + numpy.abs(H0_spread)/100.))
 
 	width_l0=width_l0*Gamma_max_l0
 
