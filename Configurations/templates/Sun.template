@@ -1,0 +1,52 @@
+# Template file used to compute the height and width profile of simulated stars. 
+# The values of this table is rescaled by the code so to match numax_star, Dnu_star and epsilon_star
+# The table was generated using fitted frequencies and Heights of the Sun on VIRGO/SPM data and have been
+# carefully extrapolated at the edges to avoid rescaling issues. 
+# Widths are determined using the equation given by Appourchaux+2014 for the width profile, after checking
+# the the VIRGO/SPM widths are compatible with the relation. 
+# Parameters for that relation are:
+#	alfa=4.97
+#	Gamma_alfa=4.65
+#	Wdip=4646. # depth of the dip
+#	nu_dip=3083.
+#	Ddip=4.66
+ID_ref= Sun
+Dnu_ref= 135.1
+epsilon_ref= 0.5
+numax_ref= 2900
+# Frequency (microHz)     Height (ppm^2/microhz)       Width
+1250                      0.01                    6.43192518e-02
+1350                      0.0125                  9.26330330e-02
+1450                      0.025                   1.29391921e-01
+1550                      0.05                    1.75808932e-01
+1650                      0.1                     2.32846828e-01
+1750                      0.15                    3.01008096e-01
+1850                      0.20                    3.80065972e-01
+1957.4748                 0.55633623              4.75700046e-01
+2093.5983                 0.71080326              6.07296081e-01
+2228.8442                 0.84916942              7.38656433e-01
+2362.8797                 1.0309479               8.54018032e-01
+2496.3328                 1.3676815               9.39915062e-01
+2629.8436                 2.0930273               9.93255574e-01    
+2764.3597                 2.8720608               1.03191217e+00
+2899.2249                 3.9032770               1.09915710e+00
+3033.9623                 3.7507970               1.25782336e+00
+3168.9156                 2.8629352               1.58287456e+00
+3303.8225                 1.8167902               2.15522240e+00
+3439.3876                 0.92533429              3.06024826e+00
+3575.2118                 0.42467669              4.36666158e+00
+3711.6045                 0.17490098              6.13045328e+00
+3848.5361                 0.079882521             8.39132326e+00
+3984.6612                 0.038872344             1.11537058e+01
+4180                      0.005                   1.60742135e+01
+4280                      0.00012                 1.90595678e+01
+4380                      0.0001                  2.23830350e+01
+4480                      0.00002                 2.60640959e+01
+4580                      0.00001                 3.01242034e+01
+4680                      0.000005                3.45866636e+01
+4780                      0.0000001               3.94765257e+01
+4880                      0.0                     4.48204874e+01
+4980                      0.0                     5.06468218e+01
+5080                      0.0                     5.69853225e+01
+5180                      0.0                     6.38672643e+01
+5280                      0.0                     7.13253794e+01

@@ -141,6 +141,96 @@ def inertia_ratio_obs_height(h0, hl, visibility_l_square, width0, widthl):
 	IlI0=visibility_l_square*r1*r2
 	return IlI0
 
+def read_templatefile(templatefile):
+	try:
+		f=open(templatefile, 'r')
+		alllines=f.readlines()
+		f.close()
+	except:
+		print("Error: Could not open the file ", templatefile)
+		print("       Check that the file exists")
+		print("       The program will exit now")
+		exit()
+
+	i0=0
+	tmp=alllines[i0][0].strip()
+	while tmp == "#": # Ignore comments in the header
+		tmp=alllines[i0][0].strip()
+		i0=i0+1
+
+	i0=i0-1
+	ID_ref=-1
+	numax_ref=-1
+	Dnu_ref=-1
+	epsilon_ref=-1
+
+	while tmp[0] != "#": # Look for keywords for numax, Dnu and ID
+		tmp=alllines[i0].strip()
+		keys=tmp.split("=")
+		if keys[0] == "ID_ref":
+			ID_ref=keys[1]
+		if keys[0] == "numax_ref":
+			numax_ref=float(keys[1])
+		if keys[0] == "Dnu_ref":
+			Dnu_ref=float(keys[1])
+		if keys[0] == "epsilon_ref":
+			epsilon_ref=float(keys[1])
+		i0=i0+1
+
+	if numax_ref == -1 or Dnu_ref == -1 or epsilon_ref == -1:
+		print("Error: Could not find at least one of the keywords defining the global pulsation parameters")
+		print("Check that the following keywords are present in the template file: ", templatefile)
+		print("       The program will exit now")
+		exit()
+	if ID_ref == -1:
+		print("Warning: ID_ref is not set")
+		print("         This does not prevent the code to run, but may result in a more difficult tracking of the used reference mode profiles in the future")
+
+	# Process the table
+	Nrows=len(alllines[i0:])
+	Ncols=len(alllines[i0].split())
+	data=numpy.zeros((Nrows, Ncols))
+	cpt=0
+	for line in alllines[i0:]:
+		tmp=line.split()
+		#print("tmp = ", tmp)
+		for i in range(len(tmp)):
+			#print("tmp[i]=", tmp[i])
+			data[cpt, i]=float(tmp[i])
+		cpt=cpt+1
+
+	return ID_ref, numax_ref, Dnu_ref, epsilon_ref, data
+
+def width_height_load_rescale(nu_star, Dnu_star, numax_star, file=None):
+	if file == None:
+		w_star,h_star=width_height_MS_sun_rescaled(nu_star, Dnu_star, numax_star) # If not file is provided, then the default is the old way of calculating the template 
+	else:
+		ID_ref, numax_ref, Dnu_ref, epsilon_ref, data_ref= read_templatefile(file)
+		nu_ref=data_ref[:,0]
+		height_ref=data_ref[:,1]
+		gamma_ref=data_ref[:,2]
+	
+		int_fct_href = interpolate.interp1d(nu_ref, height_ref)
+		height_ref_at_numax=int_fct_href(numax_ref)
+
+		int_fct_wref = interpolate.interp1d(nu_ref, gamma_ref)
+		gamma_ref_at_numax=int_fct_wref(numax_ref)
+
+		n_at_numax_ref=numax_ref/Dnu_ref - epsilon_ref 
+		en_list_ref=nu_ref/Dnu_ref - epsilon_ref # This list will be monotonic
+		# ------------------------------------------------------------------------------------
+		# Rescaling using the base frequencies given above for the Sun
+		epsilon_star=numpy.mean(nu_star/Dnu_star % 1)
+		n_at_numax_star=numax_star/Dnu_star - epsilon_star
+		en_list_star=nu_star/Dnu_star - epsilon_star
+
+		int_fct_w = interpolate.interp1d(en_list_ref - n_at_numax_ref, gamma_ref/gamma_ref_at_numax)
+		w_star=int_fct_w(en_list_star - n_at_numax_star)
+
+		int_fct_h = interpolate.interp1d(en_list_ref - n_at_numax_ref, height_ref/height_ref_at_numax)
+		h_star=int_fct_h(en_list_star - n_at_numax_star)
+	return w_star,h_star
+
 # Original function is comming from the IDL function 'generate_cfg_asymptotic_Hgauss_Wscaled_act_asym'
 # available in /Volumes/MCMC_RES/Repository/Spectra-Simulator-IDL/v1.4/
 # This width profile obviously applies only to l=0 modes OR to any l IF the star is in the main sequence.
@@ -490,7 +580,7 @@ def numax_from_stello2009(Dnu_star, spread=0):
 #	width_lx: Widths of the l=x modes. x is between 0 and 3
 #   height_lx: Heights of the l=x modes. x is between 0 and 3 
 #def make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star, D0_star, DP1_star, alpha_star, q_star, fmin, fmax, Hmax_l0=1., Gamma_max_l0=1., rot_env_input=-1, rot_ratio_input=-1, rot_core_input=-1, output_file_rot='star_params.rot'):
-def make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star, delta0l_percent_star, alpha_p_star, nmax_star, DP1_star, alpha_star, q_star, fmin, fmax, Hmax_l0=1., Gamma_max_l0=1., rot_env_input=-1, rot_ratio_input=-1, rot_core_input=-1, output_file_rot='star_params.rot', Vl=[1,1.5,0.5, 0.07], H0_spread=0):
+def make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star, delta0l_percent_star, alpha_p_star, nmax_star, DP1_star, alpha_star, q_star, fmin, fmax, Hmax_l0=1., Gamma_max_l0=1., rot_env_input=-1, rot_ratio_input=-1, rot_core_input=-1, output_file_rot='star_params.rot', Vl=[1,1.5,0.5, 0.07], H0_spread=0, filetemplate="Configurations/templates/Sun.template"):
 
 	# Fix the resolution to 4 years (converted into microHz)
 	resol=1e6/(4*365.*86400.) 
@@ -521,11 +611,14 @@ def make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star
 #	print("numax_star=", numax_star)
 #	print("nu_l0=", nu_l0)
 #	exit()
-	width_l0, height_l0=width_height_MS_sun_rescaled(nu_l0, Dnu_star, numax_star)
+	#width_l0, height_l0=width_height_MS_sun_rescaled(nu_l0, Dnu_star, numax_star)
+
+	width_l0, height_l0=width_height_load_rescale(nu_l0, Dnu_star, numax_star, file=filetemplate)
+	
 	height_l0=height_l0*Hmax_l0
 
 	if numpy.abs(H0_spread) > 0:
-		height_l0=numpy.random.uniform(height_l0*(1.-numpy.abs(H0_spread)), height_l0*(1. + numpy.abs(H0_spread)))
+		height_l0=numpy.random.uniform(height_l0*(1.-numpy.abs(H0_spread)/100.), height_l0*(1. + numpy.abs(H0_spread)/100.))
 
 	width_l0=width_l0*Gamma_max_l0
 
@@ -629,7 +722,7 @@ def make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star
 
 # Read a basic configuration file that contains the setup to create the whole set
 # of parameters for a synthetic spectra. Those parameters are returned in an output file.
-def main_star_generator(config_file='star_params.global', output_file='star_params.modes', output_file_range='star_params.range', output_file_rot='star_params.rot', version=1):
+def main_star_generator(config_file='star_params.global', output_file='star_params.modes', output_file_range='star_params.range', output_file_rot='star_params.rot', version=1, filetemplate="Configurations/templates/Sun.template"):
 
 	comments=[]
 	setup=[]
@@ -737,7 +830,7 @@ def main_star_generator(config_file='star_params.global', output_file='star_para
 	
 	#nu_l0, nu_p_l1, nu_g_l1, nu_m_l1, nu_l2, nu_l3, width_l0, width_m_l1, width_l2, width_l3, height_l0, height_m_l1, height_l2, height_l3, a1_l1, a1_l2, a1_l3=make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star, D0_star, DP1_star, alpha_star, coupling, fmin, fmax, Hmax_l0=Hmax_l0, Gamma_max_l0=Gamma_max_l0, rot_env_input=rot_env, rot_ratio_input=rot_ratio, rot_core_input=rot_core, output_file_rot=output_file_rot)
 	#nu_l0, nu_p_l1, nu_g_l1, nu_m_l1, nu_l2, nu_l3, width_l0, width_m_l1, width_l2, width_l3, height_l0, height_m_l1, height_l2, height_l3, a1_l1, a1_l2, a1_l3=make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star, delta0l_percent_star, alpha_p_star, nmax_star, DP1_star, alpha_star, coupling, fmin, fmax, Hmax_l0=Hmax_l0, Gamma_max_l0=Gamma_max_l0, rot_env_input=rot_env, rot_ratio_input=rot_ratio, rot_core_input=rot_core, output_file_rot=output_file_rot)
-	nu_l0, nu_p_l1, nu_g_l1, nu_m_l1, nu_l2, nu_l3, width_l0, width_m_l1, width_l2, width_l3, height_l0, height_m_l1, height_l2, height_l3, a1_l1, a1_l2, a1_l3=make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star, delta0l_percent_star, alpha_p_star, nmax_star, DP1_star, alpha_star, coupling, fmin, fmax, Hmax_l0=Hmax_l0, Gamma_max_l0=Gamma_max_l0, rot_env_input=rot_env, rot_ratio_input=rot_ratio, rot_core_input=rot_core, output_file_rot=output_file_rot, Vl=Vl, H0_spread=H0_spread)
+	nu_l0, nu_p_l1, nu_g_l1, nu_m_l1, nu_l2, nu_l3, width_l0, width_m_l1, width_l2, width_l3, height_l0, height_m_l1, height_l2, height_l3, a1_l1, a1_l2, a1_l3=make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star, delta0l_percent_star, alpha_p_star, nmax_star, DP1_star, alpha_star, coupling, fmin, fmax, Hmax_l0=Hmax_l0, Gamma_max_l0=Gamma_max_l0, rot_env_input=rot_env, rot_ratio_input=rot_ratio, rot_core_input=rot_core, output_file_rot=output_file_rot, Vl=Vl, H0_spread=H0_spread, filetemplate=filetemplate)
 	nu_m_l1=nu_m_l1[1:] # remove the first one as it has always 0 amplitude (for some unclear reason)
 	width_m_l1=width_m_l1[1:]
 	height_m_l1=height_m_l1[1:]

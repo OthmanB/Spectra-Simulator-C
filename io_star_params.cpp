@@ -467,7 +467,7 @@ Star_params read_star_params(const std::string file_in_name){
 	
     } else {
  		if (verbose_data == 1) {std::cout << "Reference file " << file_in_name << std::endl;}
-		std::cout << "Could not open the in file!" << std::endl;
+		std::cout << "Error in io_star_params.read_star_params(). Could not open the in file!" << std::endl;
 		std::cout << "use the full path of the file in order to read it without issue " << std::endl;
 		exit(EXIT_FAILURE);
     }
@@ -588,7 +588,7 @@ Data_Nd read_data_ascii_Ncols(const std::string file_in_name, const std::string 
 		std::cout << "         - Number of columns found: " << data.cols() << std::endl;
 	}
      } else {
-	std::cout << "Could not open the data file!" << std::endl;
+	std::cout << "Error in io_star_params:read_data_ascii_Ncols(). Could not open the data file!" << std::endl;
 	std::cout << "use the full path of the file in order to read it without issue " << std::endl;
 	exit(EXIT_FAILURE);
      }
@@ -793,6 +793,9 @@ Config_Data read_main_cfg(std::string cfg_file){
 			cfg.extra_params=strtrim(cfg.extra_params);
 
 			std::getline(file_in, line0);
+			cfg.template_files=strsplit(rem_comments(line0, "#"), " ");
+
+			std::getline(file_in, line0);
 			cfg.labels=strsplit(rem_comments(line0, "#"), " ");
 
 			std::getline(file_in, line0);
@@ -807,8 +810,6 @@ Config_Data read_main_cfg(std::string cfg_file){
 			std::getline(file_in, line0); // skip the labels of Tobs and Cadence
 
 			std::getline(file_in, line0);
-			//std::cout << "line0 = " << line0 << std::endl;
-			//std::cout << "rem_comments(line0, '#') = " << rem_comments(line0, "#") << std::endl;
 			tmp=str_to_arrdbl(rem_comments(line0, "#"), " ");
 			cfg.Tobs=tmp[0];
 			cfg.Cadence=tmp[1];	

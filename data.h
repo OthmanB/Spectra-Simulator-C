@@ -60,6 +60,7 @@ struct Config_Data{
 	std::string model_name;
 	std::string forest_type;
     std::string extra_params; // Any kind of extra parameters that would be encoded in a string (e.g. filenames separated by " ")
+    std::vector<std::string> template_files; // List of template files used to determine Height and widths. If none, set to None
 	double Tobs, Cadence, Nspectra;
 	std::vector<std::string> labels; 
 	std::vector<double> val_min, val_max, step, forest_params;

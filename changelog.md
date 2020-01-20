@@ -6,9 +6,10 @@
 		- Implement numax variable on generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma
 		- Adding random errors around the second order asymptotic relations. Try to make them spline-consistent
 
-### ROADMAP v0.8.93 (*Release on 16 Jan 2020*) ####		
+### ROADMAP v0.8.93 (*Release on 20 Jan 2020*) ####		
 	* Added functionalities:
 		- Adding Templates database for Heights
+                         WARNING: A new line is required in the main.cfg to specify the template file. This line must be set to NONE if the model does not require templates
 		- Allow random jumps between heights a templates population 
 
 ### v0.8.92 (*Released on 16 Jan 2020*) ####		

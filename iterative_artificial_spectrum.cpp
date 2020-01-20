@@ -25,13 +25,15 @@ void iterative_artificial_spectrum(std::string dir_core);
 VectorXd order_input_params(VectorXd cte_params, VectorXd var_params, std::vector<std::string> cte_names, 
 		std::vector<std::string> var_names, std::vector<std::string> param_names);
 void generate_random(Config_Data cfg, std::vector<std::string> param_names, std::string dir_core, std::string file_out_modes, 
-		std::string file_out_noise, std::string file_out_combi, int N_model, std::string file_cfg_mm, std::string external_path);
+		std::string file_out_noise, std::string file_out_combi, int N_model, std::string file_cfg_mm, std::string external_path,  std::string templates_dir);
 
 void generate_grid();
 std::string write_allcombi(MatrixXd allcombi, VectorXd cte_params, Config_Data cfg, std::string fileout, bool erase_old_file, long iter, long id0, 
 		    std::vector<std::string> cte_names, std::vector<std::string> var_names, std::vector<std::string> param_names);
 bool call_model(std::string model_name, VectorXd input_params, std::string file_out_modes, std::string file_out_noise, 
-		 std::string file_cfg_mm, std::string dir_core, std::string identifier, Config_Data cfg, std::string external_path);
+		 std::string file_cfg_mm, std::string dir_core, std::string identifier, Config_Data cfg, std::string external_path, std::string template_file);
+
+std::vector<std::string> list_dir(const std::string path, const std::string filter);
 std::string identifier2chain(std::string identifier);
 std::string identifier2chain(long identifier);
 long read_id_allcombi(std::string file_combi);
@@ -48,11 +50,11 @@ void iterative_artificial_spectrum(std::string dir_core){
 	std::vector<std::string> param_names;
 
 	std::string cfg_file, file_out_modes, file_out_noise, file_cfg_mm, file_out_mm, file_out_mm2, file_out_combi;
-	std::string external_path;
+	std::string external_path, templates_dir;
 	Config_Data cfg;
 
-
 	external_path=dir_core + "external/"; 
+	templates_dir=dir_core + "Configurations/templates/";
 	cfg_file=dir_core + "Configurations/main.cfg";
 	file_out_modes=dir_core + "Configurations/tmp/modes_tmp.cfg";
 	file_out_noise=dir_core + "Configurations/tmp/noise_tmp.cfg";
@@ -284,7 +286,7 @@ void iterative_artificial_spectrum(std::string dir_core){
 	std::cout << "2. Generating the models using the subroutine " << cfg.model_name << " of model_database.cpp..." << std::endl;
 	if(cfg.forest_type == "random"){
 		std::cout << "   Values are randomly generated into a uniform range defined in the main configuration file" << std::endl;
-		generate_random(cfg, param_names, dir_core, file_out_modes, file_out_noise, file_out_combi, Nmodel, file_cfg_mm, external_path);
+		generate_random(cfg, param_names, dir_core, file_out_modes, file_out_noise, file_out_combi, Nmodel, file_cfg_mm, external_path, templates_dir);
 
 	}
 	if(cfg.forest_type == "grid"){
@@ -301,18 +303,17 @@ void iterative_artificial_spectrum(std::string dir_core){
 }
 
 void generate_random(Config_Data cfg, std::vector<std::string> param_names, std::string dir_core, std::string file_out_modes, 
-		std::string file_out_noise, std::string file_out_combi, int N_model,  std::string file_cfg_mm, std::string external_path){
+		std::string file_out_noise, std::string file_out_combi, int N_model,  std::string file_cfg_mm, std::string external_path, std::string templates_dir){
 
 	bool neg=0, passed=0;
-	int i, ii;
+	int i, ii;//, xmin_int_rgen, xmax_int_rgen;
 	long lastid, id0;
 	std::string id_str, str_tmp;
+	std::string template_file;
 	VectorXd cte_params, val_min, val_max, input_params;
 	MatrixXd currentcombi, allcombi;
 	std::vector<double> pos_zero, pos_one;	
 	std::vector<std::string> var_names, cte_names;
-
-
 	// We first check that the cfg file has a coherent setup
 	ii=0;
 	while(neg == 0 && (ii < N_model)){
@@ -358,11 +359,38 @@ void generate_random(Config_Data cfg, std::vector<std::string> param_names, std:
 
 	//  ------------ Generate the random values -----------
 
-	// Initialize the random generators: Uniform over [0,1]
+	// Initialize the random generators: Uniform over [0,1]. This is used for the random parameters
     boost::mt19937 generator(time(NULL));
     boost::uniform_01<boost::mt19937> dist_gr(generator);
- 
-	std::cout << " -----------------------------------------------------" << std::endl;
+ 	
+    // Generator of integers for selecting ramdomly a template file that contains a height and width profile
+    switch(cfg.template_files.size()){
+    	case 0: // The string is somewhat empty
+    		std::cout << "Error: The template_file cannot be empty. If not used, please set it to NONE" << std::endl;
+    		exit(EXIT_SUCCESS);
+    	case 1:
+    		template_file=templates_dir + cfg.template_files[0];
+    	default:
+    		if(cfg.template_files[0] == "all" || cfg.template_files[0] == "ALL" || cfg.template_files[0] == "*"){ // If the user specify that all *.template files should be used
+    			cfg.template_files=list_dir(templates_dir, "template");
+    		} 
+    		if (cfg.template_files.size() == 0){
+    			std::cout << "Could not find the template file in the expected directory" << std::endl;
+    			std::cout << "Be sure to have it in Configurations/templates/ " << std::endl;
+    			std::cout << "If the used mode does not require templates, specify NONE in the dedicated field " << std::endl;
+    			exit(EXIT_FAILURE);
+    		}
+ 			boost::random::uniform_int_distribution<> dist(0, cfg.template_files.size()-1);
+//   			std::cout << "cfg.template_files =" << std::endl;
+//    		for (int ii=0; ii< cfg.template_files.size(); ii++){
+//    			std::cout << cfg.template_files[ii] << std::endl;
+//    		}
+    		template_file=templates_dir + cfg.template_files[dist(generator)];
+    }	
+    std::cout << "Selected template file: " << template_file << std::endl;	
+//    exit(EXIT_SUCCESS);
+
+ 	std::cout << " -----------------------------------------------------" << std::endl;
 	std::cout << " List of all combinations written iteratively into " << std::endl;
 	std::cout << "       " <<  file_out_combi << std::endl; 
 	std::cout << " -----------------------------------------------------" << std::endl;
@@ -408,7 +436,7 @@ void generate_random(Config_Data cfg, std::vector<std::string> param_names, std:
 
 		input_params=order_input_params(cte_params, currentcombi.row(0), cte_names, var_names, param_names);
 
-		passed=call_model(cfg.model_name, input_params, file_out_modes, file_out_noise,  file_cfg_mm, dir_core, id_str, cfg, external_path);
+		passed=call_model(cfg.model_name, input_params, file_out_modes, file_out_noise,  file_cfg_mm, dir_core, id_str, cfg, external_path, template_file);
 		if(passed == 0){
 			std::cout << "Warning: The function call_model did not generate any configuration file!" << std::endl;
 			std::cout << "         Debug required" << std::endl;
@@ -431,7 +459,6 @@ void generate_random(Config_Data cfg, std::vector<std::string> param_names, std:
 	
 }
 
-
 void generate_grid(){
 
 	std::cout << "The program does not handle yet the grid case" << std::endl;
@@ -442,7 +469,7 @@ void generate_grid(){
 }
 
 bool call_model(std::string model_name, VectorXd input_params, std::string file_out_modes, std::string file_out_noise, 
-		std::string file_cfg_mm, std::string dir_core, std::string id_str, Config_Data cfg, std::string external_path){
+		std::string file_cfg_mm, std::string dir_core, std::string id_str, Config_Data cfg, std::string external_path, std::string template_file){
 
 	std::string str;
 	bool passed=0, subpassed=0;
@@ -462,27 +489,27 @@ bool call_model(std::string model_name, VectorXd input_params, std::string file_
 		model_name == "asymptotic_mm_freeDp_numaxspread_curvepmodes_v1" || model_name == "asymptotic_mm_freeDp_numaxspread_curvepmodes_v2" ||
 		model_name == "asymptotic_mm_freeDp_numaxspread_curvepmodes_v3"){
 		if(model_name =="asymptotic_mm_v1"){
-			asymptotic_mm_v1(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path);
+			asymptotic_mm_v1(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path, template_file);
 			subpassed=1;
 		}
 		if(model_name =="asymptotic_mm_v2"){
-			asymptotic_mm_v2(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path);
+			asymptotic_mm_v2(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path, template_file);
 			subpassed=1;
 		}
 		if(model_name =="asymptotic_mm_v3"){
-			asymptotic_mm_v3(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path);
+			asymptotic_mm_v3(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path, template_file);
 			subpassed=1;
 		}
 		if(model_name =="asymptotic_mm_freeDp_numaxspread_curvepmodes_v1"){ 
-			asymptotic_mm_freeDp_numaxspread_curvepmodes_v1(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path);
+			asymptotic_mm_freeDp_numaxspread_curvepmodes_v1(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path, template_file);
 			subpassed=1;
 		}
 		if(model_name =="asymptotic_mm_freeDp_numaxspread_curvepmodes_v2"){ 
-			asymptotic_mm_freeDp_numaxspread_curvepmodes_v2(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path);
+			asymptotic_mm_freeDp_numaxspread_curvepmodes_v2(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path, template_file);
 			subpassed=1;
 		}
 		if(model_name =="asymptotic_mm_freeDp_numaxspread_curvepmodes_v3"){ 
-			asymptotic_mm_freeDp_numaxspread_curvepmodes_v3(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path);
+			asymptotic_mm_freeDp_numaxspread_curvepmodes_v3(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path, template_file);
 			subpassed=1;
 		}
 		if(subpassed == 0){
@@ -515,6 +542,40 @@ bool call_model(std::string model_name, VectorXd input_params, std::string file_
 // -----------------------------------------------------------------------
 // ------------------------- SECONDARY METHODS ---------------------------
 // -----------------------------------------------------------------------
+// Retrieve a list of files within path. 
+// Note that path cannot contain any system-based filter such as '*.*' etc... 
+// Those have to be put in the extension string
+std::vector<std::string> list_dir(const std::string path, const std::string extension){
+
+	const std::string tmp_file="dir.list";
+	const std::string cmd="ls -p " + path + "| grep -v / >> " + tmp_file; // Get a list of files and store them into the temporary dir.list file
+	const std::string cmd_erase="rm " + tmp_file; // Once finished with the temporary file, we erase it
+
+	std::vector<std::string> files, line_split;
+	std::string line;
+	std::ifstream file_in;
+
+	//std::cout << "command: " << cmd << std::endl; 
+	system(cmd.c_str());
+	
+	file_in.open(tmp_file.c_str());
+   	if (file_in.is_open()) {
+   		while(!file_in.eof()){
+   			std::getline(file_in, line);
+			line_split=strsplit(line, ".");
+			if (line_split[line_split.size()-1] == extension){
+				files.push_back(strtrim(line)); // remove any white space at the begining/end of the string
+   			} else{
+   			}
+   		}
+   		system(cmd_erase.c_str());
+   	} else{
+   		std::cout << "I/O Error for the temporary temporary file " + tmp_file + "!"  << std::endl;
+   		std::cout << "Cannot proceed. Check that you have the proper I/O rights on the root program directory..." << std::endl;
+   		exit(EXIT_FAILURE);
+   	}
+   	return files;
+}
 
 long read_id_allcombi(std::string file_combi){
 

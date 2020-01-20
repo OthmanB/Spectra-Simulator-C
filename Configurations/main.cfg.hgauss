@@ -10,6 +10,7 @@
 #                                 If 0, then (1) append the combination file and (2) model number = last model number + 1
 random 100 # forest_type, followed by the forest_params. If forest_type=random, then forest_params is a single value that corresponds to the Number of samples
 generate_cfg_asymptotic_act_asym_Hgauss	 		# Name of the model
+NONE		        # Used template(s) name(s). If several, randomly select one/iteration. If set to 'all', will use all *.template files in Configuration/templates
 numax Dnu  epsilon  D0   maxH   Gamma   lmax   Nmax   a1     a3    b    alfa   beta    i   Hnoise1   tau1   p1  Hnoise2   tau2   p2    N0
 3000.  100.  0.     2.00   1.    1.      2.     10.   0.4   0.03   0.    1       0    0.     0.01     10    2     0.001    30     2    0.02   #val_min
 3000.  100.  0.     2.00   1.    1.      2.     10.   0.4   0.03   0.    1       0    90.    0.01     10    2     0.001    30     2    0.02    #val_max
