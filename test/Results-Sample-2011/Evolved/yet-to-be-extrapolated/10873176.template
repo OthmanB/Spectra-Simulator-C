@@ -1,0 +1,17 @@
+# Template file used to compute the height and width profile of simulated stars. 
+# The values of this table is rescaled by the code so to match numax_star, Dnu_star and epsilon_star
+# The table was generated using fitted frequencies and Heights of the Subgiants and early Red Giants
+# Using the Coupled Oscilator Model (COscM) on Kepler Q0-7 data on 2011. Better templates can certainly
+# be made nowadays using latest Kepler data release, but these may offer already a good diversity of 
+# Width and Height profiles for l=0 modes. Note that I did not extrapolate those at the edge so that 
+# The code may crash when trying to interpolate (if numax_ref is too different from numax_star)
+ID_ref= 10873176
+Dnu_ref= 48.615210899999866
+epsilon_ref= 0.26843169366980923
+numax_ref= 780.0737621189762
+# Frequency (microHz)     Height (ppm^2/microhz)       Width
+694.886827                  28.098813                  0.949353
+741.445484                  12.170643                  1.211346
+789.875270                 116.915194                  0.225091
+839.145969                   6.041114                  2.060761
+889.112639                  12.481563                  2.330024

@@ -1,0 +1,32 @@
+# Template file used to compute the height and width profile of simulated stars. 
+# The values of this table is rescaled by the code so to match numax_star, Dnu_star and epsilon_star
+# The table was generated using fitted frequencies and Heights of the Subgiants and early Red Giants
+# Using the Coupled Oscilator Model (COscM) on Kepler Q0-7 data on 2011. Better templates can certainly
+# be made nowadays using latest Kepler data release, but these may offer already a good diversity of 
+# Width and Height profiles for l=0 modes. Note that I did not extrapolate those at the edge so that 
+# The code may crash when trying to interpolate (if numax_ref is too different from numax_star)
+ID_ref= 3733735
+Dnu_ref= -1
+epsilon_ref= -1
+numax_ref= -1
+# Frequency (microHz)     Height (ppm^2/microhz)       Width
+1107.867826               1.199436                       0.442956
+1201.492370               0.268619                       1.119954
+1294.349916               0.215971                       7.265344
+1385.335015               0.484452                       4.247979
+1473.900147               0.452791                       5.806569
+1563.109047               0.527693                       6.781813
+1653.963328               0.595772                       6.901043
+1746.775091               0.695833                       6.640340
+1840.378402               0.648296                       7.423212
+1933.602895               0.683861                       7.991569
+2026.312031               0.661062                       9.154952
+2118.009338               0.633836                      10.480941
+2209.775039               0.556741                      11.397065
+2301.253532               0.479281                      11.142092
+2393.514099               0.433861                      11.169464
+2486.064508               0.323411                      11.996721
+2579.392902               0.236723                      10.083273
+2672.437809               0.211448                       8.890903
+2766.927536               0.159362                      11.667461
+2862.424449               0.076133                      31.490691

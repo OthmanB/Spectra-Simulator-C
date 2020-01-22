@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from os import listdir
 from os.path import isfile, join
 
-def read_templatefile(templatefile):
+def read_templatefile(templatefile, ignore_errors=False):
 	try:
 		f=open(templatefile, 'r')
 		alllines=f.readlines()
@@ -40,14 +40,15 @@ def read_templatefile(templatefile):
 			epsilon_ref=float(keys[1])
 		i0=i0+1
 
-	if numax_ref == -1 or Dnu_ref == -1 or epsilon_ref == -1:
-		print("Error: Could not find at least one of the keywords defining the global pulsation parameters")
-		print("Check that the following keywords are present in the template file: ", templatefile)
-		print("       The program will exit now")
-		exit()
-	if ID_ref == -1:
-		print("Warning: ID_ref is not set")
-		print("         This does not prevent the code to run, but may result in a more difficult tracking of the used reference mode profiles in the future")
+	if ignore_errors == False:
+		if numax_ref == -1 or Dnu_ref == -1 or epsilon_ref == -1:
+			print("Error: Could not find at least one of the keywords defining the global pulsation parameters")
+			print("Check that the following keywords are present in the template file: ", templatefile)
+			print("       The program will exit now")
+			exit()
+		if ID_ref == -1:
+			print("Warning: ID_ref is not set")
+			print("         This does not prevent the code to run, but may result in a more difficult tracking of the used reference mode profiles in the future")
 
 	# Process the table
 	Nrows=len(alllines[i0:])
@@ -63,6 +64,48 @@ def read_templatefile(templatefile):
 		cpt=cpt+1
 
 	return ID_ref, numax_ref, Dnu_ref, epsilon_ref, data
+
+# Fonction that look into a directory templatesdir for template files
+# then add the global parameters following the rules below:
+#     - Dnu and epsilon: determined using a linear fit of frequencies
+#     - numax: 
+#			numax_type="weighted_heights"": weighted averaged of heights
+#			numax_type="max": max of the list 
+def make_global_params_template(file, numax_type="weighted_heights"):
+
+	ID_ref, numax_ref, Dnu_ref, epsilon_ref, data=read_templatefile(file, ignore_errors=True)
+	freq=data[:,0]
+	height=data[:,1]
+
+	p=numpy.polyfit(numpy.linspace(0, len(freq)-1, len(freq)), freq, 1)
+	Dnu=p[0]
+	epsilon=(p[1]/Dnu) % 1 #numpy.mean((freq/Dnu) % 1)
+
+	passed=0
+	if numax_type == "weighted_heights":
+		numax=numpy.sum(height*freq)/numpy.sum(height)
+		passed=1
+	if numax_type == "max":
+		numax=freq[numpy.where(height == max(height))]
+
+	return numax, Dnu, epsilon
+
+# Use make_global_params_template() iteratively over a directory templatedir 
+# and show it to screen along with the filename
+def set_global_params_templates(templatedir, numax_type=None):
+	templatefiles=[f for f in listdir(templatedir) if isfile(join(templatedir, f))]
+	for file in templatefiles:
+		print("File:", file)
+		numax_w, Dnu, epsilon=make_global_params_template(templatedir+file, numax_type="weighted_heights")
+		numax_m, Dnu, epsilon=make_global_params_template(templatedir+file, numax_type="max")
+		
+		if numax_type == "max" or numax_type == None:
+			print("		numax(max)=", numax_m)
+		if numax_type == "weighted_heights" or numax_type == None:
+			print("		numax(weighted_heights)=", numax_w)
+		print("		Dnu=", Dnu)
+		print("		epsilon=", epsilon)
+		print("-------------")
 
 def show_all(templatedir):
 

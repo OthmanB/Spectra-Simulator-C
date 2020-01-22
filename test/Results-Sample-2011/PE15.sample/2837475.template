@@ -1,0 +1,30 @@
+# Template file used to compute the height and width profile of simulated stars. 
+# The values of this table is rescaled by the code so to match numax_star, Dnu_star and epsilon_star
+# The table was generated using fitted frequencies and Heights of the Subgiants and early Red Giants
+# Using the Coupled Oscilator Model (COscM) on Kepler Q0-7 data on 2011. Better templates can certainly
+# be made nowadays using latest Kepler data release, but these may offer already a good diversity of 
+# Width and Height profiles for l=0 modes. Note that I did not extrapolate those at the edge so that 
+# The code may crash when trying to interpolate (if numax_ref is too different from numax_star)
+ID_ref= 2837475
+Dnu_ref= -1
+epsilon_ref= -1
+numax_ref= -1
+# Frequency (microHz)     Height (ppm^2/microhz)       Width
+ 909.080712               0.827935                     0.926439    
+ 985.456730               0.842654                     1.965984    
+1059.469630               0.975503                     2.177977    
+1132.731011               0.747730                     5.609852    
+1205.999059               0.826765                     5.854003    
+1280.485048               0.937196                     5.440474    
+1356.264122               1.099083                     5.415446    
+1432.802528               1.097453                     6.043905    
+1509.694908               1.141348                     6.288883    
+1585.971730               1.202704                     7.168297    
+1660.174972               1.188829                     7.084790    
+1734.524000               1.037607                     7.952696    
+1810.488055               0.843791                     8.131245    
+1887.078571               0.719262                     7.678289    
+1963.672055               0.424795                     9.315096    
+2040.033352               0.288152                    11.081202    
+2117.551875               0.280256                     5.624238    
+2194.972452               0.207635                     8.792755   

@@ -1,0 +1,32 @@
+# Template file used to compute the height and width profile of simulated stars. 
+# The values of this table is rescaled by the code so to match numax_star, Dnu_star and epsilon_star
+# The table was generated using fitted frequencies and Heights of the Subgiants and early Red Giants
+# Using the Coupled Oscilator Model (COscM) on Kepler Q0-7 data on 2011. Better templates can certainly
+# be made nowadays using latest Kepler data release, but these may offer already a good diversity of 
+# Width and Height profiles for l=0 modes. Note that I did not extrapolate those at the edge so that 
+# The code may crash when trying to interpolate (if numax_ref is too different from numax_star)
+ID_ref= 6679371
+Dnu_ref= -1
+epsilon_ref= -1
+numax_ref= -1
+# Frequency (microHz)     Height (ppm^2/microhz)       Width
+ 507.056415               1.916741                     0.694933
+ 556.489467               1.236967                     1.637333
+ 606.980744               1.051502                     4.040308
+ 656.745464               1.340186                     4.946583
+ 704.161215               1.773436                     4.589874
+ 752.238054               1.971056                     5.110206
+ 802.558769               2.331640                     4.370737
+ 854.139639               3.059177                     3.820453
+ 905.140387               2.916808                     4.620644
+ 956.601555               2.644608                     5.749180
+1007.266304               2.485058                     5.855829
+1056.682889               2.260870                     6.647091
+1107.322713               1.698904                     6.798901
+1158.979393               1.339789                     7.118140
+1210.329389               0.984467                     6.615955
+1262.757329               0.718112                     7.332357
+1314.591606               0.519766                     7.997610
+1366.265504               0.333159                     7.077915
+1418.071252               0.260108                     5.948184
+1470.184080               0.221652                     2.208889

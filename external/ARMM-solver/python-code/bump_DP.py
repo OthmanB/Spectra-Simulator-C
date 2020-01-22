@@ -141,7 +141,7 @@ def inertia_ratio_obs_height(h0, hl, visibility_l_square, width0, widthl):
 	IlI0=visibility_l_square*r1*r2
 	return IlI0
 
-def read_templatefile(templatefile):
+def read_templatefile(templatefile, ignore_errors = False):
 	try:
 		f=open(templatefile, 'r')
 		alllines=f.readlines()
@@ -177,14 +177,15 @@ def read_templatefile(templatefile):
 			epsilon_ref=float(keys[1])
 		i0=i0+1
 
-	if numax_ref == -1 or Dnu_ref == -1 or epsilon_ref == -1:
-		print("Error: Could not find at least one of the keywords defining the global pulsation parameters")
-		print("Check that the following keywords are present in the template file: ", templatefile)
-		print("       The program will exit now")
-		exit()
-	if ID_ref == -1:
-		print("Warning: ID_ref is not set")
-		print("         This does not prevent the code to run, but may result in a more difficult tracking of the used reference mode profiles in the future")
+	if ignore_errors == False:
+		if numax_ref == -1 or Dnu_ref == -1 or epsilon_ref == -1:
+			print("Error: Could not find at least one of the keywords defining the global pulsation parameters")
+			print("Check that the following keywords are present in the template file: ", templatefile)
+			print("       The program will exit now")
+			exit()
+		if ID_ref == -1:
+			print("Warning: ID_ref is not set")
+			print("         This does not prevent the code to run, but may result in a more difficult tracking of the used reference mode profiles in the future")
 
 	# Process the table
 	Nrows=len(alllines[i0:])

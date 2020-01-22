@@ -1,0 +1,32 @@
+# Template file used to compute the height and width profile of simulated stars. 
+# The values of this table is rescaled by the code so to match numax_star, Dnu_star and epsilon_star
+# The table was generated using fitted frequencies and Heights of the Subgiants and early Red Giants
+# Using the Coupled Oscilator Model (COscM) on Kepler Q0-7 data on 2011. Better templates can certainly
+# be made nowadays using latest Kepler data release, but these may offer already a good diversity of 
+# Width and Height profiles for l=0 modes. Note that I did not extrapolate those at the edge so that 
+# The code may crash when trying to interpolate (if numax_ref is too different from numax_star)
+ID_ref= 9139163
+Dnu_ref= -1
+epsilon_ref= -1
+numax_ref= -1
+# Frequency (microHz)     Height (ppm^2/microhz)       Width
+ 987.275768               0.311547                     0.470152
+1065.258736               0.839001                     2.311263
+1143.000235               1.173607                     1.325529
+1221.547289               1.251324                     2.641518
+1301.987377               1.448815                     2.381255
+1383.335972               1.602106                     3.410556
+1464.676415               1.786242                     4.111193
+1544.922095               2.220179                     4.264985
+1624.319167               2.202362                     5.210091
+1704.453918               2.175024                     4.970974
+1786.311717               2.274939                     4.576604
+1867.542775               1.832669                     4.861147
+1949.547592               1.410699                     5.488787
+2032.452161               1.112987                     5.760037
+2115.064881               0.819246                     7.525360
+2196.787473               0.582814                     7.594482
+2278.281290               0.349335                     9.036769
+2360.774083               0.243396                     9.886630
+2444.373393               0.231234                     6.015466
+2527.590269               0.114589                     2.489895

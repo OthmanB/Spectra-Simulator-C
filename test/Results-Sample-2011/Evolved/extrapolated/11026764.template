@@ -1,0 +1,36 @@
+# Template file used to compute the height and width profile of simulated stars. 
+# The values of this table is rescaled by the code so to match numax_star, Dnu_star and epsilon_star
+# The table was generated using fitted frequencies and Heights of the Subgiants and early Red Giants
+# Using the Coupled Oscilator Model (COscM) on Kepler Q0-7 data on 2011. Better templates can certainly
+# be made nowadays using latest Kepler data release, but these may offer already a good diversity of 
+# Width and Height profiles for l=0 modes. Note that this table is extrapolated at the edge to
+# avoid the interpolation routine in python crashes (if numax_ref is too different from numax_star)
+# If you note remaining crashes, try to 0s heights and widths at the edges.
+ID_ref= 11026764
+Dnu_ref= 50.09669236363635
+epsilon_ref= 0.45599870269788667
+numax_ref= 843.8410291900406
+# Frequency (microHz)     Height (ppm^2/microhz)       Width
+274.2                      0.001                        0.010000
+324.3                      0.1                          0.010000
+374.4                      0.50000                      0.050000
+424.5                      1.00000                      0.100000
+474.6                      2.00000                      0.150000
+524.6999999                3.00000                      0.250000
+ 574.807313                5.554164                     0.581769
+ 624.985613                5.206764                     0.886870
+ 674.531521                6.570983                     0.710240
+ 723.701324                7.527697                     0.993823
+ 773.003815                7.487714                     0.880175
+ 823.212854               24.106925                     0.809455
+ 873.753575               26.849562                     0.856720
+ 924.043379               21.828367                     0.951015
+ 974.527722               12.711686                     1.207617
+1025.482466                5.992221                     1.580103
+1076.252568                1.612970                     2.643377
+1126.35                0.80                     4.643377
+1176.45                0.40                     6.643377
+1226.55                0.10                     8.643377
+1276.60                0.05                     10.643377
+1326.75                0.01                     12
+1376.85                0.001                    14
