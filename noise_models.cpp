@@ -6,10 +6,10 @@
  */
 #include <math.h>
 #include <Eigen/Dense>
-#include <string>
+//#include <string>
 #include "noise_models.h"
-//#include <iostream>
-//#include <iomanip>
+#include <iostream>
+#include <iomanip>
 
 using Eigen::VectorXd;
 using Eigen::MatrixXd;
@@ -74,6 +74,75 @@ VectorXd harvey_like(const MatrixXd noise_params, VectorXd x, VectorXd y){
 return y;
 }
 
+VectorXd harvey_like(const MatrixXd noise_params, const VectorXd x){
+	/* ALTERNATE FORM OF ABOVE
+	   This function calculate a sum of harvey like profile + a white noise and adds 
+	   these profiles to a initial input vector y. The function assumes that the 
+	   inputs are in the following order: [H0, tc0, p0, ..., Hn, tcn, pn, N0]
+	*/
+
+	const long Nx=x.size();
+	double H, tau, p;
+	VectorXd s_noise(Nx), spec_noise(Nx), ones(Nx);
+
+	spec_noise.setZero();	
+	ones.setOnes();
+	for(int i=0; i<noise_params.rows(); i++){
+		H=noise_params(i,0);
+		tau=noise_params(i,1);
+		p=noise_params(i,2);
+		
+		/*
+		std::cout << "--------" << std::endl;
+		std::cout << "H=" << H << std::endl;
+		std::cout << "tau=" << tau << std::endl;
+		std::cout << "p=" << p << std::endl;
+		std::cout << "--------" << std::endl;
+		*/
+
+		s_noise.setZero();
+		if(H>0 && (tau<0 || p<0) ){
+			if(tau==-2 && p==-2){
+				s_noise.setConstant(H);
+				//std::cout << "Condition H ok but others at -2" << std::endl;
+				spec_noise=spec_noise + s_noise;
+			} else {
+				std::cout << "Problem with the definition of the White noise" << std::endl;
+				std::cout << "   H is defined positive but tau and/or p are not set to -2" << std::endl;
+				std::cout << "   For a white noise, please set tau and p together to -2" << std::endl;
+				std::cout << "The program will stop now" << std::endl;
+				exit(EXIT_FAILURE);
+			}
+		} else {
+			if(H<=0 && (tau>0 || p>0)){
+				std::cout << "Problem with the definition of the Height parameter for the noise" << std::endl;
+				std::cout << " if tau or p positive, H cannot be negative" << std::endl;
+				std::cout << "The program will stop now" << std::endl;
+				exit(EXIT_FAILURE);
+			}
+			if( ((tau < 0) && (p > 0)) || ((tau > 0) && (p < 0)) ){
+				std::cout << "Problem with the definition of the Harvey-like profile" << std::endl;
+				std::cout << "   H is defined but tau or p are set to -1" << std::endl;
+				std::cout << "   For a Harvey-like profile, please set tau and p together" << std::endl;
+				std::cout << "The program will stop now" << std::endl;
+				exit(EXIT_FAILURE);
+			}
+			if( (tau >0 && p >0) ){ // If all the parameters of the Harvey noise are defined, then...
+				s_noise=((1e-3)*tau*x).array().pow(p); 
+				//std::cout << "x[0]=" << x[0] << "   before inverse s_noise[0]=" << s_noise[0] << std::endl;
+				s_noise=H*(s_noise + ones).cwiseInverse();
+				spec_noise=spec_noise + s_noise;
+				//std::cout << "main" << std::endl;
+				//std::cout << "x[0]=" << x[0] << "   s_noise[0]=" << s_noise[0] << "   spec_noise[0]=" << spec_noise[0] << std::endl;
+			}			
+		}
+		//std::cout << "s_noise=" << s_noise << std::endl;
+		//std::cout << "s_noise.size()=" << s_noise.size() << std::endl;		
+	}
+
+return spec_noise;
+
+}
 
 VectorXd harvey1985(const VectorXd noise_params, VectorXd x, VectorXd y, const int Nharvey){
 	/* This function calculate a sum of harvey profile + a white noise and adds 
@@ -101,5 +170,72 @@ VectorXd harvey1985(const VectorXd noise_params, VectorXd x, VectorXd y, const i
 	y=y + white_noise;
 
 return y;
+}
+
+
+VectorXd harvey_1985(const MatrixXd noise_params, const VectorXd x){
+	/* ALTERNATE FORM OF ABOVE
+	 * This function calculate a sum of harvey profile + a white noise. 
+	 * The Harvey profile differ from the
+	 * Harvey-like by the fact that H0_1985= H0_like * tc is correlated to the timescale tc. 
+	 * There is also a 2pi factor in the denominator. The function assumes that the 
+	 * inputs are in the following order: [H0, tc0, p0, ..., Hn, tcn, pn, N0]
+	*/
+	const long double pi = 3.141592653589793238L;
+
+	const long Nx=x.size();
+	double H, tau, p;
+	VectorXd s_noise(Nx), spec_noise(Nx), ones(Nx);
+
+	spec_noise.setZero();	
+	ones.setOnes();
+	for(int i=0; i<noise_params.rows(); i++){
+		H=noise_params(i,0);
+		tau=noise_params(i,1);
+		p=noise_params(i,2);
+		
+		s_noise.setZero();
+		if(H>0 && (tau<0 || p<0) ){
+			if(tau==-2 && p==-2){
+				s_noise.setConstant(H);
+				//std::cout << "Condition H ok but others at -2" << std::endl;
+				spec_noise=spec_noise + s_noise;
+			} else {
+				std::cout << "Problem with the definition of the White noise" << std::endl;
+				std::cout << "   H is defined positive but tau and/or p are not set to -2" << std::endl;
+				std::cout << "   For a white noise, please set tau and p together to -2" << std::endl;
+				std::cout << "The program will stop now" << std::endl;
+				exit(EXIT_FAILURE);
+			}
+		} else {
+			if(H<=0 && (tau>0 || p>0)){
+				std::cout << "Problem with the definition of the Height parameter for the noise" << std::endl;
+				std::cout << " if tau or p positive, H cannot be negative" << std::endl;
+				std::cout << "The program will stop now" << std::endl;
+				exit(EXIT_FAILURE);
+			}
+			if( ((tau < 0) && (p > 0)) || ((tau > 0) && (p < 0)) ){
+				std::cout << "Problem with the definition of the Harvey-like profile" << std::endl;
+				std::cout << "   H is defined but tau or p are set to -1" << std::endl;
+				std::cout << "   For a Harvey-like profile, please set tau and p together" << std::endl;
+				std::cout << "The program will stop now" << std::endl;
+				exit(EXIT_FAILURE);
+			}
+			if( (tau >0 && p >0) ){ // If all the parameters of the Harvey noise are defined, then...
+				s_noise=((1e-3)*2*pi*tau*x).array().pow(p); // Denominator
+				//std::cout << "x[0]=" << x[0] << "   before inverse s_noise[0]=" << s_noise[0] << std::endl;
+				//s_noise=H*2*pi*tau*(s_noise + ones).cwiseInverse();
+				s_noise=H*tau* (s_noise + ones).cwiseInverse();
+				spec_noise=spec_noise + s_noise;
+				//std::cout << "main" << std::endl;
+				//std::cout << "x[0]=" << x[0] << "   s_noise[0]=" << s_noise[0] << "   spec_noise[0]=" << spec_noise[0] << std::endl;
+			}			
+		}
+		//std::cout << "s_noise=" << s_noise << std::endl;
+		//std::cout << "s_noise.size()=" << s_noise.size() << std::endl;		
+	}
+
+return spec_noise;
+
 }
 

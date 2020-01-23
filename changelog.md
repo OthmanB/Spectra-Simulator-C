@@ -5,7 +5,10 @@
 		- Code the grid capability
 		- Implement numax variable on generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma
 		- Adding random errors around the second order asymptotic relations. Try to make them spline-consistent
-		- Implementation of the Harvey-profiles log(g) driven
+
+### v0.8.95 (*Released on 23 Jan 2020*) ####		
+	* Added functionalities:
+		- Implementation of the granulation noise using a single Harvey-profile, numax driven and following the Karoff+2011 prescription
 
 ### v0.8.93 (*Released on 20 Jan 2020*) ####		
 	* Added functionalities:

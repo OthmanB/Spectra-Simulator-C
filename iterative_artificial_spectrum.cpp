@@ -123,7 +123,15 @@ void iterative_artificial_spectrum(std::string dir_core){
 		param_names.push_back("Vl1");
 		param_names.push_back("Vl2");
 		param_names.push_back("Vl3");
-		param_names.push_back("H0_spread");	
+		param_names.push_back("H0_spread");
+		param_names.push_back("A_Pgran");	
+		param_names.push_back("B_Pgran");	
+		param_names.push_back("C_Pgran");	
+		param_names.push_back("A_taugran");	
+		param_names.push_back("B_taugran");	
+		param_names.push_back("C_taugran");	
+		param_names.push_back("P");	
+		param_names.push_back("N0");			
 		Nmodel=param_names.size();
 		if(param_names.size() != Nmodel){
 			std::cout << "    Invalid number of parameters for model_name= 'asymptotic_mm_v1'" << std::endl;
@@ -152,6 +160,14 @@ void iterative_artificial_spectrum(std::string dir_core){
 		param_names.push_back("Vl2");
 		param_names.push_back("Vl3");
 		param_names.push_back("H0_spread");	
+		param_names.push_back("A_Pgran");	
+		param_names.push_back("B_Pgran");	
+		param_names.push_back("C_Pgran");	
+		param_names.push_back("A_taugran");	
+		param_names.push_back("B_taugran");	
+		param_names.push_back("C_taugran");	
+		param_names.push_back("P");	
+		param_names.push_back("N0");
 		Nmodel=param_names.size();
 		if(param_names.size() != Nmodel){
 			std::cout << "    Invalid number of parameters for model_name= 'asymptotic_mm_v2'" << std::endl;
@@ -180,6 +196,14 @@ void iterative_artificial_spectrum(std::string dir_core){
 		param_names.push_back("Vl2");
 		param_names.push_back("Vl3");
 		param_names.push_back("H0_spread");	
+		param_names.push_back("A_Pgran");	
+		param_names.push_back("B_Pgran");	
+		param_names.push_back("C_Pgran");	
+		param_names.push_back("A_taugran");	
+		param_names.push_back("B_taugran");	
+		param_names.push_back("C_taugran");	
+		param_names.push_back("P");	
+		param_names.push_back("N0");
 		Nmodel=param_names.size();
 		if(param_names.size() != Nmodel){
 			std::cout << "    Invalid number of parameters for model_name= 'asymptotic_mm_v3'" << std::endl;
@@ -208,6 +232,14 @@ void iterative_artificial_spectrum(std::string dir_core){
 		param_names.push_back("Vl2");
 		param_names.push_back("Vl3");
 		param_names.push_back("H0_spread");	
+		param_names.push_back("A_Pgran");	
+		param_names.push_back("B_Pgran");	
+		param_names.push_back("C_Pgran");	
+		param_names.push_back("A_taugran");	
+		param_names.push_back("B_taugran");	
+		param_names.push_back("C_taugran");	
+		param_names.push_back("P");	
+		param_names.push_back("N0");
 		Nmodel=param_names.size();		
 		if(param_names.size() != Nmodel){
 			std::cout << "    Invalid number of parameters for model_name= 'asymptotic_mm_v1'" << std::endl;
@@ -237,6 +269,14 @@ void iterative_artificial_spectrum(std::string dir_core){
 		param_names.push_back("Vl2");
 		param_names.push_back("Vl3");
 		param_names.push_back("H0_spread");	
+		param_names.push_back("A_Pgran");	
+		param_names.push_back("B_Pgran");	
+		param_names.push_back("C_Pgran");	
+		param_names.push_back("A_taugran");	
+		param_names.push_back("B_taugran");	
+		param_names.push_back("C_taugran");	
+		param_names.push_back("P");	
+		param_names.push_back("N0");
 		Nmodel=param_names.size();		
 		if(param_names.size() != Nmodel){
 			std::cout << "    Invalid number of parameters for model_name= 'asymptotic_mm_v2'" << std::endl;
@@ -266,6 +306,14 @@ void iterative_artificial_spectrum(std::string dir_core){
 		param_names.push_back("Vl2");
 		param_names.push_back("Vl3");
 		param_names.push_back("H0_spread");	
+		param_names.push_back("A_Pgran");	
+		param_names.push_back("B_Pgran");	
+		param_names.push_back("C_Pgran");	
+		param_names.push_back("A_taugran");	
+		param_names.push_back("B_taugran");	
+		param_names.push_back("C_taugran");	
+		param_names.push_back("P");	
+		param_names.push_back("N0");
 		Nmodel=param_names.size();		
 		if(param_names.size() != Nmodel){
 			std::cout << "    Invalid number of parameters for model_name= 'asymptotic_mm_v3'" << std::endl;

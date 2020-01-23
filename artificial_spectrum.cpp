@@ -16,6 +16,7 @@
 #include <boost/random.hpp>
 #include <boost/random/normal_distribution.hpp>
 #include "artificial_spectrum.h"
+#include "noise_models.h"
 
 using Eigen::VectorXd;
 using Eigen::VectorXi;
@@ -32,8 +33,8 @@ void artificial_spectrum_act_asym(double Tobs, double Cadence, double Nspectra, 
 	std::string fileout_params=dir_core + "Data/Spectra_info/" + strtrim(identifier) + ".in";
 	std::string fileout_plot=dir_core + "Data/Spectra_plot/" + strtrim(identifier) + ".eps" ;
 
-	std::string delimiter=" ";
-	bool verbose_data=0; // SET TO 1 IF YOU WANT MORE INFO ABOUT WHAT IS READ
+	const std::string delimiter=" ";
+	const bool verbose_data=0; // SET TO 1 IF YOU WANT MORE INFO ABOUT WHAT IS READ
 	int Ndata;
 	double df, Delta, scoef1, scoef2;
 	VectorXd freq;
@@ -64,7 +65,6 @@ void artificial_spectrum_act_asym(double Tobs, double Cadence, double Nspectra, 
 	std::cout << "    - Generating model of p modes..." << std::endl;
 	spec_modes.setZero(Ndata);
 	scoef1=0;
-	//std::cout << "data_modes.data.cols()=" << data_modes.data.cols() << std::endl;
 	for(int i=0; i<data_modes.data.rows(); i++){
 		l=data_modes.data(i,0);
 		fc_l=data_modes.data(i,1);
@@ -83,9 +83,7 @@ void artificial_spectrum_act_asym(double Tobs, double Cadence, double Nspectra, 
 		spec_modes=spec_modes + s_mode;
 
 		scoef1=scoef1 + gamma_l;
-		//std::cout << "Here" << std::endl;
 	}
-	//std::cout << "end loop" << std::endl;
 	scoef1=scoef1/data_modes.data.cols(); // scoef1 is based on the average mode width
 	scoef2=scoef1; // scoef2 is based on the average mode width
 
@@ -94,6 +92,8 @@ void artificial_spectrum_act_asym(double Tobs, double Cadence, double Nspectra, 
 
 	// Build the noise background using the Harvey like profile...
 	std::cout << "    - Generating the model of noise..." << std::endl;
+	spec_noise=harvey_1985(data_noise.data, freq);
+/*
 	ones.resize(Ndata);
 	ones.setConstant(1);
 	spec_noise.setZero(Ndata);
@@ -104,13 +104,6 @@ void artificial_spectrum_act_asym(double Tobs, double Cadence, double Nspectra, 
 		tau=data_noise.data(i,1);
 		p=data_noise.data(i,2);
 		
-		/*
-		std::cout << "--------" << std::endl;
-		std::cout << "H=" << H << std::endl;
-		std::cout << "tau=" << tau << std::endl;
-		std::cout << "p=" << p << std::endl;
-		std::cout << "--------" << std::endl;
-		*/
 		s_noise.setZero();	
 		if(H>0 && (tau<0 || p<0) ){
 			if(tau==-2 && p==-2){
@@ -148,7 +141,7 @@ void artificial_spectrum_act_asym(double Tobs, double Cadence, double Nspectra, 
 		//std::cout << "s_noise=" << s_noise << std::endl;
 		//std::cout << "s_noise.size()=" << s_noise.size() << std::endl;		
 	}
-	
+*/
 	// Final spectrum and saving functions
 	input_spec_model=spec_noise + spec_modes;
 
@@ -165,13 +158,8 @@ void artificial_spectrum_act_asym(double Tobs, double Cadence, double Nspectra, 
         }
         spec_reg=spec_reg + stmp/Nspectra;
     }
-    std::cout << "done" << std::endl;
-/*
-	for(int ii=0; ii<freq.size(); ii++){
-			std::cout << freq[ii] << "   " << input_spec_model[ii]  << "  " << spec_reg[ii] << std::endl;
-	}
-	exit(EXIT_SUCCESS);
-*/
+    std::cout << "Done" << std::endl;
+
 	std::cout << "    - Saving the spectrum..." << std::endl;
 	write_spectrum(freq, spec_reg, input_spec_model, fileout_spectrum, write_inmodel);
 
@@ -184,7 +172,6 @@ void artificial_spectrum_act_asym(double Tobs, double Cadence, double Nspectra, 
         std::cout << "    - Generating a plot of the spectrum..." << std::endl;
         gnuplt_model(freq, spec_reg, input_spec_model, scoef1, scoef2, fileout_plot);
     }
-	//std::cout << "All done for the simulated star " << identifier << std::endl;
 
 }
 
