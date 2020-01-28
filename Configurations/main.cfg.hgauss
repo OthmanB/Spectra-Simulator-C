@@ -15,8 +15,8 @@ numax Dnu  epsilon  D0   maxH   Gamma   lmax   Nmax   a1     a3    b    alfa   b
 3000.  100.  0.     2.00   1.    1.      2.     10.   0.4   0.03   0.    1       0    0.     0.01     10    2     0.001    30     2    0.02   #val_min
 3000.  100.  0.     2.00   1.    1.      2.     10.   0.4   0.03   0.    1       0    90.    0.01     10    2     0.001    30     2    0.02    #val_max
   0.    0.   0.     0.     0.    0.      0.     0.     0     0      0     0       0    1      0        0    0     0         0     0     0     #If forest_type="random" ==> 1=Variable OR 0=Constant. If forest_type="grid" then must be the stepsize of the grid
-Tobs   Cadence  Naverage
-30.    120       1
+Tobs   Cadence  Naverage    Nrealisation
+1000.    120       1            4
 0     # It is erase_old_files
 0     # Do you want plots ? 0 = No, 1 = Yes
 0     # Do you list values of the input model in the output ascii file?

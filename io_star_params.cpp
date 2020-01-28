@@ -814,6 +814,7 @@ Config_Data read_main_cfg(std::string cfg_file){
 			cfg.Tobs=tmp[0];
 			cfg.Cadence=tmp[1];	
             cfg.Nspectra=tmp[2];
+            cfg.Nrealisation=tmp[3];
             
 			std::getline(file_in, line0);		
 			cfg.erase_old_files=str_to_bool(rem_comments(line0, "#"));

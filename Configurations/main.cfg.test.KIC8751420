@@ -15,8 +15,8 @@ nurot_env  nurot_ratio  Dnu      epsilon          delta0l_percent  beta_p_star  
 0.102      15.1         34.6    0.44453570       1.75               0.00         0            134.2    0.05    0.20    100.    0.25        15      1      0.25   0.0   0.1                     1       -2         0         1            -1           0.      2    0.1 #val_min
 0.102      15.1         34.6    0.44453570       1.75               0.00         0            134.2    0.05    0.20    100.    0.25        15      1.75   0.80   0.1   0.1                     1       -2         0         1            -1           0.      2    0.1 #val_max
 0.         0.           0.       0.               0.               0.           0.            0.       0.       0.      0.      0.          0.       1.     1.     1.    0.                    0        0         0         0             0           0       0      0 #If forest_type="random" ==> 1=Variable OR 0=Constant. If forest_type="grid" then must be the stepsize of the grid
-Tobs   Cadence  Naverage
-1000.    300       1
+Tobs   Cadence  Naverage    Nrealisation
+1000.    120       1            4
 1     # It is erase_old_files. If set to 1, will remove old Combination.txt and restart counting from 1. Otherwise append Combination.txt
 0     # Do you want plots ? 0 = No, 1 = Yes
 1     # Do you list values of the input model in the output ascii file?

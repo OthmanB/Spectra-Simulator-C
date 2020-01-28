@@ -6,17 +6,23 @@
 		- Implement numax variable on generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma
 		- Adding random errors around the second order asymptotic relations. Try to make them spline-consistent
 
-### v0.8.95 (*Released on 23 Jan 2020*) ####		
+### v0.8.96 (*Released on 23 Jan 2020*) ###
+	* Added functionalities:
+		- Adding the possibility to generate multiple noise realisation for a single model (several .ascii files for a single .in file). The new control variable should appear in the main.cfg file and is called Nrealisation (see example configuration files)
+	* Improvments:
+		- Adding failsafes if negative frequencies are found for p modes
+
+### v0.8.95 (*Released on 23 Jan 2020*) ###	
 	* Added functionalities:
 		- Implementation of the granulation noise using a single Harvey-profile, numax driven and following the Karoff+2011 prescription
 
-### v0.8.93 (*Released on 20 Jan 2020*) ####		
+### v0.8.93 (*Released on 20 Jan 2020*) ###		
 	* Added functionalities:
 		- Adding Templates database for Heights
                          WARNING: A new line is required in the main.cfg to specify the template file. This line must be set to NONE if the model does not require templates
 		- Allow random jumps between heights a templates population 
 
-### v0.8.92 (*Released on 16 Jan 2020*) ####		
+### v0.8.92 (*Released on 16 Jan 2020*) ###		
 	* Added functionalities:
 		- Adding controls for Visibilities
 

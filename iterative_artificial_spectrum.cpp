@@ -525,12 +525,14 @@ bool call_model(std::string model_name, VectorXd input_params, std::string file_
 
 	if(model_name == "generate_cfg_asymptotic_act_asym_Hgauss"){
 		generate_cfg_asymptotic_act_asym_Hgauss(input_params, file_out_modes, file_out_noise);
-		artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
+		//artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
+		artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
 		passed=1;
 	}
 	if(model_name =="generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma"){
 		generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma(input_params, file_out_modes,  file_out_noise, cfg.extra_params); // extra_params must points towards a .in file
-		artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
+		//artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
+		artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
 		passed=1;		
 	}
 	if(model_name == "asymptotic_mm_v1" || model_name == "asymptotic_mm_v2" || model_name == "asymptotic_mm_v3" ||
@@ -567,7 +569,8 @@ bool call_model(std::string model_name, VectorXd input_params, std::string file_
 			exit(EXIT_FAILURE);
 		}
 		
-		artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
+		//artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
+		artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
 		std::cout << "   - [Warning DIRTY CODE IN LINE 281, iterative_artificial_spectrum.cpp] Hard coded path for saving python3 cfg in the spectra_info dir" << std::endl;
 		std::cout << "                                                                         Stable final version should avoid this" << std::endl;
 		str="cp " + file_cfg_mm + " " + dir_core + "Data/Spectra_info/" + strtrim(id_str) + ".python.global";

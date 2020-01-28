@@ -622,6 +622,9 @@ def make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star
 	nmin=int(numpy.floor(nmin - alpha_p_star*(nmin - nmax)**2 /2.))
 	nmax=int(numpy.ceil(nmax - alpha_p_star*(nmax - nmax)**2 /2.))
 
+	if nmin < 1:
+		nmin=1
+		
 	nu_l0=[]
 	for en in range(nmin, nmax):
 		#tmp=solver_mm.asympt_nu_p(Dnu_star, en, epsilon_star, 0, D0_star)
@@ -655,7 +658,15 @@ def make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star
 	height_l0=height_l0*hmax_l0 # height_l0 being normalised to 1 on width_height_load_rescale, getting the desired hmax_l0 requires just to multiply height_l0 by hmax_l0
 
 	if numpy.abs(H0_spread) > 0:
-		height_l0=numpy.random.uniform(height_l0*(1.-numpy.abs(H0_spread)/100.), height_l0*(1. + numpy.abs(H0_spread)/100.))
+		try:
+			height_l0=numpy.random.uniform(height_l0*(1.-numpy.abs(H0_spread)/100.), height_l0*(1. + numpy.abs(H0_spread)/100.))
+		except OverflowError:
+			print("OverflowError debug info:")
+			print("nu_l0 = ", nu_l0)
+			print("hmax_l0 = ", hmax_l0)
+			print("Height_l0: ", height_l0)
+			print("H0_spread: ", H0_spread)
+			exit()
 
 	width_l0=width_l0*Gamma_max_l0
 
