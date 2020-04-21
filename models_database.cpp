@@ -395,7 +395,7 @@ void asymptotic_mm_v3(VectorXd input_params, std::string file_out_modes, std::st
 	rwfile.open(file_cfg_mm.c_str());
 	if(rwfile.is_open()){
 		// ---------------------
-		rwfile << "# First line: rot_env / rot_core / Dnu / epsilon / delta0l_percent / beta_p / nmax_spread. Second line: DP1 / alpha / q. Third line coupling / how many l=0 freq on left&right of numax / hmax / width at numax for l=0 / max uniform spread on numax (% or <=0 if off)" << std::endl;
+		rwfile << "# First line: rot_env / rot_core / Dnu / epsilon / delta0l_percent / beta_p / nmax_spread. Second line: DP1 / alpha / q. Third line coupling / how many l=0 freq on left&right of numax / hmax / width at numax for l=0 / max uniform spread on numax (% or <=0 if off). Fourth line: Noise parameters" << std::endl;
 		rwfile << rot_env << std::setw(Nchars_spec) << std::setprecision(precision_spec) << rot_core;
 		rwfile << std::setw(Nchars_spec) << std::setprecision(precision_spec) << Dnu;
 		rwfile << std::setw(Nchars_spec) << std::setprecision(precision_spec) << epsilon << std::setw(Nchars_spec) << delta0l_percent << std::setw(Nchars_spec) << beta_p;
@@ -652,7 +652,7 @@ void asymptotic_mm_freeDp_numaxspread_curvepmodes_v2(VectorXd input_params, std:
 	rwfile.open(file_cfg_mm.c_str());
 	if(rwfile.is_open()){
 		// ---------------------
-		rwfile << "# First line: rot_env / rot_ratio / Dnu / epsilon / delta0l_percent / beta_p / nmax_spread. Second line: DP1 / alpha / q. Third line coupling / how many l=0 freq on left&right of numax / hmax / width at numax for l=0 / max uniform spread on numax (% or <=0 if off)" << std::endl;
+		rwfile << "# First line: rot_env / rot_ratio / Dnu / epsilon / delta0l_percent / beta_p / nmax_spread. Second line: DP1 / alpha / q. Third line coupling / how many l=0 freq on left&right of numax / hmax / width at numax for l=0 / max uniform spread on numax (% or <=0 if off). Fourth line: Noise parameters" << std::endl;
 		rwfile << rot_env << std::setw(Nchars_spec) << std::setprecision(precision_spec) << rot_ratio;
 		rwfile << std::setw(Nchars_spec) << std::setprecision(precision_spec) << Dnu;
 		rwfile << std::setw(Nchars_spec) << std::setprecision(precision_spec) << epsilon  << std::setw(Nchars_spec) << delta0l_percent << std::setw(Nchars_spec) << beta_p;
@@ -782,7 +782,7 @@ void asymptotic_mm_freeDp_numaxspread_curvepmodes_v3(VectorXd input_params, std:
 	rwfile.open(file_cfg_mm.c_str());
 	if(rwfile.is_open()){
 		// ---------------------
-		rwfile << "# First line: rot_env / rot_core / Dnu / epsilon / delta0l_percent / beta_p / nmax_spread. Second line: DP1 / alpha. Third line coupling q / how many l=0 freq on left&right of numax / hmax / width at numax for l=0 / max uniform spread on numax (% or <=0 if off)" << std::endl;
+		rwfile << "# First line: rot_env / rot_core / Dnu / epsilon / delta0l_percent / beta_p / nmax_spread. Second line: DP1 / alpha. Third line coupling q / how many l=0 freq on left&right of numax / hmax / width at numax for l=0 / max uniform spread on numax (% or <=0 if off). Fourth line: Noise parameters" << std::endl;
 		rwfile << rot_env << std::setw(Nchars_spec) << std::setprecision(precision_spec) << rot_core;
 		rwfile << std::setw(Nchars_spec) << std::setprecision(precision_spec) << Dnu;
 		rwfile << std::setw(Nchars_spec) << std::setprecision(precision_spec) << epsilon << std::setw(Nchars_spec) << delta0l_percent << std::setw(Nchars_spec) << beta_p;

@@ -230,6 +230,8 @@ def width_height_load_rescale(nu_star, Dnu_star, numax_star, file=None):
 
 		int_fct_h = interpolate.interp1d(en_list_ref - n_at_numax_ref, height_ref/height_ref_at_numax)
 		h_star=int_fct_h(en_list_star - n_at_numax_star)
+
+		h_star=h_star/max(h_star) # Normalise so that that HNR(numax)=1 if white noise N0=1
 	return w_star,h_star
 
 # Original function is comming from the IDL function 'generate_cfg_asymptotic_Hgauss_Wscaled_act_asym'
@@ -295,6 +297,7 @@ def width_height_MS_sun_rescaled(nu_star, Dnu_star, numax_star):
 	int_fct_h = interpolate.interp1d(en_list_sun - n_at_numax_sun, height_sun/height_sun_at_numax)
 	h=int_fct_h(en_list_star - n_at_numax_star)
 
+	h=h/max(h) # Normalise so that that HNR(numax)=1 if white noise N0=1
 	return w,h
 
 # Using Inertias, heights and widths of l=0 modes, 
@@ -550,6 +553,25 @@ def numax_from_stello2009(Dnu_star, spread=0):
 #	print("New nu_max=", nu_max)
 	return nu_max
 
+#This function calculate a sum of harvey profile + a white noise and adds 
+#	 * these profiles to a initial input vector y. The Harvey profile differ from the
+#	 * Harvey-like by the fact that H0_1985= H0_like * tc is correlated to the timescale tc. 
+#	 * There is also a 2pi factor in the denominator. The function assumes that the 
+#	 * inputs are in the following order: [H0, tc0, p0, ..., Hn, tcn, pn, N0]
+#
+def harvey_1985(noise_params, x):
+
+	cpt=0
+	Nharvey=1
+	y=numpy.zeros(len(x)) + noise_params[Nharvey*3] # White noise
+	for i in range(Nharvey):
+ 		if(noise_params[cpt+1] != 0):
+ 			tmp=((1e-3)*2.*numpy.pi*noise_params[cpt+1]*x)**noise_params[cpt+2] # Denominator
+ 			tmp=noise_params[cpt]*noise_params[cpt+1]/(1. + tmp) # Numerator/Denominator
+ 			y= y + tmp # Numerator/Denominator + White noise
+ 		cpt=cpt+3
+	return y
+
 # The main function that generate a set of parameters used to generate Lorentzian profiles
 # Assumptions: 
 #     - The frequencies of l=0, l=2 and l=3 modes follow exactly the asymtptotic relation for the p mdoes
@@ -581,7 +603,8 @@ def numax_from_stello2009(Dnu_star, spread=0):
 #	width_lx: Widths of the l=x modes. x is between 0 and 3
 #   height_lx: Heights of the l=x modes. x is between 0 and 3 
 #def make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star, D0_star, DP1_star, alpha_star, q_star, fmin, fmax, Hmax_l0=1., Gamma_max_l0=1., rot_env_input=-1, rot_ratio_input=-1, rot_core_input=-1, output_file_rot='star_params.rot'):
-def make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star, delta0l_percent_star, alpha_p_star, nmax_star, DP1_star, alpha_star, q_star, fmin, fmax, Hmax_l0=1., Gamma_max_l0=1., rot_env_input=-1, rot_ratio_input=-1, rot_core_input=-1, output_file_rot='star_params.rot', Vl=[1,1.5,0.5, 0.07], H0_spread=0, filetemplate="Configurations/templates/Sun.template"):
+#def make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star, delta0l_percent_star, alpha_p_star, nmax_star, DP1_star, alpha_star, q_star, fmin, fmax, Hmax_l0=1., Gamma_max_l0=1., rot_env_input=-1, rot_ratio_input=-1, rot_core_input=-1, output_file_rot='star_params.rot', Vl=[1,1.5,0.5, 0.07], H0_spread=0, filetemplate="Configurations/templates/Sun.template"):
+def make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star, delta0l_percent_star, alpha_p_star, nmax_star, DP1_star, alpha_star, q_star, fmin, fmax, maxHNR_l0=1., noise_params=[0,1,1,1], Gamma_max_l0=1., rot_env_input=-1, rot_ratio_input=-1, rot_core_input=-1, output_file_rot='star_params.rot', Vl=[1,1.5,0.5, 0.07], H0_spread=0, filetemplate="Configurations/templates/Sun.template"):
 
 	# Fix the resolution to 4 years (converted into microHz)
 	resol=1e6/(4*365.*86400.) 
@@ -599,6 +622,9 @@ def make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star
 	nmin=int(numpy.floor(nmin - alpha_p_star*(nmin - nmax)**2 /2.))
 	nmax=int(numpy.ceil(nmax - alpha_p_star*(nmax - nmax)**2 /2.))
 
+	if nmin < 1:
+		nmin=1
+		
 	nu_l0=[]
 	for en in range(nmin, nmax):
 		#tmp=solver_mm.asympt_nu_p(Dnu_star, en, epsilon_star, 0, D0_star)
@@ -614,12 +640,33 @@ def make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star
 #	exit()
 	#width_l0, height_l0=width_height_MS_sun_rescaled(nu_l0, Dnu_star, numax_star)
 
-	width_l0, height_l0=width_height_load_rescale(nu_l0, Dnu_star, numax_star, file=filetemplate)
-	
-	height_l0=height_l0*Hmax_l0
+	width_l0, height_l0=width_height_load_rescale(nu_l0, Dnu_star, numax_star, file=filetemplate) # Function that ensure that Hmax and Wplateau is at numax
+
+	#Defining what should be Hmax_l0 in order to get the desired HNR
+	#                   0           1         2           3            4           5          6       7
+	#noise_params=[A_Pgran ,  B_Pgran , C_Pgran   ,  A_taugran ,  B_taugran  , C_taugran    , p      N0]
+	tau=noise_params[3] * (numax_star*1e-6)**noise_params[4] + noise_params[5] # Granulation timescale (in seconds)
+	H=noise_params[0] * (numax_star*1e-6)**noise_params[1] + noise_params[2] # Granulation Amplitude
+	H=H/tau  #This is due to the used definition for the Harvey profile (conversion from Hz to microHz)
+	tau=tau/1000.  #conversion in ksec
+	p=noise_params[6] # power law (MUST BE CLOSE TO 2)
+	N0=noise_params[7];
+
+	Noise_l0=harvey_1985([H, tau, p, N0], nu_l0)
+	c=1 # This is the ratio of HNR between the reference star and the target simulated star: maxHNR_l0/maxHNR_ref.
+	hmax_l0=maxHNR_l0*Noise_l0*c
+	height_l0=height_l0*hmax_l0 # height_l0 being normalised to 1 on width_height_load_rescale, getting the desired hmax_l0 requires just to multiply height_l0 by hmax_l0
 
 	if numpy.abs(H0_spread) > 0:
-		height_l0=numpy.random.uniform(height_l0*(1.-numpy.abs(H0_spread)/100.), height_l0*(1. + numpy.abs(H0_spread)/100.))
+		try:
+			height_l0=numpy.random.uniform(height_l0*(1.-numpy.abs(H0_spread)/100.), height_l0*(1. + numpy.abs(H0_spread)/100.))
+		except OverflowError:
+			print("OverflowError debug info:")
+			print("nu_l0 = ", nu_l0)
+			print("hmax_l0 = ", hmax_l0)
+			print("Height_l0: ", height_l0)
+			print("H0_spread: ", H0_spread)
+			exit()
 
 	width_l0=width_l0*Gamma_max_l0
 
@@ -740,11 +787,13 @@ def main_star_generator(config_file='star_params.global', output_file='star_para
 	if version == 1:
 		setup_pmodes=numpy.asarray(setup[0], dtype='double')
 		setup_gmodes=numpy.asarray(setup[1], dtype='double')
+		noise_params=numpy.asarray(setup[4], dtype='double')
 		DP1_star=setup_gmodes[0]
 		alpha_star=setup_gmodes[1]
 		coupling=numpy.double(setup[2][0])
 		Ncoef=numpy.double(setup[2][1]) # Defines the number of modes on each side of numax
-		Hmax_l0=numpy.double(setup[2][2]) # Maximum height for the l=0. Heights of other modes are set using visibilities (make_synthetic_asymptotic_star()).
+		#Hmax_l0=numpy.double(setup[2][2]) # Maximum height for the l=0. Heights of other modes are set using visibilities (make_synthetic_asymptotic_star()).
+		maxHNR_l0=numpy.double(setup[2][2]) # Maximum HNR for the l=0. l=0 Heights depend on the noise background. Heights of other modes are set using visibilities (make_synthetic_asymptotic_star()).
 		Gamma_max_l0=numpy.double(setup[2][3]) # Width at numax for l=0
 		numax_spread=numpy.double(setup[2][4]) # uniform numax spread in %. If <=0, no spread is applied
 		Vl=numpy.double(setup[3][0:3]) # Visibilities for l=1,2, 3
@@ -764,11 +813,13 @@ def main_star_generator(config_file='star_params.global', output_file='star_para
 	if version == 2:
 		setup_pmodes=numpy.asarray(setup[0], dtype='double')
 		setup_gmodes=numpy.asarray(setup[1], dtype='double')
+		noise_params=numpy.asarray(setup[4], dtype='double')
 		DP1_star=setup_gmodes[0]
 		alpha_star=setup_gmodes[1]
 		coupling=numpy.double(setup[2][0])
 		Ncoef=numpy.double(setup[2][1]) # Defines the number of modes on each side of numax
-		Hmax_l0=numpy.double(setup[2][2]) # Maximum height for the l=0. Heights of other modes are set using visibilities (make_synthetic_asymptotic_star()).
+		#Hmax_l0=numpy.double(setup[2][2]) # Maximum height for the l=0. Heights of other modes are set using visibilities (make_synthetic_asymptotic_star()).
+		maxHNR_l0=numpy.double(setup[2][2]) # Maximum HNR for the l=0. l=0 Heights depend on the noise background. Heights of other modes are set using visibilities (make_synthetic_asymptotic_star()).		
 		Gamma_max_l0=numpy.double(setup[2][3]) # Width at numax for l=0
 		numax_spread=numpy.double(setup[2][4]) # uniform numax spread in %. If <=0, no spread is applied
 		Vl=numpy.double(setup[3][0:3]) # Visibilities for l=1,2, 3
@@ -787,11 +838,13 @@ def main_star_generator(config_file='star_params.global', output_file='star_para
 	if version == 3:
 		setup_pmodes=numpy.asarray(setup[0], dtype='double')
 		setup_gmodes=numpy.asarray(setup[1], dtype='double')
+		noise_params=numpy.asarray(setup[4], dtype='double')
 		DP1_star=setup_gmodes[0]
 		alpha_star=setup_gmodes[1]
 		coupling=numpy.double(setup[2][0])
 		Ncoef=numpy.double(setup[2][1]) # Defines the number of modes on each side of numax
-		Hmax_l0=numpy.double(setup[2][2]) # Maximum height for the l=0. Heights of other modes are set using visibilities (make_synthetic_asymptotic_star()).
+		#Hmax_l0=numpy.double(setup[2][2]) # Maximum height for the l=0. Heights of other modes are set using visibilities (make_synthetic_asymptotic_star()).
+		maxHNR_l0=numpy.double(setup[2][2]) # Maximum HNR for the l=0. l=0 Heights depend on the noise background. Heights of other modes are set using visibilities (make_synthetic_asymptotic_star()).
 		Gamma_max_l0=numpy.double(setup[2][3]) # Width at numax for l=0
 		numax_spread=numpy.double(setup[2][4]) # uniform numax spread in %. If <=0, no spread is applied
 		Vl=numpy.double(setup[3][0:3]) # Visibilities for l=1,2, 3
@@ -825,13 +878,9 @@ def main_star_generator(config_file='star_params.global', output_file='star_para
 
 	alpha_p_star=beta_p_star/nmax_star
 
-	#print("delta0l_percent_star=", delta0l_percent_star)
-	#print("nmax_star=", nmax_star)
-	#print("alpha_p_star=", alpha_p_star)
-	
 	#nu_l0, nu_p_l1, nu_g_l1, nu_m_l1, nu_l2, nu_l3, width_l0, width_m_l1, width_l2, width_l3, height_l0, height_m_l1, height_l2, height_l3, a1_l1, a1_l2, a1_l3=make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star, D0_star, DP1_star, alpha_star, coupling, fmin, fmax, Hmax_l0=Hmax_l0, Gamma_max_l0=Gamma_max_l0, rot_env_input=rot_env, rot_ratio_input=rot_ratio, rot_core_input=rot_core, output_file_rot=output_file_rot)
 	#nu_l0, nu_p_l1, nu_g_l1, nu_m_l1, nu_l2, nu_l3, width_l0, width_m_l1, width_l2, width_l3, height_l0, height_m_l1, height_l2, height_l3, a1_l1, a1_l2, a1_l3=make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star, delta0l_percent_star, alpha_p_star, nmax_star, DP1_star, alpha_star, coupling, fmin, fmax, Hmax_l0=Hmax_l0, Gamma_max_l0=Gamma_max_l0, rot_env_input=rot_env, rot_ratio_input=rot_ratio, rot_core_input=rot_core, output_file_rot=output_file_rot)
-	nu_l0, nu_p_l1, nu_g_l1, nu_m_l1, nu_l2, nu_l3, width_l0, width_m_l1, width_l2, width_l3, height_l0, height_m_l1, height_l2, height_l3, a1_l1, a1_l2, a1_l3=make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star, delta0l_percent_star, alpha_p_star, nmax_star, DP1_star, alpha_star, coupling, fmin, fmax, Hmax_l0=Hmax_l0, Gamma_max_l0=Gamma_max_l0, rot_env_input=rot_env, rot_ratio_input=rot_ratio, rot_core_input=rot_core, output_file_rot=output_file_rot, Vl=Vl, H0_spread=H0_spread, filetemplate=filetemplate)
+	nu_l0, nu_p_l1, nu_g_l1, nu_m_l1, nu_l2, nu_l3, width_l0, width_m_l1, width_l2, width_l3, height_l0, height_m_l1, height_l2, height_l3, a1_l1, a1_l2, a1_l3=make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star, delta0l_percent_star, alpha_p_star, nmax_star, DP1_star, alpha_star, coupling, fmin, fmax, maxHNR_l0=maxHNR_l0, noise_params=noise_params, Gamma_max_l0=Gamma_max_l0, rot_env_input=rot_env, rot_ratio_input=rot_ratio, rot_core_input=rot_core, output_file_rot=output_file_rot, Vl=Vl, H0_spread=H0_spread, filetemplate=filetemplate)
 	nu_m_l1=nu_m_l1[1:] # remove the first one as it has always 0 amplitude (for some unclear reason)
 	width_m_l1=width_m_l1[1:]
 	height_m_l1=height_m_l1[1:]
@@ -848,7 +897,7 @@ def main_star_generator(config_file='star_params.global', output_file='star_para
 	inc_star=inc_rad*180./numpy.pi
 
 	#write_range_modes(numax_star, Dnu_star, Ncoef, output_file=output_file_range)
-	write_range_modes_v2(nu_l0, Dnu_star, numax_star, output_file=output_file_range)
+	write_range_modes_v2(nu_l0, Dnu_star, numax_star, nmax_star, output_file=output_file_range)
 
 	print('Writing on file :', output_file)
 	#print('Stellar inclination: ', inc_rad, '  ===> ', inc_star)
@@ -930,15 +979,15 @@ def write_range_modes(numax, Dnu, Ncoef, output_file='star_params.range'):
 	fout.write('\n')
 	fout.close()
 
-def write_range_modes_v2(nu_l0, Dnu, numax, output_file='star_params.range'):
+def write_range_modes_v2(nu_l0, Dnu, numax, nmax_star, output_file='star_params.range'):
 
 	fmin=min(nu_l0) - Dnu/3
 	fmax=max(nu_l0) + Dnu/3
 
 	fout=open(output_file, 'w')
-	fout.write('# numax and min and max frequencies for the relevant modes. This file was generated by bump_DP.py (external python program)')
+	fout.write('# numax and min and max frequencies for the relevant modes. The third parameter is nmax_star, the position of the curvature for the 2nd order equation of Freqs. This file was generated by bump_DP.py (external python program)')
 	fout.write('\n')
-	stri='{0:.3f}   {1:.3f}   {2:.3f} '.format(numax, fmin, fmax)
+	stri='{0:.3f}   {1:.3f}   {2:.3f}  {3:.5f}'.format(numax, fmin, fmax, nmax_star)
 	fout.write(stri)
 	fout.write('\n')
 	fout.close()
@@ -1074,7 +1123,7 @@ def test_asymptotic_star_v2(Dnu_star=55, epsilon_star=0.1, D0_percent=1./100, DP
 	plt.show()
 
 # A function that allows you to test and visualise the results from make_synthetic_asymptotic_star()
-def test_asymptotic_star_O2p(Dnu_star=55, epsilon_star=0.1, delta0l_percent=1./100, beta_p_star=0.0076, DP1_star=350, q_star=0.15, rot_envelope=30., rot_ratio=5.):	
+def test_asymptotic_star_O2p(Dnu_star=55, epsilon_star=0.1, delta0l_percent=1./100, beta_p_star=0.0076, DP1_star=350, q_star=0.15, rot_envelope=30., rot_ratio=5., maxHNR_l0=5):	
 	# Define global Pulsation parameters
 	el=1.
 
@@ -1086,31 +1135,58 @@ def test_asymptotic_star_O2p(Dnu_star=55, epsilon_star=0.1, delta0l_percent=1./1
 
 	# Define the frequency range for the calculation by (1) getting numax from Dnu and (2) fixing a range around numax
 	numax_star=numax_from_stello2009(Dnu_star)
-	fmin=numax_star - 5*Dnu_star
-	fmax=numax_star + 5*Dnu_star
+	fmin=numax_star - 6*Dnu_star
+	fmax=numax_star + 6*Dnu_star
 
 	nmax_star=numax_star/Dnu_star - epsilon_star
 	alpha_p_star=beta_p_star/nmax_star
 
-	Hmax_l0=1
+	#Hmax_l0=1
+	noise_params=[ 1., -2. , 0. , 1. ,-1. , 0. , 2.  ,1.]
+
+	#maxHNR_l0=10
 	Gamma_max_l0=1
 	Teff_star=-1
 	rot_core=-1
 	output_file_rot='test.rot'
-	
+	Vl=[1,1.5,0.5, 0.07]
+	H0_spread=0
+	filetemplate="Configurations/templates/Sun.template"
+
 	#nu_l0, nu_p_l1, nu_g_l1, nu_m_l1, nu_l2, nu_l3, width_l0, width_m_l1, width_l2, width_l3, height_l0, height_l1, height_l2, height_l3, a1_l1, a1_l2, a1_l3=make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star, D0_star, DP1_star, alpha_star, q_star, fmin, fmax, Hmax_l0=Hmax_l0, Gamma_max_l0=Gamma_max_l0, rot_env_input=rot_envelope, rot_ratio_input=rot_ratio, rot_core_input=rot_core, output_file_rot=output_file_rot)
-	nu_l0, nu_p_l1, nu_g_l1, nu_m_l1, nu_l2, nu_l3, width_l0, width_m_l1, width_l2, width_l3, height_l0, height_l1, height_l2, height_l3, a1_l1, a1_l2, a1_l3=make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star, delta0l_star, alpha_p_star, nmax_star, DP1_star, alpha_star, q_star, fmin, fmax, Hmax_l0=Hmax_l0, Gamma_max_l0=Gamma_max_l0, rot_env_input=rot_envelope, rot_ratio_input=rot_ratio, rot_core_input=rot_core, output_file_rot=output_file_rot)
+	#nu_l0, nu_p_l1, nu_g_l1, nu_m_l1, nu_l2, nu_l3, width_l0, width_m_l1, width_l2, width_l3, height_l0, height_l1, height_l2, height_l3, a1_l1, a1_l2, a1_l3=make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star, delta0l_star, alpha_p_star, nmax_star, DP1_star, alpha_star, q_star, fmin, fmax, Hmax_l0=Hmax_l0, Gamma_max_l0=Gamma_max_l0, rot_env_input=rot_envelope, rot_ratio_input=rot_ratio, rot_core_input=rot_core, output_file_rot=output_file_rot)
+	nu_l0, nu_p_l1, nu_g_l1, nu_m_l1, nu_l2, nu_l3, width_l0, width_m_l1, width_l2, width_l3, height_l0, height_l1, height_l2, height_l3, a1_l1, a1_l2, a1_l3=make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star, delta0l_percent, alpha_p_star, nmax_star, DP1_star, alpha_star, q_star, fmin, fmax, maxHNR_l0=maxHNR_l0, noise_params=noise_params, Gamma_max_l0=Gamma_max_l0, rot_env_input=rot_envelope, rot_ratio_input=rot_ratio, rot_core_input=rot_core, output_file_rot=output_file_rot, Vl=Vl, H0_spread=H0_spread, filetemplate=filetemplate)
+
+	tau=noise_params[3] * (numax_star*1e-6)**noise_params[4] + noise_params[5] # Granulation timescale (in seconds)
+	H=noise_params[0] * (numax_star*1e-6)**noise_params[1] + noise_params[2] # Granulation Amplitude
+	H=H/tau  #This is due to the used definition for the Harvey profile (conversion from Hz to microHz)
+	tau=tau/1000.  #conversion in ksec
+	p=noise_params[6] # power law (MUST BE CLOSE TO 2)
+	N0=noise_params[7];
+
+
+	noise_background=harvey_1985([H, tau, p, N0], nu_l0)
+
+	HNR=height_l0/noise_background
+	print(" nu(l=0)      noise(nu)         height(nu)       hnr(nu)")
+	for i in range(len(nu_l0)):
+		print(nu_l0[i], noise_background[i], height_l0[i], HNR[i])
+	
+	#exit()
+
 	print(" n + epsilon = nu_l0/Dnu_star: ", nu_l0/Dnu_star)
 	print(" n_mixed + epsilon = nu_m_l1/Dnu_star: ", nu_m_l1/Dnu_star)
 	print(" n + epsilon - 6D0/Dnu_star = nu_l2/Dnu_star: ", nu_l2/Dnu_star)
 	print(" n + epsilon - 12D0/Dnu_star = nu_l3/Dnu_star: ", nu_l3/Dnu_star)
 
-	plt.plot(nu_l0, width_l0, color='Black', linestyle='--')
-	plt.plot(nu_l0, height_l0, color='Blue', linestyle='--')
+	#plt.plot(nu_l0, width_l0, color='Black', linestyle='--')
+	plt.plot(nu_l0, height_l0, color='Blue')
 	plt.plot(nu_m_l1, height_l1, color='Orange', linestyle='--')
 	plt.plot(nu_l0, height_l0*1.5, color='Orange', linestyle='--')
 	
-	plt.plot(nu_m_l1, width_m_l1, color='Red', linestyle='--')
+	plt.plot(nu_l0, noise_background, color="Black", linestyle="--")
+
+	#plt.plot(nu_m_l1, width_m_l1, color='Red', linestyle='--')
 	plt.plot(nu_m_l1, width_m_l1, 'ro')
 	plt.axvline(x=numax_star, color='red', linestyle='--')
 	plt.axvline(x=numax_star - 5*Dnu_star, color='green', linestyle='--')
@@ -1134,7 +1210,7 @@ def test_asymptotic_star_O2p(Dnu_star=55, epsilon_star=0.1, delta0l_percent=1./1
 
 	plt.plot(nu_m_l1, a1_l1, color='Red', linestyle='--')
 	plt.plot(nu_m_l1, a1_l1, 'ro')
-	#plt.plot(nu_m_l1, ksi_nu_m, 'ro')
+	##plt.plot(nu_m_l1, ksi_nu_m, 'ro')
 	for p in nu_p_l1:
 		plt.axvline(x=p, color='blue', linestyle='--')
 		#print(p)

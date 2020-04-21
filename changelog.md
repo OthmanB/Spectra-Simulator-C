@@ -6,6 +6,9 @@
 		- Implement numax variable on generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma
 		- Adding random errors around the second order asymptotic relations. Try to make them spline-consistent
 
+### v0.8.97 (*Released on 21 April 2020*) ###
+        * Improvments:
+		- Adding nmax_star used value in .range files because the random control nmax_spread is not sufficient to determine the curvature of the p-modes for each models.
 ### v0.8.96 (*Released on 23 Jan 2020*) ###
 	* Added functionalities:
 		- Adding the possibility to generate multiple noise realisation for a single model (several .ascii files for a single .in file). The new control variable should appear in the main.cfg file and is called Nrealisation (see example configuration files)
