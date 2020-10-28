@@ -1151,7 +1151,8 @@ def test_asymptotic_star_O2p(Dnu_star=55, epsilon_star=0.1, delta0l_percent=1./1
 	output_file_rot='test.rot'
 	Vl=[1,1.5,0.5, 0.07]
 	H0_spread=0
-	filetemplate="Configurations/templates/Sun.template"
+	#filetemplate="Configurations/templates/Sun.template"
+	filetemplate="templates/11771760.template"
 
 	#nu_l0, nu_p_l1, nu_g_l1, nu_m_l1, nu_l2, nu_l3, width_l0, width_m_l1, width_l2, width_l3, height_l0, height_l1, height_l2, height_l3, a1_l1, a1_l2, a1_l3=make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star, D0_star, DP1_star, alpha_star, q_star, fmin, fmax, Hmax_l0=Hmax_l0, Gamma_max_l0=Gamma_max_l0, rot_env_input=rot_envelope, rot_ratio_input=rot_ratio, rot_core_input=rot_core, output_file_rot=output_file_rot)
 	#nu_l0, nu_p_l1, nu_g_l1, nu_m_l1, nu_l2, nu_l3, width_l0, width_m_l1, width_l2, width_l3, height_l0, height_l1, height_l2, height_l3, a1_l1, a1_l2, a1_l3=make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star, delta0l_star, alpha_p_star, nmax_star, DP1_star, alpha_star, q_star, fmin, fmax, Hmax_l0=Hmax_l0, Gamma_max_l0=Gamma_max_l0, rot_env_input=rot_envelope, rot_ratio_input=rot_ratio, rot_core_input=rot_core, output_file_rot=output_file_rot)
@@ -1218,5 +1219,6 @@ def test_asymptotic_star_O2p(Dnu_star=55, epsilon_star=0.1, delta0l_percent=1./1
 
 
 #main_star_generator(config_file='star_params.global', output_file='star_params.modes')
+#test_asymptotic_star_O2p(Dnu_star=13.6584, epsilon_star=0.2991829204006325, delta0l_percent=1./100, beta_p_star=0.0076, DP1_star=82, q_star=0.15, rot_envelope=30., rot_ratio=5., maxHNR_l0=5)
 
 

@@ -45,6 +45,12 @@ def asympt_nu_p(Dnu_p, np, epsilon, l, D0=-9999, delta0l=-9999, alpha=-9999, nma
 			print("     [2] Set delta0l, alpha and nmax")
 			print("The program cannot continue and will exit now")
 			exit()
+		test=numpy.asarray(numpy.where(nu_p < 0))
+		if test.size == 1:
+			print(" WARNING: NEGATIVE FREQUENCIES DETECTED: IMPOSING POSITIVITY")
+			print("nu_p: ", nu_p)
+			print("numpy.where(nu_p>0): ", numpy.where(nu_p>0))
+			nu_p=nu_p[numpy.where(nu_p > 0)]
 		return nu_p 
 
 def asympt_nu_g(DPl, ng, alpha):
@@ -130,7 +136,7 @@ Returns:
 def solver_mm(nu_p, nu_g, Dnu_p, DPl, q, numin=1, numax=1500., resol=1, returns_axis=False, verbose=False, factor=0.05):
 
 	# Generate a frequency axis that has a fixed resolution and that span from numin to numax
-	nu=numpy.linspace(numin, numax, num=(numax-numin)/resol)
+	nu=numpy.linspace(numin, numax, num=int((numax-numin)/resol))
 
 	# Function p(nu) describing the p modes
 	pnu=pnu_fct(nu, nu_p)
@@ -159,20 +165,43 @@ def solver_mm(nu_p, nu_g, Dnu_p, DPl, q, numin=1, numax=1500., resol=1, returns_
 		range_min=nu[ind] - 2*resol
 		range_max=nu[ind] + 2*resol
 		# Redefine nu, pnu and gnu for that local range
-		nu_local=numpy.linspace(range_min, range_max, num=(range_max-range_min)/(resol*factor))
+		nu_local=numpy.linspace(range_min, range_max, num=int((range_max-range_min)/(resol*factor)))
 		pnu_local=pnu_fct(nu_local, nu_p)
 		gnu_local=gnu_fct(nu_local, nu_g, Dnu_p, DPl, q)	
 
-		#plt.plot(nu_local, pnu_local, color='blue')
-		#plt.plot(nu_local, gnu_local, color='purple')
-		#plt.show()
-		#exit()
 
 		# Perform the interpolation on the local range and append the solution to the nu_m list
 		int_fct = interpolate.interp1d(pnu_local - gnu_local, nu_local)
 		nu_m_proposed=int_fct(0)
-		ysol_gnu=gnu_fct(nu_m_proposed, nu_g, Dnu_p, DPl, q)
-		ysol_pnu=pnu_fct(nu_m_proposed, nu_p)
+		try:
+			ysol_gnu=gnu_fct(nu_m_proposed, nu_g, Dnu_p, DPl, q)
+			ysol_pnu=pnu_fct(nu_m_proposed, nu_p)
+		except (RuntimeError, TypeError, NameError):
+			print("Interpolation issue detected. Debuging information:")
+			print("    nu_p: ", nu_p)
+			print("    nu_g: ", nu_g)
+			print("    Dnu_p: ", Dnu_p)
+			print("    DPl: ", DPl)
+			print("    q: ", q)
+			print("    numin: ", numin)
+			print("    numax: ", numax)
+			print("    resol:", resol)
+			print("    factor:", factor)
+			print(" ------------")
+			print("range_min/max: ", range_min, range_max)
+			print("  nu_local: ", nu_local)
+			print("  pnu_local: ", pnu_local)
+			print("  gnu_local: ", gnu_local)
+			print(" ------------")
+			print(" int_fct  ==>  nu_local      /   pnu_local - gnu_local : ")
+			for i in range(len(nu_local)): 
+				print("    ", nu_local[i], pnu_local[i]-gnu_local[i])
+
+			plt.plot(nu_local, pnu_local, color='blue')
+			plt.plot(nu_local, gnu_local, color='purple')
+			plt.show()
+			exit()
+
 		ratio=ysol_gnu/ysol_pnu
 		if verbose == True:
 			print('-------')
@@ -292,6 +321,9 @@ def solve_mm_asymptotic_O2p(Dnu_p, epsilon, el, delta0l, alpha_p, nmax, DPl, alp
 	ng_min=int(numpy.floor(1e6/(fmax*DPl) - alpha))
 	ng_max=int(numpy.ceil(1e6/(fmin*DPl) - alpha))
 
+	if np_min <= 0:
+		np_min=1
+
 	if fmin <= 100:
 		fact=0.01
 	else:
@@ -306,7 +338,45 @@ def solve_mm_asymptotic_O2p(Dnu_p, epsilon, el, delta0l, alpha_p, nmax, DPl, alp
 			nu_g=asympt_nu_g(DPl, ng, alpha)
 			nu_p_all.append(nu_p)
 			nu_g_all.append(nu_g)
-			nu_m, ysol, nu,pnu, gnu=solver_mm(nu_p, nu_g, Dnu_p, DPl,  q, numin=nu_p - Dnu_p, numax=nu_p + Dnu_p, resol=resol, returns_axis=returns_axis, factor=fact)
+			try:
+				nu_m, ysol, nu,pnu, gnu=solver_mm(nu_p, nu_g, Dnu_p, DPl,  q, numin=nu_p - Dnu_p, numax=nu_p + Dnu_p, resol=resol, returns_axis=returns_axis, factor=fact)
+			except ValueError:
+				success=False
+				attempts=0
+				try:
+					while success == False and attempts < 4:
+						try:
+							fact=fact/2
+							nu_m, ysol, nu,pnu, gnu=solver_mm(nu_p, nu_g, Dnu_p, DPl,  q, numin=nu_p - Dnu_p, numax=nu_p + Dnu_p, resol=resol, returns_axis=returns_axis, factor=fact)
+							success=True
+						except ValueError:
+							print(' Problem with the fine grid when searching for a solution... attempting to reduce factor to ', fact, '...')
+				except ValueError:
+						print("ValueError in solver_mm... Debug information:")
+						print(' We excedeed the number of attempts to refine the grid by reducing factor')
+						print(" np_min = ", np_min)
+						print(" np_max = ", np_max)
+						print(" ng_min = ", ng_min)
+						print(" ng_max = ", ng_max)	
+						print(" ---------- ")			
+						print(" Dnu_p = ", Dnu_p)
+						print(" np = ", np)
+						print(" epsilon= ", epsilon)
+						print(" delta0l= ", delta0l)
+						print(" alpha_p= ", alpha_p)
+						print(" nmax= ", nmax)
+						print(" ---------- ")
+						print("   nu_p: ", nu_p)
+						print("   nu_g: ", nu_g)
+						print("   Dnu_p: ", Dnu_p)
+						print("   DPl: ", DPl)
+						print("   q: ", q)
+						print("   numin=nu_p - Dnu_p: ", nu_p - Dnu_p)
+						print("   numax=nu_p + Dnu_p: ", nu_p + Dnu_p)
+						print("   resol: ", resol)
+						print("   factor: ", fact)
+						exit()
+
 			if verbose == True:
 				print('==========================================')
 				print('nu_p: ', nu_p)
