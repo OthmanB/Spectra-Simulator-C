@@ -61,7 +61,7 @@ def ksi_fct1(nu, nu_p, nu_g, Dnu_p, DPl, q):
 	front_term= 1e-6 * nu**2 * DPl / (q * Dnu_p) # relation accounting for units in Hz and in seconds
 
 	ksi=1./(1. + front_term * numpy.cos(cos_upterm)**2/numpy.cos(cos_downterm)**2)
-	
+
 	return ksi
 
 # Variant of ksi_fct that deals with arrays for nu_p, nu_g, Dnu_p, DPl
@@ -74,10 +74,11 @@ def ksi_fct1(nu, nu_p, nu_g, Dnu_p, DPl, q):
 #				   of ksi_pg. Allows a much a higher precision, but will be slower
 #				   This could be usefull as in case of low ng, the norm is badly estimated in
 #				   'fast' mode. Then we need to use a more continuous function to evaluate the norm
-def ksi_fct2(nu, nu_p, nu_g, Dnu_p, DPl, q, norm_method='fast'):
+def ksi_fct2(nu, nu_p, nu_g, Dnu_p, DPl, q, norm_method="fast"):
 	Lp=len(nu_p)
 	Lg=len(nu_g)
 
+	#norm_method="precise"
 	ksi_pg=0.
 	for np in range(Lp):
 		for ng in range(Lg):
@@ -604,7 +605,7 @@ def harvey_1985(noise_params, x):
 #   height_lx: Heights of the l=x modes. x is between 0 and 3 
 #def make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star, D0_star, DP1_star, alpha_star, q_star, fmin, fmax, Hmax_l0=1., Gamma_max_l0=1., rot_env_input=-1, rot_ratio_input=-1, rot_core_input=-1, output_file_rot='star_params.rot'):
 #def make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star, delta0l_percent_star, alpha_p_star, nmax_star, DP1_star, alpha_star, q_star, fmin, fmax, Hmax_l0=1., Gamma_max_l0=1., rot_env_input=-1, rot_ratio_input=-1, rot_core_input=-1, output_file_rot='star_params.rot', Vl=[1,1.5,0.5, 0.07], H0_spread=0, filetemplate="Configurations/templates/Sun.template"):
-def make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star, delta0l_percent_star, alpha_p_star, nmax_star, DP1_star, alpha_star, q_star, fmin, fmax, maxHNR_l0=1., noise_params=[0,1,1,1], Gamma_max_l0=1., rot_env_input=-1, rot_ratio_input=-1, rot_core_input=-1, output_file_rot='star_params.rot', Vl=[1,1.5,0.5, 0.07], H0_spread=0, filetemplate="Configurations/templates/Sun.template"):
+def make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star, delta0l_percent_star, alpha_p_star, nmax_star, DP1_star, alpha_star, q_star, fmin, fmax, maxHNR_l0=1., noise_params=[0,1,1,1], Gamma_max_l0=1., rot_env_input=-1, rot_ratio_input=-1, rot_core_input=-1, output_file_rot='star_params.rot', Vl=[1.5,0.5, 0.07], H0_spread=0, filetemplate="Configurations/templates/Sun.template"):
 
 	# Fix the resolution to 4 years (converted into microHz)
 	resol=1e6/(4*365.*86400.) 
@@ -617,16 +618,21 @@ def make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star
 	# rescaled width and height profiles for the star using the solar width and height profiles
 	#nmin=int(fmin/Dnu_star - epsilon_star)
 	#nmax=int(fmax/Dnu_star + epsilon_star)
-	nmin=int(numpy.floor(fmin/Dnu_star - epsilon_star))
-	nmax=int(numpy.ceil(fmax/Dnu_star - epsilon_star))
-	nmin=int(numpy.floor(nmin - alpha_p_star*(nmin - nmax)**2 /2.))
-	nmax=int(numpy.ceil(nmax - alpha_p_star*(nmax - nmax)**2 /2.))
+	npmin=int(numpy.floor(fmin/Dnu_star - epsilon_star))
+	npmax=int(numpy.ceil(fmax/Dnu_star - epsilon_star))
+	npmin=int(numpy.floor(npmin - alpha_p_star*(npmin - npmax)**2 /2.))
+	npmax=int(numpy.ceil(npmax - alpha_p_star*(npmax - npmax)**2 /2.))
 
-	if nmin < 1:
-		nmin=1
+	#np_min=int(floor(cfg_star.fmin/cfg_star.Dnu_star - cfg_star.epsilon_star));
+	#np_max=int(ceil(cfg_star.fmax/cfg_star.Dnu_star - cfg_star.epsilon_star));
+	#np_min=int(floor(np_min - cfg_star.alpha_p_star*std::pow(np_min - cfg_star.nmax_star, 2) /2.));
+	#np_max=int(ceil(np_max - cfg_star.alpha_p_star*std::pow(np_max - cfg_star.nmax_star, 2) /2.);
+
+	if npmin < 1:
+		npmin=1
 		
 	nu_l0=[]
-	for en in range(nmin, nmax):
+	for en in range(npmin, npmax):
 		#tmp=solver_mm.asympt_nu_p(Dnu_star, en, epsilon_star, 0, D0_star)
 		tmp=solver_mm.asympt_nu_p(Dnu_star, en, epsilon_star, 0, delta0l=0, alpha=alpha_p_star, nmax=nmax_star)
 		nu_l0.append(tmp)
@@ -690,11 +696,10 @@ def make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star
 	Dnu_p=numpy.repeat(Dnu_star, len(nu_p_l1))
 	DPl=numpy.repeat(DP1_star, len(nu_g_l1))
 
-	ksi_pg=ksi_fct2(nu_m_l1, nu_p_l1, nu_g_l1, Dnu_p, DPl, q_star) # assunme Dnu_p, DPl and q constant
+	ksi_pg=ksi_fct2(nu_m_l1, nu_p_l1, nu_g_l1, Dnu_p, DPl, q_star, norm_method='precise') # assunme Dnu_p, DPl and q constant
 	h1_h0_ratio=h_l_rgb(ksi_pg) # WARNING: Valid assummption only not too evolved RGB stars (below the bump, see Kevin mail 10 August 2019)
-#	print('Len(h1_h0_ratio):',len(h1_h0_ratio))
-
 	height_l1p=int_fct_h0(nu_m_l1)
+
 	height_l1p=height_l1p*Vl[0] 
 #	print('Len(Height_l1p):', len(height_l1p))
 	height_l1=h1_h0_ratio * height_l1p 
@@ -728,7 +733,7 @@ def make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star
 	el=2
 	delta0l_star=-el*(el + 1) * delta0l_percent_star / 100.
 	nu_l2=[]
-	for en in range(nmin, nmax):
+	for en in range(npmin, npmax):
 		#tmp=solver_mm.asympt_nu_p(Dnu_star, en, epsilon_star, 2, D0_star)
 		tmp=solver_mm.asympt_nu_p(Dnu_star, en, epsilon_star, el, delta0l=delta0l_star, alpha=alpha_p_star, nmax=nmax_star)
 		nu_l2.append(tmp)
@@ -749,7 +754,7 @@ def make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star
 	el=3
 	delta0l_star=-el*(el + 1) * delta0l_percent_star / 100.
 	nu_l3=[]
-	for en in range(nmin, nmax):
+	for en in range(npmin, npmax):
 		#tmp=solver_mm.asympt_nu_p(Dnu_star, en, epsilon_star, 3, D0_star)
 		tmp=solver_mm.asympt_nu_p(Dnu_star, en, epsilon_star, el, delta0l=delta0l_star, alpha=alpha_p_star, nmax=nmax_star)
 		nu_l3.append(tmp)
@@ -1149,10 +1154,10 @@ def test_asymptotic_star_O2p(Dnu_star=55, epsilon_star=0.1, delta0l_percent=1./1
 	Teff_star=-1
 	rot_core=-1
 	output_file_rot='test.rot'
-	Vl=[1,1.5,0.5, 0.07]
+	Vl=[1.5,0.5, 0.07]
 	H0_spread=0
-	#filetemplate="Configurations/templates/Sun.template"
-	filetemplate="templates/11771760.template"
+	filetemplate="templates/Sun.template"
+	#filetemplate="templates/11771760.template"
 
 	#nu_l0, nu_p_l1, nu_g_l1, nu_m_l1, nu_l2, nu_l3, width_l0, width_m_l1, width_l2, width_l3, height_l0, height_l1, height_l2, height_l3, a1_l1, a1_l2, a1_l3=make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star, D0_star, DP1_star, alpha_star, q_star, fmin, fmax, Hmax_l0=Hmax_l0, Gamma_max_l0=Gamma_max_l0, rot_env_input=rot_envelope, rot_ratio_input=rot_ratio, rot_core_input=rot_core, output_file_rot=output_file_rot)
 	#nu_l0, nu_p_l1, nu_g_l1, nu_m_l1, nu_l2, nu_l3, width_l0, width_m_l1, width_l2, width_l3, height_l0, height_l1, height_l2, height_l3, a1_l1, a1_l2, a1_l3=make_synthetic_asymptotic_star(Teff_star, numax_star, Dnu_star, epsilon_star, delta0l_star, alpha_p_star, nmax_star, DP1_star, alpha_star, q_star, fmin, fmax, Hmax_l0=Hmax_l0, Gamma_max_l0=Gamma_max_l0, rot_env_input=rot_envelope, rot_ratio_input=rot_ratio, rot_core_input=rot_core, output_file_rot=output_file_rot)
@@ -1164,6 +1169,28 @@ def test_asymptotic_star_O2p(Dnu_star=55, epsilon_star=0.1, delta0l_percent=1./1
 	tau=tau/1000.  #conversion in ksec
 	p=noise_params[6] # power law (MUST BE CLOSE TO 2)
 	N0=noise_params[7];
+
+
+	print(" ----- FINAL DIAGNOSTICS ------")
+	print( "[en]   type   l          nu_l            w_l              h_l              a1_l")
+	for en in range(len(nu_l0)):
+		print( "[" , en , "]   " , "p   0    " , nu_l0[en] ,  "       " , width_l0[en] ,  "       "  , height_l0[en] ,    "   0  ")
+	
+	for en in range(len(nu_p_l1)):
+		print( "[" , en , "]   " , "p   1    " , nu_p_l1[en] ,  "       " , "          -             " ,  "       "  , "          -             " ,  "   -  ")
+	
+	for en in range(len(nu_g_l1)):
+		print( "[" , en , "]   " , "g   1    " , nu_g_l1[en] ,  "       " , "          -             " ,  "       "  , "          -             " ,  "   -  ")
+	
+	for en in range(len(nu_m_l1)) :
+		print( "[" , en , "]   " , "m   1    " , nu_m_l1[en] ,  "       " , width_m_l1[en] ,  "       "  , height_l1[en] ,  a1_l1[en])
+	
+	for en in range(len(nu_l2)) :
+		print( "[" , en , "]   " , "p   2    " , nu_l2[en] ,  "       " , width_l2[en] ,  "       "  , height_l2[en] ,  a1_l2[en])
+	
+	for en in range(len(nu_l3)) :
+		print( "[" , en , "]   " , "p   3    " , nu_l3[en] ,  "       " , width_l3[en] ,  "       "  , height_l3[en] ,  a1_l3[en])
+	print( " ------------------------------")
 
 
 	noise_background=harvey_1985([H, tau, p, N0], nu_l0)
@@ -1202,8 +1229,11 @@ def test_asymptotic_star_O2p(Dnu_star=55, epsilon_star=0.1, delta0l_percent=1./1
 
 	ksi=ksi_fct2(nu, nu_p_l1, nu_g_l1, Dnu_p, DPl, q_star)
 	ksi_nu_m=ksi_fct2(nu_m_l1, nu_p_l1, nu_g_l1, Dnu_p, DPl, q_star, norm_method='slow')
+	ksi_nu_m_fast=ksi_fct2(nu_m_l1, nu_p_l1, nu_g_l1, Dnu_p, DPl, q_star)
 	plt.plot(nu, ksi, color='Orange')
 	plt.plot(nu_m_l1, ksi_nu_m, 'ro')
+	plt.plot(nu_m_l1, ksi_nu_m_fast, 'bo')
+	
 	for p in nu_p_l1:
 		plt.axvline(x=p, color='blue', linestyle='--')
 		#print(p)
