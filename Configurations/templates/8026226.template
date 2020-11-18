@@ -1,0 +1,44 @@
+# Template file used to compute the height and width profile of simulated stars. 
+# The values of this table is rescaled by the code so to match numax_star, Dnu_star and epsilon_star
+# The table was generated using fitted frequencies and Heights of the Subgiants and early Red Giants
+# Using the Coupled Oscilator Model (COscM) on Kepler Q0-7 data on 2011. Better templates can certainly
+# be made nowadays using latest Kepler data release, but these may offer already a good diversity of 
+# Width and Height profiles for l=0 modes. Note that this table is extrapolated at the edge to
+# avoid the interpolation routine in python crashes (if numax_ref is too different from numax_star)
+# If you note remaining crashes, try to 0s heights and widths at the edges.
+ID_ref= 8026226
+Dnu_ref= 34.310408210714286
+epsilon_ref= 0.06779155769795686
+numax_ref= 545.4642697285955
+# Frequency (microHz)     Height (ppm^2/microhz)       Width
+41.0                        0.0                        0.01
+75.3                        0.0                        0.01
+109.6                       0.01                       0.01
+143.9                       0.1                        0.1
+178.2                       0.5                        0.25
+212.5                       1.00                       0.5
+246.8                       1.50                       0.75
+281.1                       2.00                       1.00
+315.4                       3.00                       1.75
+349.781055                  4.809783                   1.943708
+381.904874                  7.382682                   2.206807
+413.500365                  3.446883                   2.542894
+446.462725                 21.351165                   1.249448
+481.171317                 13.579158                   1.515202
+516.035473                 14.486697                   2.924620
+550.446797                 19.835646                   3.014481
+584.020926                  9.895151                   2.772152
+617.890063                  9.973675                   3.253782
+652.203002                  7.449054                   4.243349
+688.030807                 10.065188                   2.623870
+723.092117                  3.565086                   4.092937
+758.072577                  2.915208                   3.492569
+792.943846                  3.539929                   1.121730
+828.487490                  1.607108                   1.714828
+862.8                       0.7                        2.0
+897.1                       0.35                       2.5
+931.4                       0.2                        3.0
+965.7                       0.1                        3.5
+1000.0                      0.01                       5
+1034.3                      0.0                        5
+1068.6                      0.0                        5

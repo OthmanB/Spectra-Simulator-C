@@ -10,6 +10,7 @@
 #include <iostream>
 #include <iomanip>
 #include <fstream>
+#include <string>
 #include <Eigen/Dense>
 #include <boost/random.hpp>
 #include <boost/random/normal_distribution.hpp>
@@ -21,18 +22,18 @@ void showversion();
 int  options(int argc, char* argv[]);
 
 void iterative_artificial_spectrum(std::string dir_core);
-std::vector<double> where(std::vector<double> vec, std::string condition, double value, bool return_values);
-VectorXi where_str(std::vector<std::string> vec, std::string value);
 VectorXd order_input_params(VectorXd cte_params, VectorXd var_params, std::vector<std::string> cte_names, 
 		std::vector<std::string> var_names, std::vector<std::string> param_names);
 void generate_random(Config_Data cfg, std::vector<std::string> param_names, std::string dir_core, std::string file_out_modes, 
-		std::string file_out_noise, std::string file_out_combi, int N_model, std::string file_cfg_mm, std::string external_path);
+		std::string file_out_noise, std::string file_out_combi, int N_model, std::string file_cfg_mm, std::string external_path,  std::string templates_dir);
 
 void generate_grid();
 std::string write_allcombi(MatrixXd allcombi, VectorXd cte_params, Config_Data cfg, std::string fileout, bool erase_old_file, long iter, long id0, 
 		    std::vector<std::string> cte_names, std::vector<std::string> var_names, std::vector<std::string> param_names);
 bool call_model(std::string model_name, VectorXd input_params, std::string file_out_modes, std::string file_out_noise, 
-		 std::string file_cfg_mm, std::string dir_core, std::string identifier, Config_Data cfg, std::string external_path);
+		 std::string file_cfg_mm, std::string dir_core, std::string identifier, Config_Data cfg, std::string external_path, std::string template_file);
+
+std::vector<std::string> list_dir(const std::string path, const std::string filter);
 std::string identifier2chain(std::string identifier);
 std::string identifier2chain(long identifier);
 long read_id_allcombi(std::string file_combi);
@@ -49,11 +50,11 @@ void iterative_artificial_spectrum(std::string dir_core){
 	std::vector<std::string> param_names;
 
 	std::string cfg_file, file_out_modes, file_out_noise, file_cfg_mm, file_out_mm, file_out_mm2, file_out_combi;
-	std::string external_path;
+	std::string external_path, templates_dir;
 	Config_Data cfg;
 
-
-	external_path=dir_core + "external/";
+	external_path=dir_core + "external/"; 
+	templates_dir=dir_core + "Configurations/templates/";
 	cfg_file=dir_core + "Configurations/main.cfg";
 	file_out_modes=dir_core + "Configurations/tmp/modes_tmp.cfg";
 	file_out_noise=dir_core + "Configurations/tmp/noise_tmp.cfg";
@@ -89,15 +90,49 @@ void iterative_artificial_spectrum(std::string dir_core){
 		}
 		passed=1;
 	}
+	if(cfg.model_name == "generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma"){
+		Nmodel=6;
+		param_names.push_back("HNR"); 
+		param_names.push_back("a1ovGamma"); 
+		param_names.push_back("Gamma_at_numax"); 
+		param_names.push_back("a3"); 
+		param_names.push_back("beta_asym");
+		param_names.push_back("i");
+		if(param_names.size() != Nmodel){
+			std::cout << "    Invalid number of parameters for model_name= 'generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma'" << std::endl;
+			std::cout << "    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size() << std::endl;
+			std::cout << "    Check your main configuration file" << std::endl;
+			std::cout << "    The program will exit now" << std::endl;
+			exit(EXIT_FAILURE);
+		}
+		passed=1;
+	}
 	if(cfg.model_name == "asymptotic_mm_v1"){
-		Nmodel=7;
+		//Nmodel=7;
 		param_names.push_back("Teff"); 
 		param_names.push_back("Dnu"); 
 		param_names.push_back("epsilon"); 
+		param_names.push_back("delta0l_percent"); 
+		param_names.push_back("beta_p_star"); 
+		param_names.push_back("nmax_spread"); 
+		param_names.push_back("DP_var_percent"); 
 		param_names.push_back("alpha"); 
 		param_names.push_back("q");
 		param_names.push_back("SNR");
 		param_names.push_back("maxGamma");
+		param_names.push_back("Vl1");
+		param_names.push_back("Vl2");
+		param_names.push_back("Vl3");
+		param_names.push_back("H0_spread");
+		param_names.push_back("A_Pgran");	
+		param_names.push_back("B_Pgran");	
+		param_names.push_back("C_Pgran");	
+		param_names.push_back("A_taugran");	
+		param_names.push_back("B_taugran");	
+		param_names.push_back("C_taugran");	
+		param_names.push_back("P");	
+		param_names.push_back("N0");			
+		Nmodel=param_names.size();
 		if(param_names.size() != Nmodel){
 			std::cout << "    Invalid number of parameters for model_name= 'asymptotic_mm_v1'" << std::endl;
 			std::cout << "    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size() << std::endl;
@@ -108,15 +143,32 @@ void iterative_artificial_spectrum(std::string dir_core){
 		passed=1;
 	}
 	if(cfg.model_name == "asymptotic_mm_v2"){
-		Nmodel=8;
+		//Nmodel=12;
 		param_names.push_back("nurot_env"); 
 		param_names.push_back("nurot_ratio"); 
 		param_names.push_back("Dnu"); 
 		param_names.push_back("epsilon"); 
+		param_names.push_back("delta0l_percent"); 
+		param_names.push_back("beta_p_star"); 
+		param_names.push_back("nmax_spread"); 
+		param_names.push_back("DP_var_percent"); 
 		param_names.push_back("alpha"); 
 		param_names.push_back("q");
 		param_names.push_back("SNR");
 		param_names.push_back("maxGamma");
+		param_names.push_back("Vl1");
+		param_names.push_back("Vl2");
+		param_names.push_back("Vl3");
+		param_names.push_back("H0_spread");	
+		param_names.push_back("A_Pgran");	
+		param_names.push_back("B_Pgran");	
+		param_names.push_back("C_Pgran");	
+		param_names.push_back("A_taugran");	
+		param_names.push_back("B_taugran");	
+		param_names.push_back("C_taugran");	
+		param_names.push_back("P");	
+		param_names.push_back("N0");
+		Nmodel=param_names.size();
 		if(param_names.size() != Nmodel){
 			std::cout << "    Invalid number of parameters for model_name= 'asymptotic_mm_v2'" << std::endl;
 			std::cout << "    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size() << std::endl;
@@ -127,15 +179,32 @@ void iterative_artificial_spectrum(std::string dir_core){
 		passed=1;
 	}
 	if(cfg.model_name == "asymptotic_mm_v3"){
-		Nmodel=8;
+		//Nmodel=12;
 		param_names.push_back("nurot_env"); 
 		param_names.push_back("nurot_core"); 
 		param_names.push_back("Dnu"); 
 		param_names.push_back("epsilon"); 
+		param_names.push_back("delta0l_percent"); 
+		param_names.push_back("beta_p_star"); 
+		param_names.push_back("nmax_spread"); 
+		param_names.push_back("DP_var_percent"); 
 		param_names.push_back("alpha"); 
 		param_names.push_back("q");
 		param_names.push_back("SNR");
 		param_names.push_back("maxGamma");
+		param_names.push_back("Vl1");
+		param_names.push_back("Vl2");
+		param_names.push_back("Vl3");
+		param_names.push_back("H0_spread");	
+		param_names.push_back("A_Pgran");	
+		param_names.push_back("B_Pgran");	
+		param_names.push_back("C_Pgran");	
+		param_names.push_back("A_taugran");	
+		param_names.push_back("B_taugran");	
+		param_names.push_back("C_taugran");	
+		param_names.push_back("P");	
+		param_names.push_back("N0");
+		Nmodel=param_names.size();
 		if(param_names.size() != Nmodel){
 			std::cout << "    Invalid number of parameters for model_name= 'asymptotic_mm_v3'" << std::endl;
 			std::cout << "    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size() << std::endl;
@@ -146,16 +215,32 @@ void iterative_artificial_spectrum(std::string dir_core){
 		passed=1;
 	}
 	if(cfg.model_name == "asymptotic_mm_freeDp_numaxspread_curvepmodes_v1"){
-		Nmodel=9;
+		//Nmodel=12;
 		param_names.push_back("Teff"); 
 		param_names.push_back("Dnu"); 
 		param_names.push_back("epsilon"); 
+		param_names.push_back("delta0l_percent"); 
+		param_names.push_back("beta_p_star"); 
+		param_names.push_back("nmax_spread"); 
 		param_names.push_back("DP1"); 
 		param_names.push_back("alpha"); 
 		param_names.push_back("q");
 		param_names.push_back("SNR");
 		param_names.push_back("maxGamma");
-		param_names.push_back("numax_spread");		
+		param_names.push_back("numax_spread");
+		param_names.push_back("Vl1");
+		param_names.push_back("Vl2");
+		param_names.push_back("Vl3");
+		param_names.push_back("H0_spread");	
+		param_names.push_back("A_Pgran");	
+		param_names.push_back("B_Pgran");	
+		param_names.push_back("C_Pgran");	
+		param_names.push_back("A_taugran");	
+		param_names.push_back("B_taugran");	
+		param_names.push_back("C_taugran");	
+		param_names.push_back("P");	
+		param_names.push_back("N0");
+		Nmodel=param_names.size();		
 		if(param_names.size() != Nmodel){
 			std::cout << "    Invalid number of parameters for model_name= 'asymptotic_mm_v1'" << std::endl;
 			std::cout << "    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size() << std::endl;
@@ -166,17 +251,33 @@ void iterative_artificial_spectrum(std::string dir_core){
 		passed=1;
 	}
 	if(cfg.model_name == "asymptotic_mm_freeDp_numaxspread_curvepmodes_v2"){
-		Nmodel=10;
+		//Nmodel=13;
 		param_names.push_back("nurot_env"); 
 		param_names.push_back("nurot_ratio"); 
 		param_names.push_back("Dnu"); 
 		param_names.push_back("epsilon");
+		param_names.push_back("delta0l_percent"); 
+		param_names.push_back("beta_p_star"); 
+		param_names.push_back("nmax_spread"); 
 		param_names.push_back("DP1"); 
 		param_names.push_back("alpha"); 
 		param_names.push_back("q");
 		param_names.push_back("SNR");
 		param_names.push_back("maxGamma");
-		param_names.push_back("numax_spread");		
+		param_names.push_back("numax_spread");
+		param_names.push_back("Vl1");
+		param_names.push_back("Vl2");
+		param_names.push_back("Vl3");
+		param_names.push_back("H0_spread");	
+		param_names.push_back("A_Pgran");	
+		param_names.push_back("B_Pgran");	
+		param_names.push_back("C_Pgran");	
+		param_names.push_back("A_taugran");	
+		param_names.push_back("B_taugran");	
+		param_names.push_back("C_taugran");	
+		param_names.push_back("P");	
+		param_names.push_back("N0");
+		Nmodel=param_names.size();		
 		if(param_names.size() != Nmodel){
 			std::cout << "    Invalid number of parameters for model_name= 'asymptotic_mm_v2'" << std::endl;
 			std::cout << "    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size() << std::endl;
@@ -187,17 +288,33 @@ void iterative_artificial_spectrum(std::string dir_core){
 		passed=1;
 	}
 	if(cfg.model_name == "asymptotic_mm_freeDp_numaxspread_curvepmodes_v3"){
-		Nmodel=10;
+		//Nmodel=13;
 		param_names.push_back("nurot_env"); 
 		param_names.push_back("nurot_core"); 
 		param_names.push_back("Dnu"); 
 		param_names.push_back("epsilon");
+		param_names.push_back("delta0l_percent"); 
+		param_names.push_back("beta_p_star"); 
+		param_names.push_back("nmax_spread"); 
 		param_names.push_back("DP1");  
 		param_names.push_back("alpha"); 
 		param_names.push_back("q");
 		param_names.push_back("SNR");
 		param_names.push_back("maxGamma");
-		param_names.push_back("numax_spread");		
+		param_names.push_back("numax_spread");	
+		param_names.push_back("Vl1");
+		param_names.push_back("Vl2");
+		param_names.push_back("Vl3");
+		param_names.push_back("H0_spread");	
+		param_names.push_back("A_Pgran");	
+		param_names.push_back("B_Pgran");	
+		param_names.push_back("C_Pgran");	
+		param_names.push_back("A_taugran");	
+		param_names.push_back("B_taugran");	
+		param_names.push_back("C_taugran");	
+		param_names.push_back("P");	
+		param_names.push_back("N0");
+		Nmodel=param_names.size();		
 		if(param_names.size() != Nmodel){
 			std::cout << "    Invalid number of parameters for model_name= 'asymptotic_mm_v3'" << std::endl;
 			std::cout << "    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size() << std::endl;
@@ -217,7 +334,7 @@ void iterative_artificial_spectrum(std::string dir_core){
 	std::cout << "2. Generating the models using the subroutine " << cfg.model_name << " of model_database.cpp..." << std::endl;
 	if(cfg.forest_type == "random"){
 		std::cout << "   Values are randomly generated into a uniform range defined in the main configuration file" << std::endl;
-		generate_random(cfg, param_names, dir_core, file_out_modes, file_out_noise, file_out_combi, Nmodel, file_cfg_mm, external_path);
+		generate_random(cfg, param_names, dir_core, file_out_modes, file_out_noise, file_out_combi, Nmodel, file_cfg_mm, external_path, templates_dir);
 
 	}
 	if(cfg.forest_type == "grid"){
@@ -234,18 +351,17 @@ void iterative_artificial_spectrum(std::string dir_core){
 }
 
 void generate_random(Config_Data cfg, std::vector<std::string> param_names, std::string dir_core, std::string file_out_modes, 
-		std::string file_out_noise, std::string file_out_combi, int N_model,  std::string file_cfg_mm, std::string external_path){
+		std::string file_out_noise, std::string file_out_combi, int N_model,  std::string file_cfg_mm, std::string external_path, std::string templates_dir){
 
 	bool neg=0, passed=0;
-	int i, ii;
+	int i, ii;//, xmin_int_rgen, xmax_int_rgen;
 	long lastid, id0;
-	std::string id_str;
+	std::string id_str, str_tmp;
+	std::string template_file;
 	VectorXd cte_params, val_min, val_max, input_params;
 	MatrixXd currentcombi, allcombi;
 	std::vector<double> pos_zero, pos_one;	
 	std::vector<std::string> var_names, cte_names;
-
-
 	// We first check that the cfg file has a coherent setup
 	ii=0;
 	while(neg == 0 && (ii < N_model)){
@@ -291,11 +407,38 @@ void generate_random(Config_Data cfg, std::vector<std::string> param_names, std:
 
 	//  ------------ Generate the random values -----------
 
-	// Initialize the random generators: Uniform over [0,1]
+	// Initialize the random generators: Uniform over [0,1]. This is used for the random parameters
     boost::mt19937 generator(time(NULL));
     boost::uniform_01<boost::mt19937> dist_gr(generator);
- 
-	std::cout << " -----------------------------------------------------" << std::endl;
+ 	
+    // Generator of integers for selecting ramdomly a template file that contains a height and width profile
+    switch(cfg.template_files.size()){
+    	case 0: // The string is somewhat empty
+    		std::cout << "Error: The template_file cannot be empty. If not used, please set it to NONE" << std::endl;
+    		exit(EXIT_SUCCESS);
+    	case 1:
+    		template_file=templates_dir + cfg.template_files[0];
+    	default:
+    		if(cfg.template_files[0] == "all" || cfg.template_files[0] == "ALL" || cfg.template_files[0] == "*"){ // If the user specify that all *.template files should be used
+    			cfg.template_files=list_dir(templates_dir, "template");
+    		} 
+    		if (cfg.template_files.size() == 0){
+    			std::cout << "Could not find the template file in the expected directory" << std::endl;
+    			std::cout << "Be sure to have it in Configurations/templates/ " << std::endl;
+    			std::cout << "If the used mode does not require templates, specify NONE in the dedicated field " << std::endl;
+    			exit(EXIT_FAILURE);
+    		}
+ 			boost::random::uniform_int_distribution<> dist(0, cfg.template_files.size()-1);
+//   			std::cout << "cfg.template_files =" << std::endl;
+//    		for (int ii=0; ii< cfg.template_files.size(); ii++){
+//    			std::cout << cfg.template_files[ii] << std::endl;
+//    		}
+    		template_file=templates_dir + cfg.template_files[dist(generator)];
+    }	
+    std::cout << "Selected template file: " << template_file << std::endl;	
+//    exit(EXIT_SUCCESS);
+
+ 	std::cout << " -----------------------------------------------------" << std::endl;
 	std::cout << " List of all combinations written iteratively into " << std::endl;
 	std::cout << "       " <<  file_out_combi << std::endl; 
 	std::cout << " -----------------------------------------------------" << std::endl;
@@ -341,7 +484,7 @@ void generate_random(Config_Data cfg, std::vector<std::string> param_names, std:
 
 		input_params=order_input_params(cte_params, currentcombi.row(0), cte_names, var_names, param_names);
 
-		passed=call_model(cfg.model_name, input_params, file_out_modes, file_out_noise,  file_cfg_mm, dir_core, id_str, cfg, external_path);
+		passed=call_model(cfg.model_name, input_params, file_out_modes, file_out_noise,  file_cfg_mm, dir_core, id_str, cfg, external_path, template_file);
 		if(passed == 0){
 			std::cout << "Warning: The function call_model did not generate any configuration file!" << std::endl;
 			std::cout << "         Debug required" << std::endl;
@@ -350,12 +493,19 @@ void generate_random(Config_Data cfg, std::vector<std::string> param_names, std:
 		}
 		id0=id0+1;
 		passed=0;
+
+		// Erasing the temporary files to avoid those to be loaded at vitam eternam if an error in their generetation at step c=c_err happens
+		str_tmp="rm " + file_out_modes;	
+		const char *cmd1 = str_tmp.c_str(); 
+		system(cmd1);
+		str_tmp="rm " + file_out_noise;	
+		const char *cmd2 = str_tmp.c_str(); 
+		system(cmd2);
 	}
 
 	std::cout << "All requested tasks executed succesfully" << std::endl;
 	
 }
-
 
 void generate_grid(){
 
@@ -367,7 +517,7 @@ void generate_grid(){
 }
 
 bool call_model(std::string model_name, VectorXd input_params, std::string file_out_modes, std::string file_out_noise, 
-		std::string file_cfg_mm, std::string dir_core, std::string id_str, Config_Data cfg, std::string external_path){
+		std::string file_cfg_mm, std::string dir_core, std::string id_str, Config_Data cfg, std::string external_path, std::string template_file){
 
 	std::string str;
 	bool passed=0, subpassed=0;
@@ -375,35 +525,41 @@ bool call_model(std::string model_name, VectorXd input_params, std::string file_
 
 	if(model_name == "generate_cfg_asymptotic_act_asym_Hgauss"){
 		generate_cfg_asymptotic_act_asym_Hgauss(input_params, file_out_modes, file_out_noise);
-		//id_str=identifier2chain(identifier);
-		artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
+		//artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
+		artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
 		passed=1;
+	}
+	if(model_name =="generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma"){
+		generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma(input_params, file_out_modes,  file_out_noise, cfg.extra_params); // extra_params must points towards a .in file
+		//artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
+		artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
+		passed=1;		
 	}
 	if(model_name == "asymptotic_mm_v1" || model_name == "asymptotic_mm_v2" || model_name == "asymptotic_mm_v3" ||
 		model_name == "asymptotic_mm_freeDp_numaxspread_curvepmodes_v1" || model_name == "asymptotic_mm_freeDp_numaxspread_curvepmodes_v2" ||
 		model_name == "asymptotic_mm_freeDp_numaxspread_curvepmodes_v3"){
 		if(model_name =="asymptotic_mm_v1"){
-			asymptotic_mm_v1(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path);
+			asymptotic_mm_v1(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path, template_file);
 			subpassed=1;
 		}
 		if(model_name =="asymptotic_mm_v2"){
-			asymptotic_mm_v2(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path);
+			asymptotic_mm_v2(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path, template_file);
 			subpassed=1;
 		}
 		if(model_name =="asymptotic_mm_v3"){
-			asymptotic_mm_v3(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path);
+			asymptotic_mm_v3(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path, template_file);
 			subpassed=1;
 		}
 		if(model_name =="asymptotic_mm_freeDp_numaxspread_curvepmodes_v1"){ 
-			asymptotic_mm_freeDp_numaxspread_curvepmodes_v1(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path);
+			asymptotic_mm_freeDp_numaxspread_curvepmodes_v1(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path, template_file);
 			subpassed=1;
 		}
 		if(model_name =="asymptotic_mm_freeDp_numaxspread_curvepmodes_v2"){ 
-			asymptotic_mm_freeDp_numaxspread_curvepmodes_v2(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path);
+			asymptotic_mm_freeDp_numaxspread_curvepmodes_v2(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path, template_file);
 			subpassed=1;
 		}
 		if(model_name =="asymptotic_mm_freeDp_numaxspread_curvepmodes_v3"){ 
-			asymptotic_mm_freeDp_numaxspread_curvepmodes_v2(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path);
+			asymptotic_mm_freeDp_numaxspread_curvepmodes_v3(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path, template_file);
 			subpassed=1;
 		}
 		if(subpassed == 0){
@@ -413,7 +569,8 @@ bool call_model(std::string model_name, VectorXd input_params, std::string file_
 			exit(EXIT_FAILURE);
 		}
 		
-		artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
+		//artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
+		artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
 		std::cout << "   - [Warning DIRTY CODE IN LINE 281, iterative_artificial_spectrum.cpp] Hard coded path for saving python3 cfg in the spectra_info dir" << std::endl;
 		std::cout << "                                                                         Stable final version should avoid this" << std::endl;
 		str="cp " + file_cfg_mm + " " + dir_core + "Data/Spectra_info/" + strtrim(id_str) + ".python.global";
@@ -436,159 +593,43 @@ bool call_model(std::string model_name, VectorXd input_params, std::string file_
 // -----------------------------------------------------------------------
 // ------------------------- SECONDARY METHODS ---------------------------
 // -----------------------------------------------------------------------
+// Retrieve a list of files within path. 
+// Note that path cannot contain any system-based filter such as '*.*' etc... 
+// Those have to be put in the extension string
+std::vector<std::string> list_dir(const std::string path, const std::string extension){
 
-VectorXi where_str(std::vector<std::string> vec, std::string value){
-/*
- * Gives the indexes of values of an array that match the value
- *
-*/
-   int cpt;
-   VectorXi index(vec.size());
+	const std::string tmp_file="dir.list";
+	const std::string cmd="ls -p " + path + "| grep -v / >> " + tmp_file; // Get a list of files and store them into the temporary dir.list file
+	const std::string cmd_erase="rm " + tmp_file; // Once finished with the temporary file, we erase it
 
-	cpt=0;
-	for(int i=0; i<vec.size(); i++){
-		if(vec[i] == value){
-			index[cpt]=i;
-			cpt=cpt+1;
-		}		
-	}
-	index.conservativeResize(cpt);
-/*
-	std::cout << "in where_str()" << std::endl;
-	std::cout << index << std::endl;
-	exit(EXIT_SUCCESS);
-*/
-	return index;
- 
-}
+	std::vector<std::string> files, line_split;
+	std::string line;
+	std::ifstream file_in;
 
-std::vector<double> where(std::vector<double> vec, std::string condition, double value, bool return_values){
-/*
- * If return_values == 0:
- * 	Gives the indexes of values of an array that fullfil the condition
- * If return_values == 1:
- * 	Gives the values of an array that fullfil the condition
- *
- * The condition can be the operator "=", "!=", ">", "<", ">=" or "<="
-*/
-	std::vector<double> index, values;
+	//std::cout << "command: " << cmd << std::endl; 
+	system(cmd.c_str());
 	
-   if(return_values == 0){
-	if(condition == "="){
-		for(int i=0; i<vec.size(); i++){
-			if(vec[i] == value){
-				index.push_back(i);
-				//std::cout << "vec[" << i << "]= " << vec[i] << std::endl;
-			}		
-		}
-	}
-
-	if(condition == "!="){
-		for(int i=0; i<vec.size(); i++){
-			if(vec[i] != value){
-				index.push_back(i);
-			}		
-		}
-	}
-	if(condition == ">"){
-		for(int i=0; i<vec.size(); i++){
-			if(vec[i] > value){
-				index.push_back(i);
-			}		
-		}
-	}
-	if(condition == "<"){
-		for(int i=0; i<vec.size(); i++){
-			if(vec[i] < value){
-				index.push_back(i);
-			}		
-		}
-	}
-	if(condition == ">="){
-		for(int i=0; i<vec.size(); i++){
-			if(vec[i] >= value){
-				index.push_back(i);
-			}		
-		}
-	}
-	if(condition == "<="){
-		for(int i=0; i<vec.size(); i++){
-			if(vec[i] <= value){
-				index.push_back(i);
-			}		
-		}
-	}
-
-	return index;
-   } else {
-	if(condition == "="){
-		for(int i=0; i<vec.size(); i++){
-			if(vec[i] == value){
-				values.push_back(vec[i]);
-			}		
-		}
-	}
-	if(condition == "!="){
-		for(int i=0; i<vec.size(); i++){
-			if(vec[i] != value){
-				values.push_back(vec[i]);
-			}		
-		}
-	}
-	if(condition == ">"){
-		for(int i=0; i<vec.size(); i++){
-			if(vec[i] > value){
-				values.push_back(vec[i]);
-			}		
-		}
-	}
-	if(condition == "<"){
-		for(int i=0; i<vec.size(); i++){
-			if(vec[i] < value){
-				values.push_back(vec[i]);
-			}		
-		}
-	}
-	if(condition == ">="){
-		for(int i=0; i<vec.size(); i++){
-			if(vec[i] >= value){
-				values.push_back(vec[i]);
-			}		
-		}
-	}
-	if(condition == "<="){
-		for(int i=0; i<vec.size(); i++){
-			if(vec[i] <= value){
-				values.push_back(vec[i]);
-			}		
-		}
-	}
-
-	return values;
-   }
-
+	file_in.open(tmp_file.c_str());
+   	if (file_in.is_open()) {
+   		while(!file_in.eof()){
+   			std::getline(file_in, line);
+			line_split=strsplit(line, ".");
+			if (line_split[line_split.size()-1] == extension){
+				files.push_back(strtrim(line)); // remove any white space at the begining/end of the string
+   			} else{
+   			}
+   		}
+   		system(cmd_erase.c_str());
+   	} else{
+   		std::cout << "I/O Error for the temporary temporary file " + tmp_file + "!"  << std::endl;
+   		std::cout << "Cannot proceed. Check that you have the proper I/O rights on the root program directory..." << std::endl;
+   		exit(EXIT_FAILURE);
+   	}
+   	return files;
 }
 
 long read_id_allcombi(std::string file_combi){
 
- /* bool keyword_found=0, group_found=0;
-    int cpt;
-    std::string line0, char0;
-    std::vector<std::string> word;
- 
-    std::ifstream cfg_file_session;
-    cfg_file_session.open(cfg_file.c_str());
-    if (cfg_file_session.is_open()) {
-		cpt=0;
-		std::getline(cfg_file_session, line0);
-		char0=strtrim(line0.substr(0, 1));
-		while(char0 != "#" && file_sesson.eof()){ // Skip lines until we reach the "#" symbol
-			std::getline(cfg_file_session, line0);
-			char0=strtrim(line0.substr(0, 1));
-		}
-
-    }
-*/
 	std::string lastline;
 	std::vector<std::string> vals_last;
 
@@ -599,7 +640,7 @@ long read_id_allcombi(std::string file_combi){
 	for(int i=0; i<vals_last.size(); i++){
 		std::cout << "vals_last[" << i << "]=" << vals_last[i] << std::endl;	
 	}
-	return str_to_lng(vals_last[0]);
+	return str_to_long(vals_last[0]);
 }
 
 std::string read_lastline_ascii(std::string filename){
@@ -640,17 +681,6 @@ std::string write_allcombi(MatrixXd allcombi, VectorXd cte_params, Config_Data c
 	} else{
 		outfile.open(fileout.c_str(), std::ios::app); // append
 	}
-	/*
-	if (erase_old_file == 1) {
-		outfile.open(fileout.c_str()); // write a new file
-	} else {
-		if(iter != 0){
-			outfile.open(fileout.c_str(), std::ios::app); // append
-		} else {
-			outfile.open(fileout.c_str()); // write a new file
-		}
-	}
-	*/
 	if(outfile.is_open()){
 		//std::cout << "File opened" << std::endl;
 		if(erase_old_file == 1 && iter == 0) { // Write Header only if we do not erase the old file AND this is the first execution of the function
@@ -716,7 +746,7 @@ VectorXd order_input_params(VectorXd cte_params, VectorXd var_params, std::vecto
 	for(int i=0; i<names.size(); i++){
 		//std::cout << "param_names[i]=" << param_names[i] << std::endl;
 
-		ind=where_str(names, strtrim(param_names[i])); // Assumes that only one value matches the criteria
+		ind=where_strXi(names, strtrim(param_names[i])); // Assumes that only one value matches the criteria
 		//std::cout << "ind =" << ind << std::endl;
 		if(ind.size() == 1){
 			order[i]=ind[0];
