@@ -573,13 +573,13 @@ bool call_model(std::string model_name, VectorXd input_params, std::string file_
 		artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
 		std::cout << "   - [Warning DIRTY CODE IN LINE 281, iterative_artificial_spectrum.cpp] Hard coded path for saving python3 cfg in the spectra_info dir" << std::endl;
 		std::cout << "                                                                         Stable final version should avoid this" << std::endl;
-		str="cp " + file_cfg_mm + " " + dir_core + "Data/Spectra_info/" + strtrim(id_str) + ".python.global";
+		str="cp " + file_cfg_mm + " " + dir_core + "Data/Spectra_info/" + strtrim(id_str) + ".global";
 		const char *command = str.c_str(); 
 		system(command);
-		str="cp " + dir_core + "external/ARMM-solver/star_params.range " + dir_core + "Data/Spectra_info/" + strtrim(id_str) + ".python.range";
+		str="cp " + dir_core + "external/ARMM-solver/star_params.range " + dir_core + "Data/Spectra_info/" + strtrim(id_str) + ".range";
 		const char *command2 = str.c_str(); 
 		system(command2);
-		str="cp " + dir_core + "external/ARMM-solver/star_params.rot " + dir_core + "Data/Spectra_info/" + strtrim(id_str) + ".python.rot";
+		str="cp " + dir_core + "external/ARMM-solver/star_params.rot " + dir_core + "Data/Spectra_info/" + strtrim(id_str) + ".rot";
 		const char *command3 = str.c_str(); 
 		system(command3);
 		passed=1;

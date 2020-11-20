@@ -2,14 +2,21 @@
 Spectrum Simulator in C++. It is intended to create synthetic spectra that follows the chi(2,2) noise statistics.
 
 ### Requirements ###
-* python3 with numpy and scipy
 * gnuplot-iostream (provided)
-* Eigen Library (provided)
+* Eigen Library
 * Boost Library
 * openMP
 * g++ compiler
+* cmake (optional)
 
 ### How to compile? ###
+
+The best way to compile is to use cmake as it will handle automatically user-specific configuration and platforms. To do so, you need to:
+	1. Make a **build** directory
+	2. Enter in this new directory and run **cmake ..** 
+	3. Transfer the created binary executable **specsim** file into the base directory of the program. 
+
+Alternatively, you can just directly use the g++ compiler. 
 
 ```
 g++ -O3 -I eigen -fopenmp -lutil -lboost_iostreams -lboost_system -lboost_filesystem -lgsl -lgslcblas artificial_spectrum.cpp io_star_params.cpp build_lorentzian.cpp function_rot.cpp plots_diags.cpp iterative_artificial_spectrum.cpp models_database.cpp random_JB.cpp string_handler.cpp noise_models.cpp -o ./sim.out
@@ -60,8 +67,8 @@ It is composed of different functions and procedures, enumerated and explained h
   			- configuration files for the modes (modes.cfg file)
   			- configuration files for the noise (noise.cfg file)
 			- other formating subroutines for processing/converting strings and numbers (strsplit(), strtrim(),...)
-   * **BETA** python external functions **bump_DP.py** and **solver_mm.py** that handle the generation of the model for evolved stars
-             THIS WILL NEED TO BE IMPLEMENTED IN PURE C++ AT LATER STAGE FOR EFFICIENCY REASONS
+   * **bump_DP.cpp** and **solver_mm.cpp** that handle the generation of the model for evolved stars
+         
 
 ### The model ###
 
@@ -185,6 +192,14 @@ Same as for asymptotic_mm_v1 but with the following changes:
 	* The user can generate a population of stars with a surface rotation uniformly and randomly distributed two values (min and max). 
 	* For l=1 mixed modes, instead of imposing some relationship with the evolution of the star regarding the core rotation rate, we let the user define two bundaries for an uniform sampling of the core rotation rate (see main.cfg.v3 for a configuration example)
 	
+### Assumptions for the models 'asymptotic_mm_freeDp_numaxspread_curvepmodes_v1' / 'asymptotic_mm_freeDp_numaxspread_curvepmodes_v2' / 'asymptotic_mm_freeDp_numaxspread_curvepmodes_v3' ###
+
+Same as for asymptotic_mm_v1, asymptotic_mm_v2 and asymptotic_mm_v3 but with the following changes:
+
+**Modes:**
+
+* Period Spacing: Uniformly generated over a range defined by the user into the cfg file
+* Possibility to introduce some extra random spreads on numax
 
 ### QUICK START ###
 

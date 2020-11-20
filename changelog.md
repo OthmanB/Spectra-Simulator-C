@@ -1,10 +1,17 @@
 # Version history #
 
-### ROADMAP v0.9.0 (*Expected Release: TBD 2020*) ###
+### ROADMAP v0.9.1 [0%] ###
+	- Implement numax variable on generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma
+	- Adding random errors around the second order asymptotic relations. Try to make them spline-consistent
+
+### v0.9.0 (*Released on 20 Nov 2020*) ###
+	* Improvments:
+		- Compilation is now made possible using cmake
 	* Added functionalities:
-		- Code the grid capability
-		- Implement numax variable on generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma
-		- Adding random errors around the second order asymptotic relations. Try to make them spline-consistent
+		- Using bump_DP.cpp and solver_mm.cpp instead of their python counter parts
+	* Bug Fix:
+		- Bugs on the definition of np_min and np_max corrected
+		- Bugs on the solver_mm that was not handling properly the second order polynomials for the p modes
 
 ### v0.8.97 (*Released on 21 April 2020*) ###
         * Improvments:
