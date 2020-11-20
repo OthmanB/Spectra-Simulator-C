@@ -12,6 +12,7 @@ Spectrum Simulator in C++. It is intended to create synthetic spectra that follo
 ### How to compile? ###
 
 The best way to compile is to use cmake as it will handle automatically user-specific configuration and platforms. To do so, you need to:
+
 	1. Make a **build** directory
 	2. Enter in this new directory and run **cmake ..** 
 	3. Transfer the created binary executable **specsim** file into the base directory of the program. 
