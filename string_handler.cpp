@@ -28,7 +28,7 @@ std::string strtrim(const std::string& str){
  *  	- const auto --> const string
  *      - optional argument for the separator is now hardcoded
 */
-    std::string tmp, whitespace = " \t";
+    std::string whitespace = " \t";
     size_t strBegin = str.find_first_not_of(whitespace);
     if (strBegin == std::string::npos)
         return ""; // no content
@@ -36,41 +36,7 @@ std::string strtrim(const std::string& str){
     size_t strEnd = str.find_last_not_of(whitespace);
     size_t strRange = strEnd - strBegin + 1;
 
-    tmp=str.substr(strBegin, strRange);
-    std::vector<char> bytes(tmp.begin(), tmp.end());
- 	if(int(bytes[bytes.size()-1]) == 13){ // Check that CR (return) is not a last character. If so, it has to be removed
- 			//std::cout << "Reducing size by 1" << std::endl;
- 			return str.substr(strBegin, strRange-1);
-	} else{
-			//std::cout << "Keeping full size..." << std::endl;
-		    return str.substr(strBegin, strRange);
-	}
-	return "";
-}
-
-std::vector<std::string> strsplit2(const std::string str, const std::string delimiters){
-/*
- * Take a string and split it each time one of the listed delimiters is detected
-*/
-	std::string str0=strtrim(str);
-	size_t pos=0;
-	std::vector<std::string> str_splitted;
-
-	while ((pos = str0.find_first_of(delimiters)) != std::string::npos) {
-		    
-		str_splitted.push_back(str0.substr(0, pos)); // get the substring
-		str0.erase(0, pos + delimiters.length());
-		/*if(pos + delimiters.length() <= 1){
-			str0.erase(0, pos + delimiters.length());
-		} else{
-			str0.erase(0, pos + delimiters.length()-1);
-		}
-		*/
-		str0=strtrim(str0); // remove any extra white space at the begining before iterating
-	}
-	str_splitted.push_back(str0); // do not forget to add the end of the string
-
-return str_splitted;
+    return str.substr(strBegin, strRange);
 }
 
 
@@ -96,8 +62,57 @@ return str_splitted;
 }
 
 
+std::vector<int> where_str(const std::vector<std::string> vec, const std::string value){
+/*
+ * Gives the indexes of values of an array that match the value
+ *
+*/
+   int cpt;
+  
+   std::vector<int> index;
+   index.resize(vec.size());
+	
+	cpt=0;
+	for(int i=0; i<vec.size(); i++){
+		if(vec[i] == value){
+			index[cpt]=i;
+			cpt=cpt+1;
+		}		
+	}
+	index.resize(cpt);
 
-std::vector<double> where(std::vector<double> vec, std::string condition, double value, bool return_values){
+	return index;
+ 
+}
+
+VectorXi where_strXi(const std::vector<std::string> vec, const std::string value){
+/*
+ * Gives the indexes of values of an array that match the value
+ *
+*/
+   int cpt;
+   VectorXi index(vec.size());
+
+	cpt=0;
+	for(int i=0; i<vec.size(); i++){
+		if(vec[i] == value){
+			index[cpt]=i;
+			cpt=cpt+1;
+		}		
+	}
+	index.conservativeResize(cpt);
+/*
+	std::cout << "in where_str()" << std::endl;
+	std::cout << index << std::endl;
+	exit(EXIT_SUCCESS);
+*/
+	return index;
+ 
+}
+
+
+
+std::vector<double> where(const std::vector<double> vec, const std::string condition, const double value, const bool return_values){
 /*
  * If return_values == 0:
  * 	Gives the indexes of values of an array that fullfil the condition
@@ -204,57 +219,7 @@ std::vector<double> where(std::vector<double> vec, std::string condition, double
 
 }
 
-
-VectorXi where_strXi(std::vector<std::string> vec, std::string value){
-/*
- * Gives the indexes of values of an array that match the value
- *
-*/
-   int cpt;
-   VectorXi index(vec.size());
-
-	cpt=0;
-	for(int i=0; i<vec.size(); i++){
-		if(vec[i] == value){
-			index[cpt]=i;
-			cpt=cpt+1;
-		}		
-	}
-	index.conservativeResize(cpt);
-/*
-	std::cout << "in where_str()" << std::endl;
-	std::cout << index << std::endl;
-	exit(EXIT_SUCCESS);
-*/
-	return index;
- 
-}
-
-
-std::vector<int> where_str(std::vector<std::string> vec, std::string value){
-/*
- * Gives the indexes of values of an array that match the value
- *
-*/
-   int cpt;
-  
-   std::vector<int> index;
-   index.resize(vec.size());
-	
-	cpt=0;
-	for(int i=0; i<vec.size(); i++){
-		if(vec[i] == value){
-			index[cpt]=i;
-			cpt=cpt+1;
-		}		
-	}
-	index.resize(cpt);
-
-	return index;
- 
-}
-
-std::vector<int> where_dbl(std::vector<double> vec, double value, double tolerance){
+std::vector<int> where_dbl(const std::vector<double> vec, const double value, const double tolerance){
 /*
  * Gives the indexes of values of an array that match the value.
  * A tolerance parameter allows you to control how close the match
@@ -284,7 +249,7 @@ std::vector<int> where_dbl(std::vector<double> vec, double value, double toleran
 	return index;
 }
 
-VectorXi where_dbl(VectorXd vec, double value, double tolerance){
+VectorXi where_dbl(const VectorXd& vec, double value, const double tolerance){
 /*
  * Gives the indexes of values of an array that match the value.
  * A tolerance parameter allows you to control how close the match
@@ -295,21 +260,21 @@ VectorXi where_dbl(VectorXd vec, double value, double tolerance){
    int cpt;
    VectorXi index_out;
   
-   std::vector<int> index;
-   index.resize(vec.size());
+   //std::vector<int> index;
+   index_out.resize(vec.size());
 	
 	cpt=0;
 	for(int i=0; i<vec.size(); i++){
 		if(vec[i] > value - tolerance && vec[i] < value + tolerance){
-			index[cpt]=i;
+			index_out[cpt]=i;
 			cpt=cpt+1;
 		}		
 	}
 	if(cpt >=1){
-		index_out.resize(cpt);
-		for(int i=0; i<cpt; i++){
-			index_out[i]=index[i];
-		}
+		index_out.conservativeResize(cpt);
+		//for(int i=0; i<cpt; i++){
+		//	index_out[i]=index[i];
+		//}
 	} else{
 		index_out.resize(1);
 		index_out[0]=-1;
@@ -317,17 +282,49 @@ VectorXi where_dbl(VectorXd vec, double value, double tolerance){
 	return index_out;
 }
 
-
-VectorXi where_in_range(VectorXd vec, double value_min, double value_max, bool strict){
+VectorXi where_dbl(const VectorXd& vec, double value, const double tolerance, const int imin_search, const int imax_search){
 /*
- * Gives the indexes of values of an array within a specified range 
+ * Gives the indexes of values of an array that match the value.
+ * A tolerance parameter allows you to control how close the match
+ * is considered as acceptable. The tolerance is in the same unit
+ * as the value
  *
 */
    int cpt;
    VectorXi index_out;
   
-   std::vector<int> index;
-   index.resize(vec.size());
+   //std::vector<int> index;
+   index_out.resize(vec.size());
+	
+	cpt=0;
+	for(int i=imin_search; i<=imax_search; i++){
+		if(vec[i] > value - tolerance && vec[i] < value + tolerance){
+			index_out[cpt]=i;
+			cpt=cpt+1;
+		}		
+	}
+	if(cpt >=1){
+		index_out.conservativeResize(cpt);
+		//for(int i=0; i<cpt; i++){
+		//	index_out[i]=index[i];
+		//}
+	} else{
+		index_out.resize(1);
+		index_out[0]=-1;
+	}
+	return index_out;
+}
+
+VectorXi where_in_range(const VectorXd& vec, const double value_min, const double value_max, const bool strict){
+/*
+ * Gives the indexes of values of an array within a specified range 
+ *
+*/
+   int cpt;
+   VectorXi index(vec.size());
+  
+   //std::vector<int> index;
+   //index.resize(vec.size());
 	
 	cpt=0;
 	for(int i=0; i<vec.size(); i++){
@@ -344,18 +341,15 @@ VectorXi where_in_range(VectorXd vec, double value_min, double value_max, bool s
 		}		
 	}
 	if(cpt >=1){
-		index_out.resize(cpt);
-		for(int i=0; i<cpt; i++){
-			index_out[i]=index[i];
-		}
+		index.conservativeResize(cpt);
 	} else{
-		index_out.resize(1);
-		index_out[0]=-1;
+		index.resize(1);
+		index[0]=-1;
 	}
-	return index_out;
+	return index;
 }
 
-std::vector<int> where_in_range(std::vector<double> vec, double value_min, double value_max, bool strict){
+std::vector<int> where_in_range(const std::vector<double> vec, const double value_min, const double value_max, const bool strict){
 /*
  * Gives the indexes of values of an array within a range.
  * If strict = 1 values have to be strictly within the range. 
@@ -390,7 +384,7 @@ std::vector<int> where_in_range(std::vector<double> vec, double value_min, doubl
 	return index;
 }
 
-VectorXi where_int(VectorXi vec, int value){
+VectorXi where_int(const VectorXi& vec, const int value){
 /*
  * Gives the indexes of values of an array that match the value.
  *
@@ -420,7 +414,7 @@ VectorXi where_int(VectorXi vec, int value){
 	return index_out;
 }
 
-std::vector<int> where_int(std::vector<int> vec, int value){
+std::vector<int> where_int(const std::vector<int> vec, const int value){
 /*
  * Gives the indexes of values of an array that match the value.
  *
@@ -447,7 +441,7 @@ std::vector<int> where_int(std::vector<int> vec, int value){
 	return index;
 }
 
-std::vector<double> vectXd_to_vec(VectorXd vecXd_in){
+std::vector<double> vectXd_to_vec(const VectorXd& vecXd_in){
 
    std::vector<double> vec;
    vec.resize(vecXd_in.size());
@@ -527,6 +521,17 @@ std::vector<double> arrstr_to_arrdbl(const std::vector<std::string> vals_strs){
 	return dbl_out;
 }
 
+
+std::string lng_to_str(const long ind){
+
+    std::stringstream ss;
+
+    ss.str(std::string());
+    ss << ind;
+
+    return ss.str();
+}
+
 VectorXd arrstr_to_Xdarrdbl(const std::vector<std::string> vals_strs){
 	/* 
 	 * Used to extract VectorXd from an array of strings (vector<string>). 
@@ -599,16 +604,6 @@ std::string int_to_str(const int value){
 	convert << value;      // insert the textual representation of 'Number' in the characters in the stream
 
 	return convert.str(); // set 'Result' to the contents of the stream
-}
-
-std::string lng_to_str(const long ind){
-
-    std::stringstream ss;
-
-    ss.str(std::string());
-    ss << ind;
-
-    return ss.str();
 }
 
 

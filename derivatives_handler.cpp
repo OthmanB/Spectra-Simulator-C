@@ -12,7 +12,7 @@ using Eigen::MatrixXd;
 // -------------- **** 1st Derivative ***** ----------------
 // ---------------------------------------------------------
 
-Deriv_out Fstder_backward_1err_reggrid(const VectorXd y){
+Deriv_out Fstder_backward_1err_reggrid(const VectorXd& y){
 // 1 order derivative (backward) with 1st order precision
 // y must contain 2 points: the position y at x-1 ==> y[0] and y at x  ==> y[1]
 
@@ -35,7 +35,7 @@ return der;
 }
 
 
-Deriv_out Fstder_backward_1err_reggrid(const VectorXd y, const VectorXd x){
+Deriv_out Fstder_backward_1err_reggrid(const VectorXd& y, const VectorXd& x){
 // 1 order derivative (backward) with 1st order precision
 // y must contain 2 points: the position y at x-1 ==> y[0] and y at x  ==> y[1]
 
@@ -57,7 +57,7 @@ Deriv_out Fstder_backward_1err_reggrid(const VectorXd y, const VectorXd x){
 return der;	
 }
 
-Deriv_out Fstder_forward_1err_reggrid(const VectorXd y){
+Deriv_out Fstder_forward_1err_reggrid(const VectorXd& y){
 // 1 order derivative (forward) with 1st order precision
 // y must contain 2 points: the position y at x ==> y[0] and y at x+1  ==> y[1]
 
@@ -80,7 +80,7 @@ return der;
 }
 
 
-Deriv_out Fstder_forward_1err_reggrid(const VectorXd y, const VectorXd x){
+Deriv_out Fstder_forward_1err_reggrid(const VectorXd& y, const VectorXd& x){
 // 1 order derivative (forward) with 1st order precision
 // y must contain 2 points: the position y at x ==> y[0] and y at x+1  ==> y[1]
 
@@ -102,7 +102,7 @@ Deriv_out Fstder_forward_1err_reggrid(const VectorXd y, const VectorXd x){
 return der;	
 }
 
-Deriv_out Fstder_centered_2err_reggrid(const VectorXd y){
+Deriv_out Fstder_centered_2err_reggrid(const VectorXd& y){
 // 1 order derivative (centered) with 2nd order precision
 // y must contain 2 points: the position y at x-1 ==> y[0] to y at x+1  ==> y[2]
 
@@ -125,7 +125,7 @@ Deriv_out Fstder_centered_2err_reggrid(const VectorXd y){
 return der;	
 }
 
-Deriv_out Fstder_centered_2err_reggrid(const VectorXd y, const VectorXd x){
+Deriv_out Fstder_centered_2err_reggrid(const VectorXd& y, const VectorXd& x){
 // 1 order derivative (centered) with 2nd order precision
 // y must contain 2 points: the position y at x-1 ==> y[0] to y at x+1  ==> y[2]
 
@@ -149,7 +149,7 @@ Deriv_out Fstder_centered_2err_reggrid(const VectorXd y, const VectorXd x){
 return der;	
 }
 
-Deriv_out Fstder_centered_4err_reggrid(const VectorXd y){
+Deriv_out Fstder_centered_4err_reggrid(const VectorXd& y){
 // 1 order derivative (centered) with 4th order precision
 // y must contain52 points: the position y at x-2 ==> y[0] to y at x+2  ==> y[4]
 
@@ -171,7 +171,7 @@ Deriv_out Fstder_centered_4err_reggrid(const VectorXd y){
 return der;	
 }
 
-Deriv_out Fstder_centered_4err_reggrid(const VectorXd y, const VectorXd x){
+Deriv_out Fstder_centered_4err_reggrid(const VectorXd& y, const VectorXd& x){
 // 1 order derivative (centered) with 4th order precision
 // y must contain52 points: the position y at x-2 ==> y[0] to y at x+2  ==> y[4]
 
@@ -199,7 +199,7 @@ return der;
 // -------------- **** 2nd Derivative ***** ----------------
 // ---------------------------------------------------------
 
-Deriv_out Scndder_backward_1err_reggrid(const VectorXd y){
+Deriv_out Scndder_backward_1err_reggrid(const VectorXd& y){
 // 2nd order derivative (backward) with 1st order precision
 // y must contain 3 points: the position y at  x-2 ==> y[0] to y at x  ==> y[0]
 
@@ -221,7 +221,7 @@ Deriv_out Scndder_backward_1err_reggrid(const VectorXd y){
 return der;	
 }
 
-Deriv_out Scndder_backward_1err_reggrid(const VectorXd y, const VectorXd x){
+Deriv_out Scndder_backward_1err_reggrid(const VectorXd& y, const VectorXd& x){
 // 2nd order derivative (backward) with 1st order precision
 // y must contain 3 points: the position y at  x-2 ==> y[0] to y at x  ==> y[0]
 
@@ -245,7 +245,7 @@ Deriv_out Scndder_backward_1err_reggrid(const VectorXd y, const VectorXd x){
 return der;	
 }
 
-Deriv_out Scndder_forward_1err_reggrid(const VectorXd y){
+Deriv_out Scndder_forward_1err_reggrid(const VectorXd& y){
 // 2nd order derivative (backward) with 1st order precision
 // y must contain 3 points: the position y at  x ==> y[0] and y at x+2  ==> y[2]
 
@@ -267,7 +267,7 @@ Deriv_out Scndder_forward_1err_reggrid(const VectorXd y){
 return der;	
 }
 
-Deriv_out Scndder_forward_1err_reggrid(const VectorXd y, const VectorXd x){
+Deriv_out Scndder_forward_1err_reggrid(const VectorXd& y, const VectorXd& x){
 // 2nd order derivative (backward) with 1st order precision
 // y must contain 3 points: the position y at  x ==> y[0] and y at x+2  ==> y[2]
 
@@ -291,7 +291,7 @@ Deriv_out Scndder_forward_1err_reggrid(const VectorXd y, const VectorXd x){
 return der;	
 }
 
-Deriv_out Scndder_centered_2err_reggrid(const VectorXd y){
+Deriv_out Scndder_centered_2err_reggrid(const VectorXd& y){
 // 2nd order derivative (centered) with 2nd order precision
 // y must contain 3 points: the position y at x-1 ==> y[0] to y at x+1  ==> y[2]
 
@@ -313,7 +313,7 @@ Deriv_out Scndder_centered_2err_reggrid(const VectorXd y){
 return der;	
 }
 
-Deriv_out Scndder_centered_2err_reggrid(const VectorXd y, const VectorXd x){
+Deriv_out Scndder_centered_2err_reggrid(const VectorXd& y, const VectorXd& x){
 // 2nd order derivative (centered) with 2nd order precision
 // y must contain 3 points: the position y at x-1 ==> y[0] to y at x+1  ==> y[2]
 
@@ -339,7 +339,7 @@ return der;
 
 // ------------- Adaptive derivative -----------
 
-Deriv_out Frstder_adaptive_reggrid(const VectorXd y){
+Deriv_out Frstder_adaptive_reggrid(const VectorXd& y){
 //
 // Compute the First derivative of the list of values given in input
 // The computation is adaptive in the sense that the precision
@@ -368,7 +368,7 @@ Deriv_out Frstder_adaptive_reggrid(const VectorXd y){
 return der;
 }
 
-Deriv_out Frstder_adaptive_reggrid(const VectorXd y, const VectorXd x){
+Deriv_out Frstder_adaptive_reggrid(const VectorXd& y, const VectorXd& x){
 //
 // Compute the First derivative of the list of values given in input
 // The computation is adaptive in the sense that the precision
@@ -397,7 +397,7 @@ Deriv_out Frstder_adaptive_reggrid(const VectorXd y, const VectorXd x){
 return der;
 }
 
-Deriv_out Scndder_adaptive_reggrid(const VectorXd y){
+Deriv_out Scndder_adaptive_reggrid(const VectorXd& y){
 //
 // Compute the Second derivative of the list of values given in input
 // The computation is adaptive in the sense that the precision
@@ -425,7 +425,7 @@ Deriv_out Scndder_adaptive_reggrid(const VectorXd y){
 return der;
 }
 
-Deriv_out Scndder_adaptive_reggrid(const VectorXd y, const VectorXd x){
+Deriv_out Scndder_adaptive_reggrid(const VectorXd& y, const VectorXd& x){
 //
 // Compute the Second derivative of the list of values given in input
 // The computation is adaptive in the sense that the precision

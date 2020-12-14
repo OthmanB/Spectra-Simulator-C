@@ -34,7 +34,7 @@
 #   DPl: Period Spacing (seconds)
 #	q : Coupling term (no unit)
 */
-VectorXd ksi_fct1(const VectorXd nu, const long double nu_p, const long double nu_g, const long double Dnu_p, const long double DPl, const long double q)
+VectorXd ksi_fct1(const VectorXd& nu, const long double nu_p, const long double nu_g, const long double Dnu_p, const long double DPl, const long double q)
 {
 	
 
@@ -83,7 +83,7 @@ VectorXd ksi_fct1(const VectorXd nu, const long double nu_p, const long double n
 #				   This could be usefull as in case of low ng, the norm is badly estimated in
 #				   "fast" mode. Then we need to use a more continuous function to evaluate the norm
 */
-VectorXd ksi_fct2(const VectorXd nu, const VectorXd nu_p, const VectorXd nu_g, const VectorXd Dnu_p, const VectorXd DPl, const long double q, const std::string norm_method="fast")
+VectorXd ksi_fct2(const VectorXd& nu, const VectorXd& nu_p, const VectorXd& nu_g, const VectorXd& Dnu_p, const VectorXd& DPl, const long double q, const std::string norm_method="fast")
 {
 	const int Lp=nu_p.size();
 	const int Lg=nu_g.size();
@@ -132,10 +132,16 @@ VectorXd ksi_fct2(const VectorXd nu, const VectorXd nu_p, const VectorXd nu_g, c
 		norm_coef=ksi4norm.maxCoeff();
 	}
 	ksi_pg=ksi_pg/norm_coef;
+	// Ensuring that round off error don't lead to values higher than 1...
+	for(int i=0; i<ksi_pg.size(); i++){
+		if (ksi_pg[i]>1){
+			ksi_pg[i]=1;
+		}
+	}
 	return ksi_pg;
 }
 
-VectorXd gamma_l_fct2(const VectorXd ksi_pg, const VectorXd nu_m, const VectorXd nu_p_l0, const VectorXd width_l0, const VectorXd hl_h0_ratio, const int el)
+VectorXd gamma_l_fct2(const VectorXd& ksi_pg, const VectorXd& nu_m, const VectorXd& nu_p_l0, const VectorXd& width_l0, const VectorXd& hl_h0_ratio, const int el)
 {
 	long double width0_at_l;
 	VectorXd width_l(ksi_pg.size());
@@ -164,7 +170,7 @@ VectorXd gamma_l_fct2(const VectorXd ksi_pg, const VectorXd nu_m, const VectorXd
 	return width_l;
 }
 
-VectorXd h_l_rgb(const VectorXd ksi_pg)
+VectorXd h_l_rgb(const VectorXd& ksi_pg)
 {
 	const double tol=1e-5;
 	VectorXi pos;
@@ -285,7 +291,7 @@ template_file read_templatefile(const std::string file, const bool ignore_errors
 	return template_data;
 }
 
-Data_2vectXd width_height_load_rescale(const VectorXd nu_star, const long double Dnu_star, const long double numax_star, const std::string file)
+Data_2vectXd width_height_load_rescale(const VectorXd& nu_star, const long double Dnu_star, const long double numax_star, const std::string file)
 {
 	int Nref, Nstar;
 	long double n_at_numax_ref, height_ref_at_numax, gamma_ref_at_numax, epsilon_star, n_at_numax_star, w_tmp, h_tmp;
@@ -442,7 +448,7 @@ long double rot_envelope(long double med=60., long double sigma=3.)
 # Returns:
 #	dnu_rot: A vector of same size as ksi_pg
 */
-VectorXd dnu_rot_2zones(const VectorXd ksi_pg, const long double rot_envelope, const long double rot_core)
+VectorXd dnu_rot_2zones(const VectorXd& ksi_pg, const long double rot_envelope, const long double rot_core)
 {
 	//VectorXd rc(ksi_pg.size()), re(ksi_pg.size());
 	VectorXd re(ksi_pg.size());
@@ -882,8 +888,8 @@ Cfg_synthetic_star test_make_synthetic_asymptotic_star_rgb(void){
 	//cfg_star.filetemplate=cpath + "/templates/11771760.template";
 	cfg_star.filetemplate=cpath + "/templates/Sun.template";
 
-	cfg_star.sigma_p=0.0*cfg_star.Dnu_star;
-	cfg_star.sigma_m=0.05*cfg_star.Dnu_star;
+	cfg_star.sigma_p=0; //0.0*cfg_star.Dnu_star;
+	cfg_star.sigma_m=0; //0.05*cfg_star.Dnu_star;
 
 	params_out=make_synthetic_asymptotic_star(cfg_star);
 

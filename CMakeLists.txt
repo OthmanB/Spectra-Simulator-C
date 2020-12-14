@@ -42,6 +42,7 @@ set(HEADERS  #_COMMON
     solver_mm.h
     derivatives_handler.h
     interpol.h
+    linfit.h
     bump_DP.h
     plots_diags.h
     version.h
@@ -61,6 +62,7 @@ set(SOURCES_MAIN  #_COMMON
     bump_DP.cpp
     derivatives_handler.cpp
     interpol.cpp
+    linfit.cpp
     plots_diags.cpp
     build_lorentzian.cpp
     function_rot.cpp

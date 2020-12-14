@@ -34,7 +34,7 @@
 #   DPl: Period Spacing (seconds)
 #	q : Coupling term (no unit)
 */
-VectorXd ksi_fct1(const VectorXd nu, const long double nu_p, const long double nu_g, const long double Dnu_p, const long double DPl, const long double q);
+VectorXd ksi_fct1(const VectorXd& nu, const long double nu_p, const long double nu_g, const long double Dnu_p, const long double DPl, const long double q);
 
 /*
 # Variant of ksi_fct that deals with arrays for nu_p, nu_g, Dnu_p, DPl
@@ -48,16 +48,16 @@ VectorXd ksi_fct1(const VectorXd nu, const long double nu_p, const long double n
 #				   This could be usefull as in case of low ng, the norm is badly estimated in
 #				   "fast" mode. Then we need to use a more continuous function to evaluate the norm
 */
-VectorXd ksi_fct2(const VectorXd nu, const VectorXd nu_p, const VectorXd nu_g, const VectorXd Dnu_p, const VectorXd DPl, const long double q, const std::string norm_method="fast");
+VectorXd ksi_fct2(const VectorXd& nu, const VectorXd& nu_p, const VectorXd& nu_g, const VectorXd& Dnu_p, const VectorXd& DPl, const long double q, const std::string norm_method="fast");
 
-VectorXd gamma_l_fct2(const VectorXd ksi_pg, const VectorXd nu_m, const VectorXd nu_p_l0, const VectorXd width_l0, const VectorXd hl_h0_ratio, const int el);
+VectorXd gamma_l_fct2(const VectorXd& ksi_pg, const VectorXd& nu_m, const VectorXd& nu_p_l0, const VectorXd& width_l0, const VectorXd& hl_h0_ratio, const int el);
 
-VectorXd h_l_rgb(const VectorXd ksi_pg);
+VectorXd h_l_rgb(const VectorXd& ksi_pg);
 
 // Put here the code for reading template files that contain heights and width profiles
 template_file read_templatefile(const std::string file, const bool ignore_errors=true);
 
-Data_2vectXd width_height_load_rescale(const VectorXd nu_star, const long double Dnu_star, const long double numax_star, const std::string file);
+Data_2vectXd width_height_load_rescale(const VectorXd& nu_star, const long double Dnu_star, const long double numax_star, const std::string file);
 
 // Simple way of computing the core rotation from the surface rotation. Used if we want uniform 
 // distribution of rotation in the envelope and a uniform population of core-to-envelope ratios 
@@ -89,7 +89,7 @@ long double rot_envelope(long double med=60., long double sigma=3.);
 # Returns:
 #	dnu_rot: A vector of same size as ksi_pg
 */
-VectorXd dnu_rot_2zones(const VectorXd ksi_pg, const long double rot_envelope, const long double rot_core);
+VectorXd dnu_rot_2zones(const VectorXd& ksi_pg, const long double rot_envelope, const long double rot_core);
 
 //Assumptions: nu_max is derived from the requested Dnu_star parameter using the relation from Stello+2009. 
 //	Dnu ~ 0.263*numax^0.77 (no uncertainty implemented here)
