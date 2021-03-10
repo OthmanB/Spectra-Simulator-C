@@ -97,3 +97,51 @@ VectorXd build_l_mode_act_simu(const VectorXd x_l, double H_l, double fc_l, doub
 //std::cout << "result=" << result.transpose() <<std::endl;
 return result;
 }
+
+
+VectorXd build_l_mode_a1a2a3(const VectorXd& x_l, const double H_l, const double fc_l, const double f_s, const double a2, const double a3, const double asym, const double gamma_l, const int l, const VectorXd& V){
+/*
+ * This model includes:
+ *      - Asymetry of Lorentzian asym
+ *      - splitting a1
+ *      - an Asphericity parameter eta
+ *      - latitudinal effect a3
+*/
+    const long Nxl=x_l.size();
+    VectorXd profile(Nxl), tmp(Nxl), tmp2(Nxl), result(Nxl), asymetry(Nxl);
+    double Qlm, clm, a2_terms;
+
+    result.setZero();
+    for(int m=-l; m<=l; m++){
+        if(l != 0){
+            //Qlm=(l*(l+1) - 3*pow(m,2))/((2*l - 1)*(2*l + 3)); // accounting for eta
+            if(l == 1){
+                clm=m; // a3 for l=1
+                a2_terms=(3*m*m - 2)*a2;  // From Takashi note and Pnl decomposition: c2(n,l) = [3m*m - l(l+1)] / (2l-1)
+            }
+            if(l == 2){
+                clm=(5*pow(m,3) - 17*m)/3.; // a3 for l=2
+                a2_terms=(m*m -2)*a2;
+            }
+            if(l == 3){
+                clm=0; // a3 NOT YET IMPLEMENTED FOR l=3
+                a2_terms=(3*m*m - 12)*a2/5;
+            }
+            profile=(x_l - tmp.setConstant(fc_l + m*f_s + a2_terms + clm*a3)).array().square();
+            profile=4*profile/pow(gamma_l,2);
+        } else{
+            profile=(x_l - tmp.setConstant(fc_l)).array().square();
+            profile=4*profile/pow(gamma_l,2);
+        }
+        if(asym == 0){ //Model with no asymetry
+            result=result+ H_l*V(m+l)* ((tmp.setConstant(1) + profile)).cwiseInverse();
+        } else{
+            tmp.setConstant(1);
+            asymetry=(tmp + asym*(x_l/fc_l - tmp)).array().square() + (tmp2.setConstant(0.5*gamma_l*asym/fc_l)).array().square();
+            result=result+ H_l*V(m+l)*asymetry.cwiseProduct(((tmp.setConstant(1) + profile)).cwiseInverse());
+        }
+    }
+
+return result;
+}
+

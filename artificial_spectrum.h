@@ -11,3 +11,4 @@
 #include <string>
 //void artificial_spectrum_act_asym(double Tobs, double Cadence, double Nspectra, std::string dir_core, std::string identifier, bool doplots, bool write_inmodel);
 void artificial_spectrum_act_asym(const double Tobs, const double Cadence, const double Nspectra, const long Nrealisation, const std::string dir_core, const std::string identifier, const bool doplots, const bool write_inmodel);
+void artificial_spectrum_a1a2a3asym(const double Tobs, const double Cadence, const double Nspectra, const long Nrealisation, const std::string dir_core, const std::string identifier, const bool doplots, const bool write_inmodel);

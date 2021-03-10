@@ -90,6 +90,28 @@ void iterative_artificial_spectrum(std::string dir_core){
 		}
 		passed=1;
 	}
+	if(cfg.model_name == "generate_cfg_from_synthese_file_Wscaled_a1a2a3asymovGamma"){
+		Nmodel=11;
+		param_names.push_back("HNR"); 
+		param_names.push_back("a1ovGamma"); 
+		param_names.push_back("Gamma_at_numax"); 
+		param_names.push_back("a2_0"); 
+		param_names.push_back("a2_1"); 
+		param_names.push_back("a2_2"); 
+		param_names.push_back("a3_0"); 
+		param_names.push_back("a3_1"); 
+		param_names.push_back("a3_2"); 
+		param_names.push_back("beta_asym");
+		param_names.push_back("i");
+		if(param_names.size() != Nmodel){
+			std::cout << "    Invalid number of parameters for model_name= 'generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma'" << std::endl;
+			std::cout << "    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size() << std::endl;
+			std::cout << "    Check your main configuration file" << std::endl;
+			std::cout << "    The program will exit now" << std::endl;
+			exit(EXIT_FAILURE);
+		}
+		passed=1;
+	}
 	if(cfg.model_name == "generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma"){
 		Nmodel=6;
 		param_names.push_back("HNR"); 
@@ -406,7 +428,6 @@ void generate_random(Config_Data cfg, std::vector<std::string> param_names, std:
 	std::cout << std::endl;
 
 	//  ------------ Generate the random values -----------
-
 	// Initialize the random generators: Uniform over [0,1]. This is used for the random parameters
     boost::mt19937 generator(time(NULL));
     boost::uniform_01<boost::mt19937> dist_gr(generator);
@@ -533,6 +554,12 @@ bool call_model(std::string model_name, VectorXd input_params, std::string file_
 		generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma(input_params, file_out_modes,  file_out_noise, cfg.extra_params); // extra_params must points towards a .in file
 		//artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
 		artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
+		passed=1;		
+	}
+	if(model_name =="generate_cfg_from_synthese_file_Wscaled_a1a2a3asymovGamma"){
+		generate_cfg_from_synthese_file_Wscaled_a1a2a3asymovGamma(input_params, file_out_modes,  file_out_noise, cfg.extra_params); // extra_params must points towards a .in file
+		//artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
+		artificial_spectrum_a1a2a3asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
 		passed=1;		
 	}
 	if(model_name == "asymptotic_mm_v1" || model_name == "asymptotic_mm_v2" || model_name == "asymptotic_mm_v3" ||

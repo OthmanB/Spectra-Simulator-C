@@ -1,9 +1,11 @@
 # Version history #
 
-### ROADMAP v0.9.1 [0%] ###
-	- Implement numax variable on generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma
-	- Adding random errors around the second order asymptotic relations. Try to make them spline-consistent
-
+### v0.9.1 [100%] ###
+	* Added functionalities:
+		- Implement on generate_cfg_from_synthese_file_Wscaled_a1a2a3asymovGamma: Handling simulation for a2 coeficient and a3 considering polynomials O2 for those
+	* Bug Fix:
+		- Fixing cfg template for main.cfg.MS.scaled
+		
 ### v0.9.0 (*Released on 20 Nov 2020*) ###
 	* Improvments:
 		- Compilation is now made possible using cmake

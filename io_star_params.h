@@ -26,6 +26,7 @@ using Eigen::MatrixXd;
 //std::string strtrim(const std::string& str);
 //std::vector<std::string> strsplit(const std::string str, const std::string delimiters);
 bool file_exists(const std::string& name);
+void write_star_params_a1a2a3asym(VectorXd spec_params, MatrixXd mode_params, MatrixXd noise_params, std::string file_out, std::string identifier);
 void write_star_params_act_asym(VectorXd spec_params, MatrixXd mode_params, MatrixXd noise_params, std::string file_out, std::string identifier);
 void write_star_mode_params_a1a2a3(MatrixXd mode_params, std::string file_out);
 void write_star_mode_params_act_asym(MatrixXd mode_params, std::string file_out);

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.4.1)
 
-project(specsim VERSION 0.4)
+project(specsim VERSION 0.41)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -72,6 +72,14 @@ set(SOURCES_MAIN  #_COMMON
     random_JB.cpp
     )
 
+set(SOURCES_TEST_LORENTZIAN
+    test_fct/lorentzian_a1a2a3_test.cpp
+    function_rot.cpp
+    string_handler.cpp
+    build_lorentzian.cpp
+    )
+
+
 # Check and Load dependencies
 find_package(Gnuplot REQUIRED)
 if(NOT GNUPLOT_FOUND)
@@ -102,6 +110,8 @@ link_directories(${Boost_LIBRARY_DIRS})
 add_executable(${CMAKE_PROJECT_NAME} ${HEADERS} ${SOURCES_MAIN})
 target_link_libraries(${CMAKE_PROJECT_NAME}  ${Boost_SYSTEM_LIBRARY_RELEASE} ${Boost_FILESYSTEM_LIBRARY_RELEASE} ${Boost_IOSTREAMS_LIBRARY_RELEASE})
 
+add_executable(test_lorentzian_a1a2a3 ${HEADERS} ${SOURCES_TEST_LORENTZIAN})
+target_link_libraries(${CMAKE_PROJECT_NAME}  ${Boost_SYSTEM_LIBRARY_RELEASE} ${Boost_FILESYSTEM_LIBRARY_RELEASE} ${Boost_IOSTREAMS_LIBRARY_RELEASE})
 
 
 
