@@ -4,7 +4,8 @@
 #include <iomanip>
 #include "../build_lorentzian.h"
 #include "../function_rot.h"
-#include "../string_handler.h"
+//#include "../string_handler.h" // REPLACED BY ioproc.h on 17/06/2021
+#include "../ioproc.h"
 #include "../version.h"
 #include <unistd.h>
 

@@ -12,6 +12,7 @@
 #include <iomanip>
 #include "plots_diags.h"
 #include "io_star_params.h"
+#include "ioproc.h"
 
 using Eigen::MatrixXd;
 using Eigen::VectorXd;

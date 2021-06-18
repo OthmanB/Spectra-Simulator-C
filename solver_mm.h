@@ -9,7 +9,8 @@
 
 #include "version_solver.h"
 #include "data.h"
-#include "string_handler.h"
+//#include "string_handler.h" // Replaced by ioproc.h
+#include "ioproc.h"
 #include "interpol.h"
 #include "derivatives_handler.h"
 

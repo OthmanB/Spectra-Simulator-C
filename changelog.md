@@ -1,5 +1,10 @@
 # Version history #
 
+### v1.0.0-dev###
+	* Added functionalities:
+		- Implement the new model generate_cfg_from_synthese_file_Wscaled_a1Alma3asymovGamma: Handling simulations with Activity effect on splittings using Alm() function
+                - Adding the grid approach within this code: NOTE THAT THERE MIGHT BE SOME BUGS HERE
+
 ### v0.9.1 [100%] ###
 	* Added functionalities:
 		- Implement on generate_cfg_from_synthese_file_Wscaled_a1a2a3asymovGamma: Handling simulation for a2 coeficient and a3 considering polynomials O2 for those

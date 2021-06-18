@@ -26,48 +26,20 @@
 
 #include "version_solver.h"
 #include "data.h"
-#include "string_handler.h"
+//#include "string_handler.h" // Replaced by ioproc.h on 17/06/2021
+#include "ioproc.h"
 #include "interpol.h"
 #include "derivatives_handler.h"
 #include "interpol.h"
 #include "linfit.h"
+#include "linspace.h"
 
 using Eigen::MatrixXd;
 using Eigen::VectorXi;
 using Eigen::VectorXd;
 
+
 /*
-// Taken from https://stackoverflow.com/questions/27028226/python-linspace-in-c
-template<typename T>
-std::vector<double> linspace(T start_in, T end_in, int num_in)
-{
-
-  std::vector<double> linspaced;
-
-  double start = static_cast<double>(start_in);
-  double end = static_cast<double>(end_in);
-  double num = static_cast<double>(num_in);
-
-  if (num == 0) { return linspaced; }
-  if (num == 1) 
-    {
-      linspaced.push_back(start);
-      return linspaced;
-    }
-
-  double delta = (end - start) / (num - 1);
-
-  for(int i=0; i < num-1; ++i)
-    {
-      linspaced.push_back(start + delta * i);
-    }
-  linspaced.push_back(end); // I want to ensure that start and end
-                            // are exactly the same as the input
-  return linspaced;
-}
-// -----
-*/
-
 // My linspace function
 VectorXd linspace(const long double start_in, const long double end_in, const long num_in)
 {
@@ -83,23 +55,9 @@ VectorXd linspace(const long double start_in, const long double end_in, const lo
 	for(long i=0 ; i< num_in ; i++){
 		linspaced[i]=start_in + delta*i;
 	}
-
-	/*std::cout << "start_in =" << start_in << std::endl;
-	std::cout << "end_in =" << end_in << std::endl;
-	std::cout << "num_in =" << num_in << std::endl;
-	std::cout << "delta =" << delta << std::endl;
-	std::cout << "linspaced.size() =" << linspaced.size() << std::endl;
-	
-	for(long i=0; i<linspaced.size(); i++)
-	{
-		std::cout << linspaced[i] << std::endl;
-	}
-	std::cout << "linspace needs a thorough test" << std::endl;
-	std::cout << "exiting now"<< std::endl;
-	exit(EXIT_SUCCESS);
-	*/
 	return linspaced;
 }
+*/
 
 // Function that detects sign changes
 // If the sign went from + to - tag it with a -1

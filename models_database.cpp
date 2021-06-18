@@ -15,8 +15,11 @@
 #include <random>
 #include "models_database.h"
 #include "noise_models.h"
-#include "string_handler.h"
+//#include "string_handler.h" // Replaced by ioproc.h on 17/06/2021
+#include "ioproc.h"
 #include "bump_DP.h"
+#include "linspace.h"
+#include "linfit.h"
 
 using Eigen::VectorXd;
 using Eigen::VectorXi;
@@ -1367,6 +1370,159 @@ void generate_cfg_from_synthese_file_Wscaled_a1a2a3asymovGamma(VectorXd input_pa
 
 	// A FUNCTION THAT WRITES THE PARAMETERS
 	write_star_mode_params_act_asym(mode_params, file_out_modes);
+
+	// A FUNCTION THAT WRITES THE Noise
+	write_star_noise_params(ref_star.noise_params, file_out_noise);
+}
+
+
+
+/* 
+	This function use a reference star as a template to generate frequencies and Width, Height profiles
+	can be rescaled so that you can modify the HNR but keep the same height profile
+	Note that the user here provides a target a1/Width so that a1 is automatically adjusted to match the 
+	requested a1/Width. The code will not change the Width so that code is not adapted to test blending between adjacent l modes,
+	such as the l=0 and l=2 mode blending
+	It handles a3 as well as free parameters and consider an activity term Alm ~ {a2, a4, a6, ...} following Gizon2002 idea.
+	a3 can be given as a polynomial of the frequency and you can add a random quantity (set in nHz) that will be added as a random 'error' ==> scatter ==> test robustness 
+*/
+void generate_cfg_from_synthese_file_Wscaled_a1Alma3asymovGamma(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string extra){
+
+    const double G=6.667e-8;
+    const double Dnu_sun=135.1;
+    const double R_sun=6.96342e5; //in km
+    const double M_sun=1.98855e30; //in kg
+    const double rho_sun=M_sun*1e3/(4*M_PI*std::pow(R_sun*1e5,3)/3); //in g.cm-3
+
+	int i;
+	double N0, HNR, a1_ov_Gamma, a3, beta_asym, inc, HNRmaxref, Height_factor, Gamma_at_numax, a1, Gamma_coef, fl, a2, rho, eta0; 
+	VectorXi pos_max;
+	VectorXd tmp, xfit, rfit;
+	VectorXd HNRref, local_noise,h_star, gamma_star, s_a1_star, s_eta0_star, s_epsilon_star, s_theta0_star, s_delta_star, s_a3_star, s_asym_star, inc_star, activity_terms, a3_terms;
+	Star_params ref_star;
+	MatrixXd mode_params, noise_params;
+
+	ref_star=read_star_params(extra); 
+
+	// --- Large separation and centrifugal force ---
+    xfit=linspace(0, ref_star.mode_params.col(1).size()-1, ref_star.mode_params.col(1).size());
+    rfit=linfit(xfit, ref_star.mode_params.col(1)); // rfit[0] = Dnu 
+    rho=pow(rfit[0]/Dnu_sun,2.) * rho_sun;
+    // -----
+
+	// Defining the noise profile parameters
+	// Note about the noise: -1 means that it is ignored. -2 mean that the value is irrelevant
+	tmp.resize(ref_star.mode_params.rows()); 	
+	tmp.setConstant(0);
+	local_noise=harvey_like(ref_star.noise_params, ref_star.mode_params.col(1), tmp); // Generate a list of local noise values for each frequencies
+
+// ---- Deploy the parameters -----
+	HNR=input_params[0];
+	a1_ov_Gamma=input_params[1];
+	Gamma_at_numax=input_params[2];
+	activity_terms=input_params.segment(3,3); // epsilon_nl , theta0, delta.... used for computing dnu_nlm_activity = nu_nl.epsilon_nl.Alm(theta0, delta)
+	a3_terms=input_params.segment(6,3);
+	beta_asym=input_params[9];
+	inc=input_params[10];
+    eta0=(4./3.)*M_PI/(rho*G); //pow(Snlm_in.inputs[0]*1e-6,2.)
+// ---------------------------------
+
+	HNRref=ref_star.mode_params.col(2);
+	HNRref=HNRref.cwiseProduct(local_noise.cwiseInverse());
+	HNRmaxref=HNRref.maxCoeff(); // This is the maximum HNR of the reference data
+	Height_factor=HNR/HNRmaxref;  // compute the coeficient required to get the proper max(HNR)
+
+	tmp=ref_star.mode_params.col(2);
+	pos_max=where_dbl(ref_star.mode_params.col(2), tmp.maxCoeff(), 0.001);
+	if (pos_max[0] >= 0){
+		Gamma_coef=Gamma_at_numax/ref_star.mode_params(pos_max[0], 3); // Correction coeficient to apply on Gamma(nu) in order to ensure that we have Gamma(nu=numax) = Gamma_at_numax
+	} else{
+		std::cout << "Error! could not find the max position for the mode Widths profile" << std::endl;
+		std::cout << "Code debug required" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+
+	a1=a1_ov_Gamma*Gamma_at_numax; // We can vary the Width and splitting. But we need to change the splitting in order to get the wished a1/Gamma0
+
+	//std::cout << "after a1" << std::endl;
+	if (local_noise.sum()!= 0){
+		N0=1; // Imposing the the Noise background is 1
+		std::cout <<  "Using N0=" << N0 << " (white noise)" << std::endl;
+		std::cout << "HNR of all modes (degree / freq / HNR):" << std::endl;
+		for(i =0; i<ref_star.mode_params.rows(); i++){
+			std::cout << "     " << ref_star.mode_params(i,0) << "  " << ref_star.mode_params(i,1) << "  " << Height_factor * HNRref[i] << std::endl;
+		}
+	} else{
+		std::cout << "Warning: bruit_local from the stat_synthese file is 0 ==> Cannot compute N0=mean(local_noise)" << std::endl;
+		std::cout << "         The program will stop now" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	// Defining the final size for all of the outptus
+	h_star.resize(ref_star.mode_params.rows());
+	gamma_star.resize(ref_star.mode_params.rows());
+	s_a1_star.resize(ref_star.mode_params.rows());
+	s_eta0_star.resize(ref_star.mode_params.rows());
+	s_epsilon_star.resize(ref_star.mode_params.rows());
+	s_theta0_star.resize(ref_star.mode_params.rows());
+	s_delta_star.resize(ref_star.mode_params.rows());
+	s_a3_star.resize(ref_star.mode_params.rows());	
+	s_asym_star.resize(ref_star.mode_params.rows());
+	inc_star.resize(ref_star.mode_params.rows());
+
+	// Refactoring the heights
+	h_star=Height_factor * HNRref * N0; 
+	gamma_star=Gamma_coef*ref_star.mode_params.col(3); // In IDL, AN INTERPOLATION WAS DONE FOR l>0. HERE WE ASSUME THE .in file is whatever the true model should be (no interpolation)
+
+	if (a1 >= 0){
+		s_a1_star.setConstant(a1);
+	} else{
+		s_a1_star=ref_star.mode_params.col(4); 
+	}
+	// --- Spherical distorsion ---
+	s_eta0_star.setConstant(eta0);
+	s_epsilon_star.setConstant(activity_terms[0]);
+	s_theta0_star.setConstant(activity_terms[1]);
+	s_delta_star.setConstant(activity_terms[2]);
+	// ----------------------------
+
+	if (a3_terms[0] != 0 || a3_terms[1] != 0 || a3_terms[2] != 0){
+		for (int i=0; i<ref_star.mode_params.rows();i++){ 
+			fl=ref_star.mode_params(i,1); // Get the frequencies and iterate over them
+			a3=a3_terms[0] + a3_terms[1]*(fl*1e-3) + a3_terms[2]*(fl*fl*1e-6); //three terms: one constant term + one linear in nu + one quadratic in nu [BE CAREFUL WITH UNITS]
+			s_a3_star[i]=a3;
+		}
+	} else{
+		s_a3_star=ref_star.mode_params.col(6);	
+	}
+	if (beta_asym >= 0){
+		s_asym_star.setConstant(beta_asym);	
+	} else{
+		s_asym_star=ref_star.mode_params.col(9);	
+	}	
+	if (inc >= 0){ 
+		inc_star.setConstant(inc);
+	} else{
+		inc_star=ref_star.mode_params.col(10);
+	}
+	
+	mode_params.setZero(ref_star.mode_params.rows(), 12);
+
+	mode_params.col(0)=ref_star.mode_params.col(0); // List of els
+	mode_params.col(1)=ref_star.mode_params.col(1); // List of frequencies
+	mode_params.col(2)=h_star;
+	mode_params.col(3)=gamma_star; 
+	mode_params.col(4)=s_a1_star; 
+	mode_params.col(5)=s_eta0_star; 
+	mode_params.col(6)=s_epsilon_star;
+	mode_params.col(7)=s_theta0_star; 
+	mode_params.col(8)=s_delta_star;
+	mode_params.col(9)=s_a3_star;
+	mode_params.col(10)=s_asym_star;
+	mode_params.col(11)=inc_star;  
+
+	// A FUNCTION THAT WRITES THE PARAMETERS
+	// THIS MIGHT NEED TO BE WRITTEN IN ANOTHER FORMAT
+	write_star_mode_params_Alm(mode_params, file_out_modes);
 
 	// A FUNCTION THAT WRITES THE Noise
 	write_star_noise_params(ref_star.noise_params, file_out_noise);

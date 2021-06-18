@@ -16,28 +16,30 @@
 #include <boost/random/normal_distribution.hpp>
 #include "artificial_spectrum.h"
 #include "models_database.h"
+#include "models_database_grid.h"
 #include "version.h"
+#include "combi.h"
+#include "stellar_models.h"
+#include "io_star_params.h"
 
 void showversion();
 int  options(int argc, char* argv[]);
 
 void iterative_artificial_spectrum(std::string dir_core);
-VectorXd order_input_params(VectorXd cte_params, VectorXd var_params, std::vector<std::string> cte_names, 
-		std::vector<std::string> var_names, std::vector<std::string> param_names);
+//VectorXd order_input_params(VectorXd cte_params, VectorXd var_params, std::vector<std::string> cte_names, 
+//		std::vector<std::string> var_names, std::vector<std::string> param_names);
 void generate_random(Config_Data cfg, std::vector<std::string> param_names, std::string dir_core, std::string file_out_modes, 
 		std::string file_out_noise, std::string file_out_combi, int N_model, std::string file_cfg_mm, std::string external_path,  std::string templates_dir);
+void generate_grid(Config_Data cfg, bool usemodels, Data_Nd models, std::vector<std::string> param_names, std::string dir_core, std::string dir_freqs, std::string file_out_modes, 
+		std::string file_out_noise, std::string file_out_combi, int N_model);
 
-void generate_grid();
-std::string write_allcombi(MatrixXd allcombi, VectorXd cte_params, Config_Data cfg, std::string fileout, bool erase_old_file, long iter, long id0, 
-		    std::vector<std::string> cte_names, std::vector<std::string> var_names, std::vector<std::string> param_names);
-bool call_model(std::string model_name, VectorXd input_params, std::string file_out_modes, std::string file_out_noise, 
+bool call_model_random(std::string model_name, VectorXd input_params, std::string file_out_modes, std::string file_out_noise, 
 		 std::string file_cfg_mm, std::string dir_core, std::string identifier, Config_Data cfg, std::string external_path, std::string template_file);
+bool call_model_grid(std::string model_name, VectorXd input_params, Model_data input_model, std::string file_out_modes, std::string file_out_noise, 
+		std::string dir_core, std::string id_str, Config_Data cfg);
 
 std::vector<std::string> list_dir(const std::string path, const std::string filter);
-std::string identifier2chain(std::string identifier);
-std::string identifier2chain(long identifier);
-long read_id_allcombi(std::string file_combi);
-std::string read_lastline_ascii(std::string filename);
+
 
 void iterative_artificial_spectrum(std::string dir_core){
 /*
@@ -46,21 +48,27 @@ void iterative_artificial_spectrum(std::string dir_core){
 */
 
 	bool passed;
+	bool usemodels=0;
+	bool verbose_data=0; // SET TO 1 IF YOU WANT MORE INFO ABOUT WHAT IS READ
 	int Nmodel;
 	std::vector<std::string> param_names;
 
-	std::string cfg_file, file_out_modes, file_out_noise, file_cfg_mm, file_out_mm, file_out_mm2, file_out_combi;
+	std::string delimiter=" ";
+	std::string cfg_file, model_file, file_out_modes, file_out_noise, file_cfg_mm, file_out_mm, file_out_mm2, file_out_combi;
 	std::string external_path, templates_dir;
 	Config_Data cfg;
-
+	Data_Nd models;
 	external_path=dir_core + "external/"; 
 	templates_dir=dir_core + "Configurations/templates/";
 	cfg_file=dir_core + "Configurations/main.cfg";
+	model_file=dir_core + "external/MESA_grid/models.params";
 	file_out_modes=dir_core + "Configurations/tmp/modes_tmp.cfg";
 	file_out_noise=dir_core + "Configurations/tmp/noise_tmp.cfg";
 	file_cfg_mm=dir_core + "external/ARMM-solver/star_params.global"; // Used only for models with mixed modes and interfaced with the Python solver
 	
 	file_out_combi=dir_core + "Data/Combinations.txt";
+
+	std::string dir_freqs=dir_core + "external/MESA_grid/frequencies/";
 
 	std::cout << "1. Read the configuration file..." << std::endl;
 
@@ -105,6 +113,28 @@ void iterative_artificial_spectrum(std::string dir_core){
 		param_names.push_back("i");
 		if(param_names.size() != Nmodel){
 			std::cout << "    Invalid number of parameters for model_name= 'generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma'" << std::endl;
+			std::cout << "    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size() << std::endl;
+			std::cout << "    Check your main configuration file" << std::endl;
+			std::cout << "    The program will exit now" << std::endl;
+			exit(EXIT_FAILURE);
+		}
+		passed=1;
+	}
+	if(cfg.model_name == "generate_cfg_from_synthese_file_Wscaled_a1Alma3asymovGamma"){
+		Nmodel=11;
+		param_names.push_back("HNR"); 
+		param_names.push_back("a1ovGamma"); 
+		param_names.push_back("Gamma_at_numax"); 
+		param_names.push_back("epsilon_nl"); 
+		param_names.push_back("theta0"); 
+		param_names.push_back("delta"); 
+		param_names.push_back("a3_0"); 
+		param_names.push_back("a3_1"); 
+		param_names.push_back("a3_2"); 
+		param_names.push_back("beta_asym");
+		param_names.push_back("i");
+		if(param_names.size() != Nmodel){
+			std::cout << "    Invalid number of parameters for model_name= 'generate_cfg_from_synthese_file_Wscaled_a1a2a3asymovGamma'" << std::endl;
 			std::cout << "    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size() << std::endl;
 			std::cout << "    Check your main configuration file" << std::endl;
 			std::cout << "    The program will exit now" << std::endl;
@@ -353,6 +383,60 @@ void iterative_artificial_spectrum(std::string dir_core){
 		exit(EXIT_FAILURE);
 	}
 
+	// -----------------------------------------------------------
+	// ----- Models available only with the grid approach -----
+	// -----------------------------------------------------------
+	if(cfg.model_name == "generate_cfg_from_refstar_HWscaled"){
+		//Nmodel=12;
+		param_names.push_back("Model_i"); param_names.push_back("maxHNR"); param_names.push_back("Gamma_maxHNR"); param_names.push_back("a1"); param_names.push_back("i"); 
+		param_names.push_back("Hnoise1"); param_names.push_back("tau1"); param_names.push_back("p1");
+		param_names.push_back("Hnoise2"); param_names.push_back("tau2"); param_names.push_back("p2");  
+		param_names.push_back("N0");
+		Nmodel=param_names.size();
+		if(param_names.size() != Nmodel){
+			std::cout << "    Invalid number of parameters for model_name= 'generate_cfg_asymptotic_act_asym'" << std::endl;
+			std::cout << "    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size() << std::endl;
+			std::cout << "    Check your main configuration file" << std::endl;
+			std::cout << "    The program will exit now" << std::endl;
+			exit(EXIT_FAILURE);
+		}
+		std::cout << " 	   - reading models from model file (requires for setting frequencies)..." << std::endl;
+		models=read_data_ascii_Ncols(model_file, delimiter, verbose_data);
+		usemodels=1;
+		passed=1;
+	}
+	if(cfg.model_name == "generate_cfg_from_refstar_HWscaled_GRANscaled"){
+		//Nmodel=12;
+		param_names.push_back("Model_i"); param_names.push_back("maxHNR"); param_names.push_back("Gamma_maxHNR"); param_names.push_back("a1"); param_names.push_back("i"); 
+		param_names.push_back("A_Pgran"); param_names.push_back("B_Pgran"); param_names.push_back("C_Pgran");
+		param_names.push_back("A_taugran"); param_names.push_back("B_taugran"); param_names.push_back("C_taugran");  
+		param_names.push_back("N0");
+		Nmodel=param_names.size();
+		if(param_names.size() != Nmodel){
+			std::cout << "    Invalid number of parameters for model_name= 'generate_cfg_asymptotic_act_asym'" << std::endl;
+			std::cout << "    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size() << std::endl;
+			std::cout << "    Check your main configuration file" << std::endl;
+			std::cout << "    The program will exit now" << std::endl;
+			exit(EXIT_FAILURE);
+		}
+		std::cout << " 	   - reading models from model file (requires for setting frequencies)..." << std::endl;
+		models=read_data_ascii_Ncols(model_file, delimiter, verbose_data);
+		usemodels=1;
+		passed=1;
+	}
+	if(passed == 0){
+		std::cout << "    model_name= " << cfg.model_name << " is not a recognized keyword for models" << std::endl;
+		std::cout << "    Check models_database.h to see the available model names" << std::endl;
+		std::cout << "    The program will exit now" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+
+
+	// -----------------------------------------------------------
+	// -----------------------------------------------------------
+	// -----------------------------------------------------------
+
+
 	std::cout << "2. Generating the models using the subroutine " << cfg.model_name << " of model_database.cpp..." << std::endl;
 	if(cfg.forest_type == "random"){
 		std::cout << "   Values are randomly generated into a uniform range defined in the main configuration file" << std::endl;
@@ -361,7 +445,8 @@ void iterative_artificial_spectrum(std::string dir_core){
 	}
 	if(cfg.forest_type == "grid"){
 		std::cout << "   Values are generated over a grid using all possible combinations according to inputs in the main configuration file" << std::endl;
-		generate_grid();
+		//generate_grid();
+		generate_grid(cfg, usemodels, models, param_names, dir_core, dir_freqs, file_out_modes, file_out_noise, file_out_combi, Nmodel);
 	}
 	if(cfg.forest_type != "random" && cfg.forest_type != "grid"){ 
 		std::cout << " Problem in the main configuration file. It is expected that the forest type parameters is either random OR grid" << std::endl;
@@ -505,10 +590,10 @@ void generate_random(Config_Data cfg, std::vector<std::string> param_names, std:
 
 		input_params=order_input_params(cte_params, currentcombi.row(0), cte_names, var_names, param_names);
 
-		passed=call_model(cfg.model_name, input_params, file_out_modes, file_out_noise,  file_cfg_mm, dir_core, id_str, cfg, external_path, template_file);
+		passed=call_model_random(cfg.model_name, input_params, file_out_modes, file_out_noise,  file_cfg_mm, dir_core, id_str, cfg, external_path, template_file);
 		if(passed == 0){
 			std::cout << "Warning: The function call_model did not generate any configuration file!" << std::endl;
-			std::cout << "         Debug required" << std::endl;
+			std::cout << "         It is very likely that you tried to start a model in 'random mode' while this model is not available for the random approach" << std::endl;
 			std::cout << "         The program will stop now" << std::endl;
 			exit(EXIT_FAILURE);
 		}
@@ -528,16 +613,158 @@ void generate_random(Config_Data cfg, std::vector<std::string> param_names, std:
 	
 }
 
-void generate_grid(){
+void generate_grid(Config_Data cfg, bool usemodels, Data_Nd models, std::vector<std::string> param_names, std::string dir_core, std::string dir_freqs, std::string file_out_modes, 
+		std::string file_out_noise, std::string file_out_combi, int N_model){
 
-	std::cout << "The program does not handle yet the grid case" << std::endl;
-	std::cout << "...Need to be completed" << std::endl;
-	std::cout << "Use the random mode instead" << std::endl;
-	std::cout << "The program will stop now" << std::endl;
-	exit(EXIT_SUCCESS);
+	bool neg=0, passed=0;
+	int i, ii, Nvar_params;
+	long lastid, id0, Ncombi;
+	std::string id_str;
+	VectorXi pos, Nvals; // May have to use a Xd when dealing with the round off
+	VectorXd tmp, cte_params, val_min, val_max, steps, input_params, delta;
+	MatrixXd var_params, currentcombi, allcombi;
+	std::vector<double> pos_zero, pos_one;	
+	std::vector<std::string> var_names, cte_names;
+
+	Model_data input_model;
+
+	// We first check that the cfg file has a coherent setup
+	delta.resize(N_model);
+	ii=0;
+	while(neg == 0 && (ii < N_model)){
+		//std::cout << "[" << ii << "] " << cfg.val_max[ii] - cfg.val_min[ii] << std::endl;
+		delta[ii]=cfg.val_max[ii] - cfg.val_min[ii];
+		if( delta[ii] < 0){ 
+			neg=1;
+		}
+		ii=ii+1;
+	}
+	if(neg == 1){
+		std::cout << "     Warning: val_max < val_min for some of the parameters!" << std::endl;
+		std::cout << "     This is not permitted" << std::endl;
+		std::cout << "     Check your main configuration file" << std::endl;
+		std::cout << "     The program will exit now" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+
+	//  Define variables and constants
+	pos_one=where(cfg.step, "!=", 0, 0); // All positions of cfg.step that are not equal to 0. Return position (last parameter is 0)
+	pos_zero=where(cfg.step, "<=", 0, 0); // All positions of cfg.step that are equal or less than 0. Return position (last parameter is 0)
+
+	Nvals.resize(pos_one.size());
+	for(int ii=0; ii<pos_one.size();ii++){
+		//std::cout << pos_one[ii] << std::endl;
+		Nvals[ii]=delta[pos_one[ii]]/cfg.step[pos_one[ii]] + 1e-15; // 1d-15 here because floor bugs sometimes due to round-off
+		//std::cout << "Nvals["<< ii << "]=" << Nvals[ii] << std::endl; //Nvals=Nvals.floor();
+	}
+	val_min.resize(pos_one.size());
+	val_max.resize(pos_one.size());
+	//steps.resize(pos_one.size());
+	cte_params.resize(pos_zero.size());
+	var_params.resize(pos_one.size(), Nvals.maxCoeff()+1);	
+	for(int i=0; i<pos_one.size(); i++){
+		var_names.push_back(cfg.labels[pos_one[i]]);
+		val_min[i]=cfg.val_min[pos_one[i]];
+		val_max[i]=cfg.val_max[pos_one[i]];
+		tmp.setLinSpaced(Nvals[i]+1, val_min[i], val_max[i]);
+		for(int k=0; k<tmp.size();k++){
+			var_params(i,k)=tmp[k];
+		}
+		Nvals[i]=Nvals[i]+1; // Number of values
+	}
+
+	for(int i=0; i<pos_zero.size(); i++){
+		cte_names.push_back(cfg.labels[pos_zero[i]]);
+		cte_params[i]=cfg.val_min[pos_zero[i]];
+	}
+	std::cout << "Constants: ";
+	for(int i=0; i<cte_names.size(); i++){ std::cout << cte_names[i] << "  ";}
+	std::cout << std::endl;
+
+	std::cout << "Variables: ";
+	Nvar_params=var_names.size();
+	for(int i=0; i<Nvar_params; i++){ std::cout << var_names[i] << "  ";}
+	std::cout << std::endl;
+
+	//  ------------ Generate the grid -----------
+	std::cout << "       - Generating all the requested combinations. This may take a while..." << std::endl;
+	var_params.transposeInPlace();
+	allcombi=define_all_combinations(var_params, Nvals, Nvar_params);
+	Ncombi=allcombi.rows();
+	std::cout << allcombi << std::endl;
+
+	std::cout << "Ncombi = " << Ncombi << std::endl;
+	std::cout << " -----------------------------------------------------" << std::endl;
+	std::cout << " List of all combinations written iteratively into " << std::endl;
+	std::cout << "       " <<  file_out_combi << std::endl; 
+	std::cout << " -----------------------------------------------------" << std::endl;
+
+	if(cfg.erase_old_files == 0){
+		if(file_exists(file_out_combi) == 1){
+			std::cout << "                 erase_old_files=0..." << std::endl;
+			std::cout << "                 ...Older combinatory file found!" << std::endl;
+			std::cout << "                 Name of the found file: " << file_out_combi << std::endl;
+			std::cout << "                 Reading the combinatory file in order to determince the last value of the samples..." << std::endl;
+			lastid=read_id_allcombi(file_out_combi);
+
+			//exit(EXIT_SUCCESS);
+
+		} else{
+			lastid=-1; // If no Combi file while erase_old_files is set to 1
+			std::cout << "                 erase_old_files=0..."<< std::endl;
+			std::cout << "                 ... but no older combi file was found" << std::endl;
+			std::cout << "                 The program will therefore behave as if erase_old_files=0" << std::endl;
+		}
+	} else {
+		lastid=-1; // If no Combi file while erase_old_files is set to 1
+		std::cout << "                 erase_old_files=1..."<< std::endl;
+		std::cout << "                 Note that no deleting action is performed by this program" << std::endl;
+		std::cout << "                 But any older file might be overwritten!" << std::endl;
+		std::cout << "                 Be sure to have no important previous results in the Data directory and subdirectories!" << std::endl;
+	}
+	id0=lastid+1;
+	//id0=1; // DEBUG ONLY
+
+	// CHECK FROM HERE
+	currentcombi.resize(1, pos_one.size());
+	for(int c=0; c<Ncombi; c++){
+		for(int i=0; i<pos_one.size();i++){
+			currentcombi.row(0)=allcombi.row(id0); // HERE currentcombi HAS JUST ONE LINE
+		}
+		id_str=write_allcombi(currentcombi, cte_params, cfg, file_out_combi, cfg.erase_old_files, c, id0, cte_names, var_names,  param_names); // update/write the combination file
+		std::cout << "Combination number: " << id_str  << "  (last is: " << Ncombi-1 << ")" << std::endl;
+	
+		input_params=order_input_params(cte_params, currentcombi.row(0), cte_names, var_names, param_names);
+		if(usemodels == 1){
+			pos=where_strXi(param_names, "Model_i"); // Look for the position where Model_i is given (should be 0)	
+			//std::cout << pos << std::endl;
+			if(pos[0] !=-1){
+				input_model=get_model_param(models, input_params[pos[0]], dir_freqs);
+			} else{
+				std::cout << "Could not find the column that contains the 'Model_i' (model index)" << std::endl;
+				std::cout << "Debug required. The program will exit now" << std::endl;
+				exit(EXIT_SUCCESS);
+			}
+		}
+		passed=call_model_grid(cfg.model_name, input_params, input_model, file_out_modes, file_out_noise, dir_core, id_str, cfg);
+		if(passed == 0){
+			std::cout << "Warning: The function call_model_grid did not generate any configuration file!" << std::endl;
+			std::cout << "         It is very likely that you tried to start a model in 'grid mode' while this model is not available for the grid approach" << std::endl;
+			std::cout << "         The program will stop now" << std::endl;
+			exit(EXIT_FAILURE);
+		}
+		id0=id0+1;
+		passed=0;
+	}
+
+	std::cout << "All requested tasks executed succesfully" << std::endl;
+exit(EXIT_SUCCESS);	
 }
 
-bool call_model(std::string model_name, VectorXd input_params, std::string file_out_modes, std::string file_out_noise, 
+
+
+// This is the routine that calls models that are valid on the random approach
+bool call_model_random(std::string model_name, VectorXd input_params, std::string file_out_modes, std::string file_out_noise, 
 		std::string file_cfg_mm, std::string dir_core, std::string id_str, Config_Data cfg, std::string external_path, std::string template_file){
 
 	std::string str;
@@ -546,20 +773,22 @@ bool call_model(std::string model_name, VectorXd input_params, std::string file_
 
 	if(model_name == "generate_cfg_asymptotic_act_asym_Hgauss"){
 		generate_cfg_asymptotic_act_asym_Hgauss(input_params, file_out_modes, file_out_noise);
-		//artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
 		artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
 		passed=1;
 	}
 	if(model_name =="generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma"){
 		generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma(input_params, file_out_modes,  file_out_noise, cfg.extra_params); // extra_params must points towards a .in file
-		//artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
 		artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
 		passed=1;		
 	}
 	if(model_name =="generate_cfg_from_synthese_file_Wscaled_a1a2a3asymovGamma"){
 		generate_cfg_from_synthese_file_Wscaled_a1a2a3asymovGamma(input_params, file_out_modes,  file_out_noise, cfg.extra_params); // extra_params must points towards a .in file
-		//artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
 		artificial_spectrum_a1a2a3asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
+		passed=1;		
+	}
+	if(model_name =="generate_cfg_from_synthese_file_Wscaled_a1Alma3asymovGamma"){
+		generate_cfg_from_synthese_file_Wscaled_a1Alma3asymovGamma(input_params, file_out_modes,  file_out_noise, cfg.extra_params); // extra_params must points towards a .in file
+		artificial_spectrum_a1Alma3(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
 		passed=1;		
 	}
 	if(model_name == "asymptotic_mm_v1" || model_name == "asymptotic_mm_v2" || model_name == "asymptotic_mm_v3" ||
@@ -617,6 +846,60 @@ bool call_model(std::string model_name, VectorXd input_params, std::string file_
 }
 
 
+// This is the routine that calls models that are valid on the grid approach
+bool call_model_grid(std::string model_name, VectorXd input_params, Model_data input_model, std::string file_out_modes, std::string file_out_noise, 
+		std::string dir_core, std::string id_str, Config_Data cfg){
+
+	bool passed=0;
+	std::string file_ref_star, modelID_str;
+	std::ostringstream strs;
+
+	if(model_name == "generate_cfg_asymptotic_act_asym_Hgauss"){
+		generate_cfg_asymptotic_act_asym_Hgauss(input_params, file_out_modes, file_out_noise);
+		//id_str=identifier2chain(identifier);
+		modelID_str="NONE";
+		artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
+		//artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, dir_core, id_str, modelID_str, cfg.doplots, cfg.write_inmodel);
+		passed=1;
+	}
+	if(model_name == "generate_cfg_from_refstar_HWscaled"){
+		file_ref_star=dir_core + "Configurations/ref_spectra.params"; // The spectra used for the reference star
+		generate_cfg_from_refstar_HWscaled(input_params, input_model, file_ref_star, file_out_modes, file_out_noise);
+		strs << input_model.params[0];
+		modelID_str=format_freqname(strs.str());
+		artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
+		//artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, dir_core, id_str, modelID_str, cfg.doplots, cfg.write_inmodel);
+		passed=1;
+	}
+	if(model_name == "generate_cfg_from_refstar_HWscaled_GRANscaled"){
+		file_ref_star=dir_core + "Configurations/ref_spectra.params"; // The spectra used for the reference star
+		generate_cfg_from_refstar_HWscaled_GRANscaled(input_params, input_model, file_ref_star, file_out_modes, file_out_noise);
+		strs << input_model.params[0];
+		modelID_str=format_freqname(strs.str());
+		artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
+		//artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, dir_core, id_str, modelID_str, cfg.doplots, cfg.write_inmodel);
+		passed=1;
+	}
+
+	if(model_name =="generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma"){
+		generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma(input_params, file_out_modes,  file_out_noise, cfg.extra_params); // extra_params must points towards a .in file
+		artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
+		passed=1;		
+	}
+	if(model_name =="generate_cfg_from_synthese_file_Wscaled_a1a2a3asymovGamma"){
+		generate_cfg_from_synthese_file_Wscaled_a1a2a3asymovGamma(input_params, file_out_modes,  file_out_noise, cfg.extra_params); // extra_params must points towards a .in file
+		artificial_spectrum_a1a2a3asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
+		passed=1;		
+	}
+	if(model_name =="generate_cfg_from_synthese_file_Wscaled_a1Alma3asymovGamma"){
+		generate_cfg_from_synthese_file_Wscaled_a1Alma3asymovGamma(input_params, file_out_modes,  file_out_noise, cfg.extra_params); // extra_params must points towards a .in file
+		artificial_spectrum_a1Alma3(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
+		passed=1;		
+	}
+	return passed;
+}
+
+
 // -----------------------------------------------------------------------
 // ------------------------- SECONDARY METHODS ---------------------------
 // -----------------------------------------------------------------------
@@ -655,6 +938,7 @@ std::vector<std::string> list_dir(const std::string path, const std::string exte
    	return files;
 }
 
+/*
 long read_id_allcombi(std::string file_combi){
 
 	std::string lastline;
@@ -669,12 +953,14 @@ long read_id_allcombi(std::string file_combi){
 	}
 	return str_to_long(vals_last[0]);
 }
-
-std::string read_lastline_ascii(std::string filename){
-/*
- * Code that jumps to last line and read it
- *
 */
+
+/*
+std::string read_lastline_ascii(std::string filename){
+//
+// Code that jumps to last line and read it
+//
+//
 
 	std::string line;
 	int i;
@@ -691,7 +977,9 @@ std::string read_lastline_ascii(std::string filename){
 	return lastline;
   
 }
+*/
 
+/*
 std::string write_allcombi(MatrixXd allcombi, VectorXd cte_params, Config_Data cfg, std::string fileout, bool erase_old_file, long iter, long id0, 
 		    std::vector<std::string> cte_names, std::vector<std::string> var_names, std::vector<std::string> param_names){
 	
@@ -746,59 +1034,9 @@ std::string write_allcombi(MatrixXd allcombi, VectorXd cte_params, Config_Data c
 
 	return id_str;
 }
+*/
 
-
-VectorXd order_input_params(VectorXd cte_params, VectorXd var_params, std::vector<std::string> cte_names, 
-		std::vector<std::string> var_names, std::vector<std::string> param_names){
-
-
-	VectorXd input(cte_params.size() + var_params.size());
-	VectorXd input2(cte_params.size() + var_params.size());
-	std::vector<std::string> names;
-	VectorXi order(cte_params.size() + var_params.size()), ind;
-	
-	//std::cout << "  in order_input_params..." << std::endl;
-	input.segment(0, cte_params.size())=cte_params;
-	input.segment(cte_params.size(), var_params.size())=var_params;
-
-	for(int i=0; i<cte_names.size(); i++){
-		names.push_back(cte_names[i]);
-	}
-	//std::cout << "constant size:" << cte_names.size() << std::endl;
-	
-	for(int i=0; i<var_names.size(); i++){
-		names.push_back(var_names[i]);
-	}
-	//std::cout << "names.size()=" << names.size() << std::endl;
-	for(int i=0; i<names.size(); i++){
-		//std::cout << "param_names[i]=" << param_names[i] << std::endl;
-
-		ind=where_strXi(names, strtrim(param_names[i])); // Assumes that only one value matches the criteria
-		//std::cout << "ind =" << ind << std::endl;
-		if(ind.size() == 1){
-			order[i]=ind[0];
-			input2[i]=input[order[i]];
-	
-		} else {
-			if(ind.size() == 0){
-				std::cout << "Some values of cfg.labels could not be matched with param_names" << std::endl;
-				std::cout << "Searched parameter: " << param_names[i] << std::endl;
-				std::cout << "This is likely due to a mispelling" << std::endl;
-				std::cout << "Debug is required. The program will stop now" << std::endl;
-			} else {
-				std::cout << "Problem when organizing the parameters and varialbe in the correct order" << std::endl;
-				std::cout << "Multiple identical parameter names found" << std::endl;
-				std::cout << "This is prohibited" << std::endl;
-				std::cout << "Debug required: Keywords from the main.cfg must match keywords hardcoded in the program"  << std::endl;
-				std::cout << "The program will stop now" << std::endl;
-			}
-			exit(EXIT_FAILURE);
-		}
-	}
-
-	return input2;
-}
-
+/*
 std::string identifier2chain(long identifier){
 
 	std::string out;
@@ -838,7 +1076,7 @@ std::string identifier2chain(std::string identifier){
 	}
 	return out;
 }
-
+*/
 
 void showversion()
 {

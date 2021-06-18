@@ -50,8 +50,14 @@ set(HEADERS  #_COMMON
     function_rot.h
     io_star_params.h
     noise_models.h
-    string_handler.h
-   )
+    ioproc.h
+    external/integrate/activity.h
+    linspace.h
+    combi.h
+    stellar_models.h
+    models_database_grid.h
+    format.h
+    )
 
 #Bring the core program sources into the project
 set(SOURCES_MAIN  #_COMMON
@@ -68,15 +74,23 @@ set(SOURCES_MAIN  #_COMMON
     function_rot.cpp
     io_star_params.cpp
     noise_models.cpp
-    string_handler.cpp
+    ioproc.cpp
     random_JB.cpp
+    linspace.cpp
+    combi.cpp
+    stellar_models.cpp
+    models_database_grid.cpp
+    format.cpp
+    external/integrate/activity.cpp
     )
 
 set(SOURCES_TEST_LORENTZIAN
     test_fct/lorentzian_a1a2a3_test.cpp
     function_rot.cpp
-    string_handler.cpp
+    ioproc.cpp
     build_lorentzian.cpp
+    linspace.cpp
+    external/integrate/activity.cpp
     )
 
 

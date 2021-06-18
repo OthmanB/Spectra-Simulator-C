@@ -19,7 +19,8 @@
 #include <fstream>
 #include "version_solver.h"
 #include "data.h"
-#include "string_handler.h"
+//#include "string_handler.h" // Replaced by ioproc.h on 17/06/2021
+#include "ioproc.h"
 #include "interpol.h"
 #include "noise_models.h" // get the harvey_1985 function
 #include "solver_mm.h"

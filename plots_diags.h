@@ -6,7 +6,8 @@
 #include <iomanip>
 #include "gnuplot-iostream.h"
 #include "data.h"
-#include "string_handler.h"
+//#include "string_handler.h" // REPLACED BY ioproc.h on 17/06/2021
+#include "ioproc.h"
 
 //#include <gsl/gsl_histogram.h>
 //#include <gsl/gsl_rng.h>

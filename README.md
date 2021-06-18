@@ -18,21 +18,6 @@ The best way to compile is to use cmake as it will handle automatically user-spe
 2. Enter in this new directory and run **cmake ..** 
 
 3. Transfer the created binary executable **specsim** file into the base directory of the program. 
-
-Alternatively, you can just directly use the g++ compiler. 
-
-```
-g++ -O3 -I eigen -fopenmp -lutil -lboost_iostreams -lboost_system -lboost_filesystem -lgsl -lgslcblas artificial_spectrum.cpp io_star_params.cpp build_lorentzian.cpp function_rot.cpp plots_diags.cpp iterative_artificial_spectrum.cpp models_database.cpp random_JB.cpp string_handler.cpp noise_models.cpp -o ./sim.out
-```
-
-or without openmp (MacOS compiler does not support openmp):
-```
-g++ -O3 -I eigen -lutil -lboost_iostreams -lboost_system -lboost_filesystem -lgsl -lgslcblas artificial_spectrum.cpp io_star_params.cpp build_lorentzian.cpp function_rot.cpp plots_diags.cpp iterative_artificial_spectrum.cpp models_database.cpp  random_JB.cpp string_handler.cpp noise_models.cpp -o ./sim.out
-```
-
-If you use your own installation of the Eigen Library, replace ```-I eigen``` by the proper path to it. For example if you used the ```sudo apt-get install libeigen3-dev``` (e.g. in Ubuntu):
-
-```g++ -O3 -I/usr/include/eigen3 -lutil -lboost_iostreams -lboost_system -lboost_filesystem -lgsl -lgslcblas artificial_spectrum.cpp io_star_params.cpp build_lorentzian.cpp function_rot.cpp plots_diags.cpp iterative_artificial_spectrum.cpp models_database.cpp  random_JB.cpp string_handler.cpp noise_models.cpp -o ./sim.out```
  
 ### The program ###
 
@@ -58,8 +43,9 @@ It is composed of different functions and procedures, enumerated and explained h
 	  * Save the model parameters into a [identifier].ASCII file. Allows a easy access to the configuration
 	  * Data are saved into the Data directory
 
-  3. **models_database.cpp**
+  3. **models_database.cpp and model_database_grid.cpp**
 	  * Different kind of models that can be used in order to generate the modes_tmp.cfg and noise_tmp.cfg files
+    * The grid model database is exclusively for grid. The other one contains what is available for both grid and random case
 
 ### Main Dependences ###
 	
@@ -126,6 +112,72 @@ The Harvey-like profiles have for parameters:
  
   - i : Stellar inclination, assumed constant for all modes (this is a very weak assumption and thus, very reasonable)
 		  See Gizon & Solanki 2003 (http://adsabs.harvard.edu/abs/2003ApJ...589.1009G) for further details
+
+
+###  Assumptions for the model 'generate_cfg_from_refstar_HWscaled' ###
+
+This is a generic model that use knowledge of a reference star and of stellar models in order to determine a relastic 
+simulated power spectrum
+
+**Noise:** 
+	- 2 Harvey profiles + White noise
+
+**Modes:**
+	* Heights and Widths profiles: Are given by a reference star. All of the parameters of that reference star should be in the path: [program dir]/Configurations/ref_spectra.params
+		The default reference star is the Sun. BEWARE THAT THE REFERENCE STAR CONTAINS ENOUGH MODES
+
+	* Widths: Modes widths are rescaled using a reparametrisation of the frequency axis ```\nu``` into  ```(\nu - \nu_{max})/\Delta\nu```. Then we simply rescale the y-axis such as
+		```W(n,l) = W_ref(n,l) * W_{maxHNR}/W_ref{maxHNR}```. This is similar to what was proposed in Figures of Appourchaux et al. 2014 (http://adsabs.harvard.edu/abs/2014A%26A...566A..20A)
+        
+	* Frequency: 
+		Use a set of model parameters contained into ```[program dir]/external/MESA_grid/models.params``` For test-purpose, you can use instead models_samples.params (save the original and rename 'models_samples.params' in 'models.params')
+	
+	* Rotation: The first order effect of rotation is incoroporated,
+	
+	* a1: rotational splitting as nu(n,l, m) = nu(n,l) + m a1
+  
+  * Lorentzian asymmetry: No asymmetry
+
+	* i : Stellar inclination, assumed constant for all modes (this is a very weak assumption and thus, very reasonable)
+		  See Gizon & Solanki 2003 (http://adsabs.harvard.edu/abs/2003ApJ...589.1009G) for further details
+
+
+
+###  Assumptions for the model 'generate_cfg_from_refstar_HWscaled_GRANscaled' ### 
+
+This is a generic model that use knowledge of a reference star and of stellar models in order to determine a relastic 
+simulated power spectrum.
+By allowing to use a granulation noise that scales with nu_{max}, this model is drastically reducing the parameter space.
+Typically, 1 to 2 free parameters for the noise are required. Instead of 6 (assuming the N0 is normalized to 1 in both cases).
+
+**Noise:**
+	- 1 Harvey profile that has its parameters scaled with nu_{max}. Indeed, several studies, both theoretical and observational (e.g. Mathur et al. 2011, 741:119) suggest a strong correlation of the granulation noise properties with nu_{max}. P, the maximum power of the Harvey profile scales approximately with (nu_{max})^(-2). tau, the timescale of convection scales with (nu_{max})^(-1). From this, the user of this code can set the functionnal form for P and tau as follow,
+		```P = Ap * (nu_{max})^(Bp) + Cp``` and ```tau=At * (nu_{max})^(Bt) + Ct```
+	  With the following recommendation: 
+		```Ap=At=1```
+		```Bp between 1.8 and 2.2```
+		```Bt between 0.85 and 1.15```
+		```Cp=Ct=1```
+              
+	- White noise
+
+Modes (same as for 'generate_cfg_from_refstar_HWscaled') :
+	- Heights and Widths profiles: Are given by a reference star. All of the parameters of that reference star should be in the path: [program dir]/Configurations/ref_spectra.params
+		The default reference star is the Sun. BEWARE THAT THE REFERENCE STAR CONTAINS ENOUGH MODES
+
+	- Widths: Modes widths are rescaled using a reparametrisation of the frequency axis \nu into  (\nu - \nu_{max})/\Delta\nu. Then we simply rescale the y-axis such as
+		W(n,l) = W_ref(n,l) * W_{maxHNR}/W_ref{maxHNR}. This is similar to what was proposed in Figures of Appourchaux et al. 2014 (http://adsabs.harvard.edu/abs/2014A%26A...566A..20A)
+        
+	- Frequency: 
+		Use a set of model parameters contained into [program dir]/external/MESA_grid/models.params
+		For test-purpose, you can use instead models_samples.params (save the original and rename 'models_samples.params' in 'models.params')
+	
+	- Rotation: The first order effect of rotation is incoroporated,
+		- a1: rotational splitting as nu(n,l, m) = nu(n,l) + m a1
+        - Lorentzian asymmetry: No asymmetry
+	- i : Stellar inclination, assumed constant for all modes (this is a very weak assumption and thus, very reasonable)
+		  See Gizon & Solanki 2003 (http://adsabs.harvard.edu/abs/2003ApJ...589.1009G) for further details
+
 
 
 ### Assumptions for the model 'asymptotic_mm_v1' ###

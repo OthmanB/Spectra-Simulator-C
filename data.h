@@ -27,6 +27,13 @@ struct Data_Nd{
 	std::vector<std::string> units;
 };
 
+struct Model_data{
+    VectorXd params; // 1D array with the data for one single model from the read text file.
+    std::vector<std::string> labels_params; // Name of the parameters within params
+    MatrixXd freqs; // Table of frequencies with (l,n)
+    std::vector<std::string> labels_freqs;
+};
+
 struct gnuplt_Data {
 /*
  * This is an encapsulator for data when ploting with gnuplot-iostream.h
