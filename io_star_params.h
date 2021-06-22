@@ -15,6 +15,7 @@
 # include "data.h" // contains the structure Data
 # include <fstream>
 # include <string>
+# include "ioproc.h"
 
 using Eigen::VectorXd;
 using Eigen::VectorXi;
@@ -34,11 +35,16 @@ void write_star_params_Alm(VectorXd spec_params, MatrixXd mode_params, MatrixXd 
 void write_star_mode_params_Alm(MatrixXd mode_params, std::string file_out);
 void write_star_noise_params(MatrixXd noise_params, std::string file_out);
 void write_range_modes(Cfg_synthetic_star cfg_star, Params_synthetic_star params, std::string output_file);
-void write_spectrum(VectorXd x, VectorXd y, VectorXd z, std::string file_out, bool write_inmodel);
-void write_spectrum_v2(const VectorXd x, const VectorXd y, const VectorXd z, const double scoef1, double scoef2, const std::string file_out);
+void write_spectrum(VectorXd x, VectorXd y, VectorXd z, std::string file_out, bool write_inmodel); // Alias of the write_spectrum() below, but with fmin=-1, fmax=-1 (de facto optional parameterss)
+void write_spectrum(const VectorXd x, const VectorXd y, const VectorXd z, const std::string file_out, const bool write_inmodel, const double fmin, const double fmax); 
+void write_spectrum(const VectorXd x, const VectorXd y, const VectorXd z, const double scoef1, double scoef2, const std::string file_out);
+VectorXd write_star_model(const MatrixXd mode_params, const MatrixXd noise_params, const std::string file_out, 
+                          const std::string identifier, const std::string modelname);
 MatrixXd bumpoutputs_2_MatrixXd(Params_synthetic_star params, double inc);
 Config_Data read_main_cfg(std::string cfg_file);			
 Data_Nd read_data_ascii_Ncols(const std::string file_in_name, const std::string delimiter, const bool verbose_data);
 Star_params read_star_params(const std::string file_in_name);
 VectorXd smooth(VectorXd in, double scoef);
 
+
+void convert_in_to_model(const std::string file_out, const std::string identifier);

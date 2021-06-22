@@ -249,22 +249,26 @@ void artificial_spectrum_a1a2a3asym(const double Tobs, const double Cadence, con
 }
 
 
-void artificial_spectrum_a1Alma3(const double Tobs, const double Cadence, const double Nspectra, const long Nrealisation, const std::string dir_core, const std::string identifier, const bool doplots, const bool write_inmodel){
+void artificial_spectrum_a1Alma3(const double Tobs, const double Cadence, const double Nspectra, const long Nrealisation, const std::string dir_core,
+							    const std::string identifier, const bool doplots, const bool write_inmodel, const bool domodelfiles, 
+							    const bool limit_data_range, const std::string modelname){
+
+	const bool verbose_data=0; // SET TO 1 IF YOU WANT MORE INFO ABOUT WHAT IS READ
+	const int common_case=0; // Case identifying this scenario
+	const std::string delimiter=" ";
+	const std::string file_in_modes=dir_core + "Configurations/tmp/modes_tmp.cfg";	
+	const std::string file_in_noise=dir_core + "Configurations/tmp/noise_tmp.cfg";
 
 	// General variables
-	Data_Nd data_modes, data_noise;
-	std::string file_in_modes=dir_core + "Configurations/tmp/modes_tmp.cfg";
-	std::string file_in_noise=dir_core + "Configurations/tmp/noise_tmp.cfg";
 	std::string fileout_spectrum;
 	std::string fileout_params;
-	std::string fileout_plot;
-
-	const std::string delimiter=" ";
-	const bool verbose_data=0; // SET TO 1 IF YOU WANT MORE INFO ABOUT WHAT IS READ
+	std::string fileout_plot;	
+	std::string file_out_modelfile;	
+	
 	int Ndata;
 	double df, Delta, scoef1, scoef2;
-	VectorXd freq;
-
+	Data_Nd data_modes, data_noise;
+	
 	// Initialize the random generators 
  	boost::mt19937 *rng = new boost::mt19937();
   	rng->seed(time(NULL));
@@ -272,12 +276,13 @@ void artificial_spectrum_a1Alma3(const double Tobs, const double Cadence, const 
  	boost::normal_distribution<> distribution(0, 1);
   	boost::variate_generator< boost::mt19937, boost::normal_distribution<> > dist(*rng, distribution);
 	
-
 	// Variable of the models
 	int l;
 	double fc_l, H_l, gamma_l, f_s, eta0, a3, beta_asym, angle_l, H, tau, p, epsilon_nl;
 	double F1, F2;
-	VectorXd ratios, thetas(2), s_mode, spec_modes, spec_noise, s_noise, ones, input_spec_model, spec_reg, stmp;
+	VectorXd ratios, thetas(2), s_mode, mode_range(2),spec_modes, spec_noise, s_noise, ones, input_spec_model, freq, spec_reg, stmp;
+
+	mode_range << -1, -1; // Initialise the range to invalid values
 
 	data_modes=read_data_ascii_Ncols(file_in_modes, delimiter, verbose_data);
 	data_noise=read_data_ascii_Ncols(file_in_noise, delimiter, verbose_data);
@@ -329,8 +334,9 @@ void artificial_spectrum_a1Alma3(const double Tobs, const double Cadence, const 
     stmp.resize(Ndata);
 	//const int Nrealisation=2;
 	for (int nr=0; nr<Nrealisation; nr++){
-		fileout_spectrum=dir_core + "Data/Spectra_ascii/" + strtrim(identifier)  + "." + int_to_str(nr) + ".ascii";
+		fileout_spectrum=dir_core + "Data/Spectra_ascii/" + strtrim(identifier)  + "." + int_to_str(nr) + ".data";
 		fileout_plot=dir_core + "Data/Spectra_plot/" + strtrim(identifier) + "." + int_to_str(nr) + ".eps" ;
+		file_out_modelfile=dir_core + "Data/Spectra_modelfile/" + strtrim(identifier) + "." + int_to_str(nr) + ".model" ;
 
     	std::cout << "    ["<< nr+1 << "/" << Nrealisation << "]" << std::endl;
     	std::cout << "        - Simulating a stochastic noise with chi(2,2p) statistics (p=" << std::floor(Nspectra) << ")..." << std::endl;
@@ -346,8 +352,16 @@ void artificial_spectrum_a1Alma3(const double Tobs, const double Cadence, const 
     	}
     	std::cout << "Done" << std::endl;
 
+    	if (domodelfiles==1){
+    		std::cout << "        - Saving the model file" << std::endl;
+    		mode_range=write_star_model(data_modes.data, data_noise.data, file_out_modelfile, identifier, modelname);
+  			if (limit_data_range == 0){ // Reset the mode_range if the full range was requested
+  				mode_range[0] =-1;
+  				mode_range[1] =-1;
+			}
+    	}
 		std::cout << "        - Saving the spectrum..." << std::endl;
-		write_spectrum(freq, spec_reg, input_spec_model, fileout_spectrum, write_inmodel);
+		write_spectrum(freq, spec_reg, input_spec_model, fileout_spectrum, write_inmodel, mode_range[0], mode_range[1]);
 
     	if(doplots == 1 ){
     	    std::cout << "        - Generating a plot of the spectrum..." << std::endl;

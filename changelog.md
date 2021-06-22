@@ -4,7 +4,11 @@
 	* Added functionalities:
 		- Implement the new model generate_cfg_from_synthese_file_Wscaled_a1Alma3asymovGamma: Handling simulations with Activity effect on splittings using Alm() function
                 - Adding the grid approach within this code: NOTE THAT THERE MIGHT BE SOME BUGS HERE
-
+                - Adding new functionalities to the configuration file: 
+                	* do_modelfiles : If set to 1, it will make a .model file adequate for the TAMCMC code
+                	* limit_data_range: If set to 1, it will limit the data file to the range where there is modes +/- 2*Dnu. Can hugely save space for large simulations
+                	NOTE: This functionality is only valid for "artificial_spectrum_a1Alma3"
+                	
 ### v0.9.1 [100%] ###
 	* Added functionalities:
 		- Implement on generate_cfg_from_synthese_file_Wscaled_a1a2a3asymovGamma: Handling simulation for a2 coeficient and a3 considering polynomials O2 for those

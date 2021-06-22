@@ -49,6 +49,7 @@ set(HEADERS  #_COMMON
     build_lorentzian.h
     function_rot.h
     io_star_params.h
+    io_star_common.h
     noise_models.h
     ioproc.h
     external/integrate/activity.h
@@ -73,6 +74,7 @@ set(SOURCES_MAIN  #_COMMON
     build_lorentzian.cpp
     function_rot.cpp
     io_star_params.cpp
+    io_star_common.cpp
     noise_models.cpp
     ioproc.cpp
     random_JB.cpp

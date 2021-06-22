@@ -64,7 +64,10 @@ struct Config_Data{
 	bool erase_old_files; // if set to 1 any older of same name will be erased
     bool doplots; // if set to 0, no plots
     bool write_inmodel; // if set to 0, output ascii file does not contain a column with the input model
-	std::string model_name;
+    bool limit_data_range;
+    bool do_modelfiles;
+    std::string modefile_modelname; // model name writen within the model file
+	std::string model_name; // model Name within this program
 	std::string forest_type;
     std::string extra_params; // Any kind of extra parameters that would be encoded in a string (e.g. filenames separated by " ")
     std::vector<std::string> template_files; // List of template files used to determine Height and widths. If none, set to None

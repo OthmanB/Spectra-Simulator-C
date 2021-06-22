@@ -14,9 +14,12 @@
 # include <vector>
 #include <string>
 #include "io_star_params.h"
+#include "io_star_common.h"
 //#include "string_handler.h" // Replaced by ioproc.h on 17/06/2021
 #include "ioproc.h"
-//#include "data.h"
+#include "linfit.h"
+# include "ioproc.h"
+#include "linspace.h"
 
 using Eigen::VectorXd;
 using Eigen::VectorXi;
@@ -30,7 +33,7 @@ void write_star_params_a1a2a3asym(VectorXd spec_params, MatrixXd mode_params, Ma
 	outfile.open(file_out.c_str());
     
     if(outfile.is_open()){
-		// ---------------------
+		// -------------------	--
 		Nchars_spec << 20, 20;
 		precision_spec << 10, 10;
 
@@ -337,14 +340,165 @@ void write_range_modes(Cfg_synthetic_star cfg_star, Params_synthetic_star params
 	outfile.close();
 }
 
-void write_spectrum(VectorXd x, VectorXd y, VectorXd z, std::string file_out, bool write_inmodel){
 
-	VectorXi Nchars(3), precision(3);
+// Procedure that write a MCMC file, suited for my CPP MCMC program
+// This MCMC file is on the Main-Sequence format (not suitable for my MCMC code for fitting evolved stars)
+// Here file_cfg_common_params is a file that contain a pre-formated text with the common parameters to be used 
+VectorXd write_star_model(const MatrixXd mode_params, const MatrixXd noise_params, const std::string file_out,
+													const std::string identifier, const std::string modelname){
+
+	// Calculates Dnu and C_l from the list of l=0 frequencies
+	const std::string type_mode="p";
+	const int err =1;
+	bool passed=0;
+	int cpt;
+	long double n0, Dnu, C_l, Nmodes, lmax;
+	std::string chain="";
+	std::vector<double> noise_s2;
+	VectorXi po, l0=where_dbl(mode_params.col(0), 0, 0.001);
+	VectorXd nu0(l0.size());
+	VectorXd xfit, yfit, mode_range(2),f;
+	VectorXd priors(6);
+	priors << 0, 0, 0, 0, 0, 0;
+
+	VectorXi Nchars(6), precision(6);
+	Nchars    << 5, 20, 20, 20, 20, 20;
+	precision << 0, 10, 10, 10, 10, 10;
+
+	std::ofstream outfile;
+
+	for(int i=0;i<l0.size();i++){nu0[i]=mode_params(l0[i],1);}
+	
+	xfit=linspace(0, nu0.size()-1, nu0.size());
+	yfit=linfit(xfit, nu0);
+	Dnu=yfit[0];
+	n0=floor(yfit[1]/Dnu);
+	C_l=yfit[1]-n0*Dnu; //this should be epsilon*Dnu
+
+	mode_range << mode_params.col(1).minCoeff() - 2*Dnu, mode_params.col(1).maxCoeff() +2*Dnu;
+	lmax=mode_params.col(0).maxCoeff();
+	
+	outfile.open(file_out.c_str());
+	if(outfile.is_open()){
+		outfile << "#KIC="  << identifier << std::endl;
+		outfile << "!n -9999.   # numax (optional and used only in some models. See docs). Set to -9999 if not used or remove the whole line" << std::endl;
+		outfile <<  "!" << Dnu << std::endl;
+		outfile << "!!" << C_l << std::endl;
+		outfile << "* " << mode_range[0] << " " << mode_range[1] << std::endl;
+		outfile << "# type / l / value / relax_f / relax_H / relax_W" << std::endl;
+		for(int el=0; el<=lmax; el++){
+			po=where_dbl(mode_params.col(0), el, 0.001); //where(mode_params.col(0), el);
+			for(int i=0; i<po.size(); i++){
+				outfile << type_mode << "  " << el << "  " << mode_params(po[i],1) << "  1      1     1" << std::endl;
+			}
+		}
+		outfile << "# hyper priors" << std::endl;
+		outfile << "#  Extra parameters (obselete)" << std::endl;
+		outfile << priors << std::endl;
+		// in the order : l / nu / window_min / Window_max / Gamma / H
+		outfile << "# Eigen solution input parameters: l / nu / window_min / Window_max / Gamma / H" << std::endl;
+		for(int i=0; i<mode_params.rows(); i++){
+				outfile << std::setw(Nchars[0]) << std::setprecision(precision[0]) << mode_params(i,0); // l
+				outfile << std::setw(Nchars[1]) << std::setprecision(precision[1]) << mode_params(i,1); // nu
+				outfile << std::setw(Nchars[2]) << std::setprecision(precision[2]) << mode_params(i,1) - mode_params(i,3) - mode_params(i,4); // win_min= nu - width - splitting
+				outfile << std::setw(Nchars[3]) << std::setprecision(precision[3]) << mode_params(i,1) + mode_params(i,3) + mode_params(i,4); // win_max= nu + width + splitting
+				outfile << std::setw(Nchars[4]) << std::setprecision(precision[4]) << mode_params(i,3); // width
+				outfile << std::setw(Nchars[5]) << std::setprecision(precision[5]) << mode_params(i,2); // height
+				outfile << std::endl;
+		}
+		outfile << "# Noise parameters: A0/B0/p0, A1/B1/p1, A2/B2/p2, N0" << std::endl;
+		cpt=0;
+		for (int i=0; i<noise_params.rows(); i++){
+			for (int j=0; j<noise_params.cols(); j++){
+				if (noise_params(i,j) != -2 && noise_params(i,j) !=-1){
+					outfile << std::setw(10) << std::setprecision(4) << noise_params(i,j);
+					noise_s2.push_back(noise_params(i,j));
+				}
+				if (noise_params(i,j) ==-1){
+					if(cpt<2){
+						chain = chain + "    0       ";
+						noise_s2.push_back(0);
+						cpt=cpt+1;
+					} else{
+						chain = chain + "1";
+						noise_s2.push_back(1);
+						outfile << chain;
+						chain="";
+						cpt=0;
+					}
+				}
+			}
+			outfile << std::endl;
+		}
+		outfile << "# Noise Info from output_s2 (use as priors): params / err_m / err_p" << std::endl;
+		for(int i=0; i<noise_s2.size(); i++){
+			if(noise_s2[i] != -1){
+				outfile << noise_s2[i] << std::setw(10) << std::setprecision(4) << noise_s2[i] - noise_s2[i]*0.1 
+			      		               << std::setw(10) << std::setprecision(4) << noise_s2[i] + noise_s2[i]*0.1 << std::endl;
+			} else {
+				outfile << noise_s2[i] << "  -1.0000 -1.0000" << std::endl;
+			}
+		}
+		passed=0;
+		if (modelname == "model_MS_Global_a1etaAlma3_HarveyLike"){
+			  common_model_MS_Global_a1etaAlma3_HarveyLike(outfile, mode_params);
+				passed=1;
+		}
+		if (modelname == "model_MS_Global_a1a2a3_HarveyLike"){
+				common_model_MS_Global_a1a2a3_HarveyLike(outfile, mode_params);
+				passed=0;
+				std::cout << "This modelname was not tested for the creation of .model files" << std::endl;
+				std::cout << "You need to perform checks to verify that the .model file is created properly before pursuing" << std::endl;
+				std::cout << "The program will exit now after having created a single .model file that you could check" << std::endl;
+				std::cout << "Once you are satisfied, you can erase the section showing this message and set passed=1" << std::endl;
+		}
+	outfile.close();
+
+	} else{
+		std::cout << "Error: Could not write files on : " << file_out << std::endl;
+		std::cout << "       Check that the patch exists" << std::endl;
+		std::cout << "       The program will exit now"   << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	if (passed == 0){
+		std::cout << " Model name invalid or model not yet tested" << std::endl;
+		std::cout << " The program will exit now" << std::endl;
+		exit(EXIT_SUCCESS);
+	}
+	//exit(EXIT_SUCCESS);
+	return mode_range;
+}
+
+// To convert the .in files into .model files that can be handled with the CPP TAMCMC
+void convert_in_to_model(const std::string file_out, const std::string identifier){
+
+	std::cout << "NEED TO BE WRITTEN" << std::endl;
+  
+}
+
+void write_spectrum(const VectorXd x, const VectorXd y, const VectorXd z, const std::string file_out, const bool write_inmodel){
+	write_spectrum(x, y, z, file_out, write_inmodel, -1, -1);
+}
+
+void write_spectrum(const VectorXd x, const VectorXd y, const VectorXd z, const std::string file_out, const bool write_inmodel, const double fmin, const double fmax){
+
+	int imin, imax;
+
+	VectorXi Nchars(3), precision(3), valid_range;
 
 	std::ofstream outfile;
 
 	Nchars << 20, 20, 20;
 	precision << 10, 10, 7;
+
+	if(fmin <0 || fmax <0 || fmax < fmin){ // If there is an invalid range then write all data
+		imin=0;
+		imax=x.size();
+	} else{
+		valid_range=where_in_range(x, fmin, fmax, 0);
+		imin=valid_range.minCoeff();
+		imax=valid_range.maxCoeff();
+	}
 
 	outfile.open(file_out.c_str());
 	if(outfile.is_open()){
@@ -354,8 +508,8 @@ void write_spectrum(VectorXd x, VectorXd y, VectorXd z, std::string file_out, bo
         } else{
             outfile << "#       freq (microHz)    spectrum (ppm2/microHz)" << std::endl;
         }
-        
-		for(int i=0; i<x.size(); i++){
+     
+		for(int i=imin; i<imax; i++){
 			outfile << std::setw(Nchars[0]) << std::setprecision(precision[0]) << x[i];
 			outfile << std::setw(Nchars[1]) << std::setprecision(precision[1]) << y[i];
 			if(write_inmodel == 1){
@@ -374,7 +528,7 @@ void write_spectrum(VectorXd x, VectorXd y, VectorXd z, std::string file_out, bo
 
 }
 
-void write_spectrum_v2(const VectorXd x, const VectorXd y, const VectorXd z, const double scoef1, double scoef2, const std::string file_out){
+void write_spectrum(const VectorXd x, const VectorXd y, const VectorXd z, const double scoef1, double scoef2, const std::string file_out){
 /* 
  * Same as write_spectrum, but we add two columns with values for the smooth of the vector y using a boxcar
  * With a smooth coeficient scoef1 (column 2) or scoef2 (column 3).
@@ -834,73 +988,6 @@ std::string rem_comments(std::string str0, std::string terminator){
 	return str_out;
 }
 
-/*bool str_to_bool(const std::string str){
-
-	bool bool_out;
-
-	std::stringstream(strtrim(str)) >> bool_out;
-return bool_out;
-}
-*/
-
-//std::vector<double> str_to_arrdbl(const std::string str, const std::string delimiters){
-	/* 
-	 * Used to extract arrays of values from a string. 
-	 * The terminator indicates the symbol that indicate the end of a line (beyond it is comments)
-	 * The delimiter indicates how the values are separated (e.g. with a "," or with " ")
-	*/
-/*	std::string str0;
-	std::vector<std::string> vals_strs;
-	std::vector<double> dbl_out;
-
-	str0=strtrim(str); // remove blanks and convert to a stream
-
-	vals_strs=strsplit(str0, delimiters); // get all values in a string
-	
-	dbl_out.resize(vals_strs.size());
-	for (int i=0; i<vals_strs.size(); i++){
-		std::stringstream(vals_strs[i]) >> dbl_out[i];
-	}
-
-	return dbl_out;
-}
-*/
-
-//std::vector<double> arrstr_to_arrdbl(const std::vector<std::string> vals_strs){
-	/* 
-	 * Used to extract arrays of values from a string. 
-	 * The terminator indicates the symbol that indicate the end of a line (beyond it is comments)
-	 * The delimiter indicates how the values are separated (e.g. with a "," or with " ")
-	*/
-
-/*	std::vector<double> dbl_out;
-
-	dbl_out.resize(vals_strs.size());
-	for (int i=0; i<vals_strs.size(); i++){
-		std::stringstream(vals_strs[i]) >> dbl_out[i];
-	}
-
-	return dbl_out;
-}
-*/
-
-/*double str_to_dbl(const std::string str){
-
-	double dbl_out;
-
-	std::stringstream(strtrim(str)) >> dbl_out;
-return dbl_out;
-}
-
-long str_to_lng(const std::string str){
-
-	long lng_out;
-
-	std::stringstream(strtrim(str)) >> lng_out;
-return lng_out;
-}
-*/
-
 Config_Data read_main_cfg(std::string cfg_file){
 
 	int cpt, cptmax;
@@ -982,13 +1069,20 @@ Config_Data read_main_cfg(std::string cfg_file){
 			std::getline(file_in, line0);		
 			cfg.erase_old_files=str_to_bool(rem_comments(line0, "#"));
 
-            std::getline(file_in, line0);
-            cfg.doplots=str_to_bool(rem_comments(line0, "#"));
+      std::getline(file_in, line0);
+      cfg.doplots=str_to_bool(rem_comments(line0, "#"));
 
-            std::getline(file_in, line0);
-            cfg.write_inmodel=str_to_bool(rem_comments(line0, "#"));
+      std::getline(file_in, line0);
+      cfg.write_inmodel=str_to_bool(rem_comments(line0, "#"));
 
+      std::getline(file_in, line0);
+      cfg.limit_data_range=str_to_bool(rem_comments(line0, "#"));
 
+      std::getline(file_in, line0);
+      tmp_vec_str=strsplit(rem_comments(line0, "#"), " "); // split the line into segments of strings
+
+      cfg.do_modelfiles=str_to_bool(tmp_vec_str[0]);
+      cfg.modefile_modelname=strtrim(tmp_vec_str[1]);
 			file_in.close();
 	} else {
 		std::cout << "Could not open the configuration file!" << std::endl;

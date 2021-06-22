@@ -619,7 +619,7 @@ void generate_grid(Config_Data cfg, bool usemodels, Data_Nd models, std::vector<
 	bool neg=0, passed=0;
 	int i, ii, Nvar_params;
 	long lastid, id0, Ncombi;
-	std::string id_str;
+	std::string id_str, str_tmp;
 	VectorXi pos, Nvals; // May have to use a Xd when dealing with the round off
 	VectorXd tmp, cte_params, val_min, val_max, steps, input_params, delta;
 	MatrixXd var_params, currentcombi, allcombi;
@@ -755,10 +755,18 @@ void generate_grid(Config_Data cfg, bool usemodels, Data_Nd models, std::vector<
 		}
 		id0=id0+1;
 		passed=0;
+
+		// Erasing the temporary files to avoid those to be loaded at vitam eternam if an error in their generetation at step c=c_err happens
+		str_tmp="rm " + file_out_modes;	
+		const char *cmd1 = str_tmp.c_str(); 
+		system(cmd1);
+		str_tmp="rm " + file_out_noise;	
+		const char *cmd2 = str_tmp.c_str(); 
+		system(cmd2);
 	}
 
 	std::cout << "All requested tasks executed succesfully" << std::endl;
-exit(EXIT_SUCCESS);	
+//exit(EXIT_SUCCESS);	
 }
 
 
@@ -788,7 +796,8 @@ bool call_model_random(std::string model_name, VectorXd input_params, std::strin
 	}
 	if(model_name =="generate_cfg_from_synthese_file_Wscaled_a1Alma3asymovGamma"){
 		generate_cfg_from_synthese_file_Wscaled_a1Alma3asymovGamma(input_params, file_out_modes,  file_out_noise, cfg.extra_params); // extra_params must points towards a .in file
-		artificial_spectrum_a1Alma3(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
+		artificial_spectrum_a1Alma3(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, 
+									cfg.write_inmodel, cfg.do_modelfiles, cfg.limit_data_range, cfg.modefile_modelname);
 		passed=1;		
 	}
 	if(model_name == "asymptotic_mm_v1" || model_name == "asymptotic_mm_v2" || model_name == "asymptotic_mm_v3" ||
@@ -893,7 +902,8 @@ bool call_model_grid(std::string model_name, VectorXd input_params, Model_data i
 	}
 	if(model_name =="generate_cfg_from_synthese_file_Wscaled_a1Alma3asymovGamma"){
 		generate_cfg_from_synthese_file_Wscaled_a1Alma3asymovGamma(input_params, file_out_modes,  file_out_noise, cfg.extra_params); // extra_params must points towards a .in file
-		artificial_spectrum_a1Alma3(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
+		artificial_spectrum_a1Alma3(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, 
+									cfg.write_inmodel, cfg.do_modelfiles, cfg.limit_data_range, cfg.modefile_modelname);
 		passed=1;		
 	}
 	return passed;

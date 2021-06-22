@@ -99,7 +99,7 @@ void gnuplt_model(VectorXd x, VectorXd y, VectorXd model, double scoef1, double 
 
     //std::cout << "              - Write star params..." << std::endl;
 
-    write_spectrum_v2(x, y, model, scoef1, scoef2, filename_txt_spectrum); // This function is inside the file 'write_star_params.cpp'
+    write_spectrum(x, y, model, scoef1, scoef2, filename_txt_spectrum); // This function is inside the file 'write_star_params.cpp'
 
     //std::cout << "              - Ploting..." << std::endl;
 
