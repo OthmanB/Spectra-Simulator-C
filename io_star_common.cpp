@@ -47,8 +47,8 @@ void common_model_MS_Global_a1a2a3_HarveyLike(std::ofstream& outfile, const Matr
 	const std::string modelname="model_MS_Global_a1a2a3_HarveyLike";
 	double maxHeight=1000.;
 
-	if (mode_params.col(5).maxCoeff()>1000.){
-		maxHeight=mode_params.col(5).maxCoeff()*10;
+	if (mode_params.col(2).maxCoeff()>1000.){
+		maxHeight=mode_params.col(2).maxCoeff()*10;
 	}
 
 	outfile << "# Configuration for all common parameters. Check the program for a list of known keywords" << std::endl;
@@ -73,8 +73,8 @@ void common_model_MS_Global_a1etaAlma3_HarveyLike(std::ofstream& outfile, const 
 	const std::string modelname="model_MS_Global_a1etaAlma3_HarveyLike";
 	double maxHeight=1000.;
 
-	if (mode_params.col(5).maxCoeff()>1000.){
-		maxHeight=mode_params.col(5).maxCoeff()*10;
+	if (mode_params.col(2).maxCoeff()>1000.){
+		maxHeight=mode_params.col(2).maxCoeff()*10;
 	}
 	outfile << "# Configuration for all common parameters. Check the program for a list of known keywords" << std::endl;
 	outfile << "           model_fullname             " <<  modelname << std::endl;
@@ -91,7 +91,7 @@ void common_model_MS_Global_a1etaAlma3_HarveyLike(std::ofstream& outfile, const 
 	outfile << " Visibility_l1         Gaussian         1.5       1.5      0.05"  << std::endl;
 	outfile << " Visibility_l2         Gaussian         0.53      0.53     0.05"  << std::endl;
 	outfile << " Visibility_l3         Gaussian         0.08      0.08     0.02"  << std::endl;
-	outfile << " Height                Jeffreys         1.000000          "<< maxHeight  << std::endl;
+	outfile << " Height                Jeffreys         1.000000          "<< std::setprecision(4) << maxHeight  << std::endl;
 	outfile << " Width                 Fix_Auto         1"  << std::endl;
 	outfile << " trunc_c               40" << std::endl;
 

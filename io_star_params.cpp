@@ -382,8 +382,8 @@ VectorXd write_star_model(const MatrixXd mode_params, const MatrixXd noise_param
 	if(outfile.is_open()){
 		outfile << "#KIC="  << identifier << std::endl;
 		outfile << "!n -9999.   # numax (optional and used only in some models. See docs). Set to -9999 if not used or remove the whole line" << std::endl;
-		outfile <<  "!" << Dnu << std::endl;
-		outfile << "!!" << C_l << std::endl;
+		outfile <<  "! " << Dnu << std::endl;
+		outfile << "!! " << C_l << std::endl;
 		outfile << "* " << mode_range[0] << " " << mode_range[1] << std::endl;
 		outfile << "# type / l / value / relax_f / relax_H / relax_W" << std::endl;
 		for(int el=0; el<=lmax; el++){
