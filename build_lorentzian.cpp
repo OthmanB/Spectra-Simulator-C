@@ -178,8 +178,9 @@ VectorXd build_l_mode_a1etaAlma3(const VectorXd& x_l, const double H_l, const do
                 clm=(pow(m,3)-7*m)/2; // a3 implemented on 30/04/2021
             }
             CF_term=eta0*Dnl*pow(f_s*1e-6,2)*Qlm; //(4./3.)*pi*Dnl*pow(a1*1e-6,2.)/(rho*G);
-            AR_term=epsilon_nl*Alm(l, m, thetas[0], thetas[1], "gate");
-
+            AR_term=epsilon_nl*Alm(l, m, thetas[0]*M_PI/180., thetas[1]*M_PI/180., "gate");
+            //std::cout << thetas << std::endl;
+            //exit(EXIT_SUCCESS);
             //std::cout << "(" << l << "," << m << ") : " << "d_CF=" << CF_term*fc_l  << "            d_AR=" << AR_term*fc_l  << "         m.a1=" << m*f_s << std::endl;
             profile=(x_l - tmp.setConstant(fc_l*(1. + CF_term + AR_term) + m*f_s + clm*a3)).array().square();
             profile=4*profile/pow(gamma_l,2);

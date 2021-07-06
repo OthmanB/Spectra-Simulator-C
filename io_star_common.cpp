@@ -66,7 +66,7 @@ void common_model_MS_Global_a1a2a3_HarveyLike(std::ofstream& outfile, const Matr
 	outfile << "Visibility_l3     Gaussian       0.08      0.08     0.02"  << std::endl;
 	outfile << "Height     Jeffreys       1.000000          "<< maxHeight  << std::endl;
 	outfile << "Width      Fix_Auto       1"  << std::endl;
-	outfile << "trunc_c      75" << std::endl;
+	outfile << "trunc_c      50" << std::endl;
 }
 
 void common_model_MS_Global_a1etaAlma3_HarveyLike(std::ofstream& outfile, const MatrixXd& mode_params){
@@ -83,8 +83,8 @@ void common_model_MS_Global_a1etaAlma3_HarveyLike(std::ofstream& outfile, const 
     outfile << " epsilon_0             Uniform          0.001000          -0.010000          0.010000" << std::endl; // We only test here the detection of a mean epsilon
     outfile << " epsilon_1             Fix              0.000000         " << std::endl; // This would be to test a slope in epsilon (set to 0 in here)
     outfile << " epsilon_2             Fix              0.000000         " << std::endl; // This would be to test a 2nd Order polynomial in epsilon (set to 0 in here)
-    outfile << " theta0                Uniform          " << mode_params.col(7).mean() << "         0.000000          3.141592653589793" << std::endl; // Location of the active regions
-    outfile << " Dtheta                Uniform          " << mode_params.col(8).mean() << "         0.000000         1.047197551196598" << std::endl; // Extent of the active region. Max is pi/3
+    outfile << " theta0                Uniform          " << mode_params.col(7).mean()*M_PI/180. << "         0.000000          3.141592653589793" << std::endl; // Location of the active regions
+    outfile << " Dtheta                Uniform          " << mode_params.col(8).mean()*M_PI/180. << "         0.000000         1.047197551196598" << std::endl; // Extent of the active region. Max is pi/3
     write_a3_key(outfile, mode_params, 1, 0);
     write_asym_key(outfile, 0, 0); // We introduce the asymetry as it can interfer with a2 distorsion measurements
     outfile << " Inclination           Uniform          " << mode_params.col(11).mean() <<  "0.000000          90.000000" << std::endl;
@@ -93,7 +93,7 @@ void common_model_MS_Global_a1etaAlma3_HarveyLike(std::ofstream& outfile, const 
 	outfile << " Visibility_l3         Gaussian         0.08      0.08     0.02"  << std::endl;
 	outfile << " Height                Jeffreys         1.000000          "<< maxHeight  << std::endl;
 	outfile << " Width                 Fix_Auto         1"  << std::endl;
-	outfile << " trunc_c               75" << std::endl;
+	outfile << " trunc_c               40" << std::endl;
 
 }
 
