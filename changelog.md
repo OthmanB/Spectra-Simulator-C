@@ -1,6 +1,15 @@
 # Version history #
 
-### v1.0.0-dev###
+### v1.0.1-dev ### [IN PROGRESS]
+	* Bug fixes and improvments:
+		- generate_cfg_from_synthese_file_Wscaled_a1Alma3asymovGamma():
+			* Renaming to generate_cfg_from_synthese_file_Wscaled_ajAlmovGamma()
+			* Fixing error in the Alm computation + optimisation following the latest release of acoef_checks
+			* Possibility to use of all of aj coefficient up to a6 
+	* Improvments:
+		- Grid approach now handles *ajAlmovGamma() model type
+		- Update of build_lorentzian.* to the latest version from the cpp and adding dependences. Large code-quality improvments
+### v1.0.0-dev ###
 	* Added functionalities:
 		- Implement the new model generate_cfg_from_synthese_file_Wscaled_a1Alma3asymovGamma: Handling simulations with Activity effect on splittings using Alm() function
                 - Adding the grid approach within this code: NOTE THAT THERE MIGHT BE SOME BUGS HERE
