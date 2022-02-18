@@ -21,19 +21,16 @@ using Eigen::VectorXd;
 using Eigen::VectorXi;
 using Eigen::MatrixXd;
 
-//bool str_to_bool(const std::string str);
-//long str_to_lng(const std::string str);
-//double str_to_dbl(const std::string str);
-//std::string strtrim(const std::string& str);
-//std::vector<std::string> strsplit(const std::string str, const std::string delimiters);
-//bool file_exists(const std::string& name);
+void write_global_info(VectorXd spec_params, std::string file_out, std::string identifier, bool append=false); // Write Identifier, Cadence and observation duration
 void write_star_params_a1a2a3asym(VectorXd spec_params, MatrixXd mode_params, MatrixXd noise_params, std::string file_out, std::string identifier);
 void write_star_params_act_asym(VectorXd spec_params, MatrixXd mode_params, MatrixXd noise_params, std::string file_out, std::string identifier);
-void write_star_mode_params_a1a2a3(MatrixXd mode_params, std::string file_out);
-void write_star_mode_params_act_asym(MatrixXd mode_params, std::string file_out);
+void write_star_mode_params_a1a2a3(MatrixXd mode_params, std::string file_out, bool append=false);
+void write_star_mode_params_act_asym(MatrixXd mode_params, std::string file_out, bool append=false);
 void write_star_params_Alm(VectorXd spec_params, MatrixXd mode_params, MatrixXd noise_params, std::string file_out, std::string identifier);
-void write_star_mode_params_Alm(MatrixXd mode_params, std::string file_out);
-void write_star_noise_params(MatrixXd noise_params, std::string file_out);
+void write_star_params_aj(VectorXd spec_params, MatrixXd mode_params, MatrixXd noise_params, std::string file_out, std::string identifier);
+void write_star_mode_params_Alm(MatrixXd mode_params, std::string file_out, bool append=false);
+void write_star_mode_params_aj(MatrixXd mode_params, std::string file_out, bool append=false);
+void write_star_noise_params(MatrixXd noise_params, std::string file_out, bool append=false);
 void write_range_modes(Cfg_synthetic_star cfg_star, Params_synthetic_star params, std::string output_file);
 void write_spectrum(VectorXd x, VectorXd y, VectorXd z, std::string file_out, bool write_inmodel); // Alias of the write_spectrum() below, but with fmin=-1, fmax=-1 (de facto optional parameterss)
 void write_spectrum(const VectorXd x, const VectorXd y, const VectorXd z, const std::string file_out, const bool write_inmodel, const double fmin, const double fmax); 
@@ -45,6 +42,6 @@ Config_Data read_main_cfg(std::string cfg_file);
 Data_Nd read_data_ascii_Ncols(const std::string file_in_name, const std::string delimiter, const bool verbose_data);
 Star_params read_star_params(const std::string file_in_name);
 VectorXd smooth(VectorXd in, double scoef);
-
+void file_read_error(std::string);
 
 void convert_in_to_model(const std::string file_out, const std::string identifier);

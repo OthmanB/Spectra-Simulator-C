@@ -120,17 +120,36 @@ void iterative_artificial_spectrum(std::string dir_core){
 		}
 		passed=1;
 	}
-	if(cfg.model_name == "generate_cfg_from_synthese_file_Wscaled_a1Alma3asymovGamma"){
-		Nmodel=11;
+	if(cfg.model_name == "generate_cfg_from_synthese_file_Wscaled_Alm"){
+		Nmodel=9;
 		param_names.push_back("HNR"); 
 		param_names.push_back("a1ovGamma"); 
 		param_names.push_back("Gamma_at_numax"); 
 		param_names.push_back("epsilon_nl"); 
 		param_names.push_back("theta0"); 
 		param_names.push_back("delta"); 
-		param_names.push_back("a3_0"); 
-		param_names.push_back("a3_1"); 
-		param_names.push_back("a3_2"); 
+		param_names.push_back("a3"); 
+		param_names.push_back("beta_asym");
+		param_names.push_back("i");
+		if(param_names.size() != Nmodel){
+			std::cout << "    Invalid number of parameters for model_name= 'generate_cfg_from_synthese_file_Wscaled_a1a2a3asymovGamma'" << std::endl;
+			std::cout << "    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size() << std::endl;
+			std::cout << "    Check your main configuration file" << std::endl;
+			std::cout << "    The program will exit now" << std::endl;
+			exit(EXIT_FAILURE);
+		}
+		passed=1;
+	}
+	if(cfg.model_name == "generate_cfg_from_synthese_file_Wscaled_aj"){
+		Nmodel=10;
+		param_names.push_back("HNR"); 
+		param_names.push_back("a1ovGamma"); 
+		param_names.push_back("Gamma_at_numax"); 
+		param_names.push_back("a2"); 
+		param_names.push_back("a3"); 
+		param_names.push_back("a4"); 
+		param_names.push_back("a5"); 
+		param_names.push_back("a6"); 
 		param_names.push_back("beta_asym");
 		param_names.push_back("i");
 		if(param_names.size() != Nmodel){
@@ -376,12 +395,6 @@ void iterative_artificial_spectrum(std::string dir_core){
 		}
 		passed=1;
 	}
-	if(passed == 0){
-		std::cout << "    model_name= " << cfg.model_name << " is not a recognized keyword for models" << std::endl;
-		std::cout << "    Check models_database.h to see the available model names" << std::endl;
-		std::cout << "    The program will exit now" << std::endl;
-		exit(EXIT_FAILURE);
-	}
 
 	// -----------------------------------------------------------
 	// ----- Models available only with the grid approach -----
@@ -424,13 +437,12 @@ void iterative_artificial_spectrum(std::string dir_core){
 		usemodels=1;
 		passed=1;
 	}
-	if(passed == 0){
+ 	if(passed == 0){
 		std::cout << "    model_name= " << cfg.model_name << " is not a recognized keyword for models" << std::endl;
 		std::cout << "    Check models_database.h to see the available model names" << std::endl;
 		std::cout << "    The program will exit now" << std::endl;
 		exit(EXIT_FAILURE);
 	}
-
 
 	// -----------------------------------------------------------
 	// -----------------------------------------------------------
@@ -725,7 +737,6 @@ void generate_grid(Config_Data cfg, bool usemodels, Data_Nd models, std::vector<
 	id0=lastid+1;
 	//id0=1; // DEBUG ONLY
 
-	// CHECK FROM HERE
 	currentcombi.resize(1, pos_one.size());
 	for(int c=0; c<Ncombi; c++){
 		for(int i=0; i<pos_one.size();i++){
@@ -794,9 +805,15 @@ bool call_model_random(std::string model_name, VectorXd input_params, std::strin
 		artificial_spectrum_a1a2a3asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
 		passed=1;		
 	}
-	if(model_name =="generate_cfg_from_synthese_file_Wscaled_a1Alma3asymovGamma"){
-		generate_cfg_from_synthese_file_Wscaled_a1Alma3asymovGamma(input_params, file_out_modes,  file_out_noise, cfg.extra_params); // extra_params must points towards a .in file
+	if(model_name =="generate_cfg_from_synthese_file_Wscaled_Alm"){
+		generate_cfg_from_synthese_file_Wscaled_Alm(input_params, file_out_modes,  file_out_noise, cfg.extra_params); // extra_params must points towards a .in file
 		artificial_spectrum_a1Alma3(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, 
+									cfg.write_inmodel, cfg.do_modelfiles, cfg.limit_data_range, cfg.modefile_modelname);
+		passed=1;		
+	}
+	if(model_name =="generate_cfg_from_synthese_file_Wscaled_aj"){
+		generate_cfg_from_synthese_file_Wscaled_aj(input_params, file_out_modes,  file_out_noise, cfg.extra_params); // extra_params must points towards a .in file
+		artificial_spectrum_aj(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, 
 									cfg.write_inmodel, cfg.do_modelfiles, cfg.limit_data_range, cfg.modefile_modelname);
 		passed=1;		
 	}
@@ -900,9 +917,15 @@ bool call_model_grid(std::string model_name, VectorXd input_params, Model_data i
 		artificial_spectrum_a1a2a3asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
 		passed=1;		
 	}
-	if(model_name =="generate_cfg_from_synthese_file_Wscaled_a1Alma3asymovGamma"){
-		generate_cfg_from_synthese_file_Wscaled_a1Alma3asymovGamma(input_params, file_out_modes,  file_out_noise, cfg.extra_params); // extra_params must points towards a .in file
+	if(model_name =="generate_cfg_from_synthese_file_Wscaled_Alm"){
+		generate_cfg_from_synthese_file_Wscaled_Alm(input_params, file_out_modes,  file_out_noise, cfg.extra_params); // extra_params must points towards a .in file
 		artificial_spectrum_a1Alma3(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, 
+									cfg.write_inmodel, cfg.do_modelfiles, cfg.limit_data_range, cfg.modefile_modelname);
+		passed=1;		
+	}
+	if(model_name =="generate_cfg_from_synthese_file_Wscaled_aj"){
+		generate_cfg_from_synthese_file_Wscaled_aj(input_params, file_out_modes,  file_out_noise, cfg.extra_params); // extra_params must points towards a .in file
+		artificial_spectrum_aj(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, 
 									cfg.write_inmodel, cfg.do_modelfiles, cfg.limit_data_range, cfg.modefile_modelname);
 		passed=1;		
 	}

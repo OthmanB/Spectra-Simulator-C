@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.4.1)
 
-project(Alm_test VERSION 1.3.1)
+project(Alm VERSION 1.3.1)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -15,6 +15,7 @@ set(CMAKE_C_FLAGS "-I/usr/include/  -O2")
 
 #Bring the core program sources into the project
 set(SOURCES_MAIN  #_COMMON
+    main.cpp
     activity.cpp
     linspace.cpp
     GaussLegendre1D.hpp

@@ -15,3 +15,6 @@ void artificial_spectrum_a1a2a3asym(const double Tobs, const double Cadence, con
 void artificial_spectrum_a1Alma3(const double Tobs, const double Cadence, const double Nspectra, const long Nrealisation, 
 								 const std::string dir_core, const std::string identifier, const bool doplots, const bool write_inmodel,
 								 const bool domodelfiles, const bool limit_data_range, const std::string modelname);
+void artificial_spectrum_aj(const double Tobs, const double Cadence, const double Nspectra, const long Nrealisation, 
+								 const std::string dir_core, const std::string identifier, const bool doplots, const bool write_inmodel,
+								 const bool domodelfiles, const bool limit_data_range, const std::string modelname);
