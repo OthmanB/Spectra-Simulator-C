@@ -89,7 +89,7 @@ set(SOURCES_MAIN  #_COMMON
     )
 
 set(SOURCES_TEST_LORENTZIAN
-    test_fct/lorentzian_a1a2a3_test.cpp
+    test_fct/lorentzian_tests.cpp
     function_rot.cpp
     ioproc.cpp
     build_lorentzian.cpp
@@ -129,7 +129,7 @@ link_directories(${Boost_LIBRARY_DIRS})
 add_executable(${CMAKE_PROJECT_NAME} ${HEADERS} ${SOURCES_MAIN})
 target_link_libraries(${CMAKE_PROJECT_NAME}  ${Boost_SYSTEM_LIBRARY_RELEASE} ${Boost_FILESYSTEM_LIBRARY_RELEASE} ${Boost_IOSTREAMS_LIBRARY_RELEASE})
 
-add_executable(test_lorentzian_a1a2a3 ${HEADERS} ${SOURCES_TEST_LORENTZIAN})
+add_executable(test_lorentzians ${HEADERS} ${SOURCES_TEST_LORENTZIAN})
 target_link_libraries(${CMAKE_PROJECT_NAME}  ${Boost_SYSTEM_LIBRARY_RELEASE} ${Boost_FILESYSTEM_LIBRARY_RELEASE} ${Boost_IOSTREAMS_LIBRARY_RELEASE})
 
 

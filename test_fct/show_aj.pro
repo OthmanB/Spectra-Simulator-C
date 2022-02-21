@@ -1,16 +1,17 @@
 @fsc_color
 pro show_allinfiles, dir_in
 
-	dir_in='/Users/obenomar/tmp/Simulator/Spectra-Simulator-C-1.0.0/test_fct/cfg_plots/build_l_mode_a1a2a3/'
+	dir_in='/Users/obenomar/tmp/Simulator/Spectra-Simulator-C-1.0.0/test_fct/cfg_plots/build_l_mode_aj/'
 	files=file_search(dir_in + '*.in')
 	for i=0, n_elements(files)-1 do begin
-		print, '[' + strtrim(i,2) + '] Processing: ' + files[i] + '...'
-		show_a1a2a3,files[i]
+			print, '[' + strtrim(i,2) + '] Processing: ' + files[i] + '...'
+			show_aj,files[i]
 	endfor
 end
 ;Visualisation for the cfg of test_lorentzian_a1a2a3
-pro show_a1a2a3, cfg_file, c_prg_path=c_prg_path
-	model_name='build_l_mode_a1a2a3'
+pro show_aj, cfg_file, c_prg_path=c_prg_path
+	model_name='build_l_mode_aj'
+
 	;cfg_file='model_l1-1.in'
 	;cfg_file='model_l1-2.in'
 	;cfg_file='model_l1-3.in'
@@ -99,14 +100,14 @@ end
 
 function read_cfg_file, cfg_file
 
-	cfg={range:dblarr(3), el:0, fc_l:0.0, H_l:0.0, gamma_l:0.0, a1:0.0, a2:0.0, a3:0.0, asym:0.0, inc:0.0}
+	cfg={range:dblarr(3), el:0, fc_l:0.0, H_l:0.0, gamma_l:0.0, a1:0.0, a2:0.0, a3:0.0, a4:0.0, a5:0.0, a6: 0.0, eta0:0.0, asym:0.0, inc:0.0}
 	line=0
 	openr, 3, cfg_file
 		a=''
 		while eof(3) eq 0 do begin
 			readf, 3, a
 			b=byte(a)
-			;expected parameters and their order:  [fmin, fmax, resol], l, fc_l, H_l, gamma_l, a1, a2, a3, asym, inclination
+			;expected parameters and their order:  [fmin, fmax, resol], l, fc_l, H_l, gamma_l, a1, a2, a3, a4, a5 ,a6, eta0, asym, inclination
 			if a ne 35 then begin ; detect comment by searching '#' as fist caracter... ignore those lines
 				line=line+1 ; the inputs must be in a specific order, we use a line number to know what parameter there
 				if line eq 1 then begin ;
@@ -127,8 +128,12 @@ function read_cfg_file, cfg_file
 				if line eq 6 then cfg.a1=double(a)
 				if line eq 7 then cfg.a2=double(a)
 				if line eq 8 then cfg.a3=double(a)
-				if line eq 9 then cfg.asym=double(a)
-				if line eq 10 then cfg.inc=double(a)				 
+				if line eq 9 then cfg.a4=double(a)
+				if line eq 10 then cfg.a5=double(a)
+				if line eq 11 then cfg.a6=double(a)
+				if line eq 12 then cfg.eta0=double(a)
+				if line eq 13 then cfg.asym=double(a)
+				if line eq 14 then cfg.inc=double(a)				 
 			endif
 		endwhile
 	close, 3
