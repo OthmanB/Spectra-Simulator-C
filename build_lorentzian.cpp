@@ -181,9 +181,12 @@ VectorXd build_l_mode_a1etaAlma3(const VectorXd& x_l, const double H_l, const do
             }
             */
             CF_term=eta0*pow(f_s*1e-6,2)*Qlm(l,m); //(4./3.)*pi*pow(a1*1e-6,2.)/(rho*G);
-            AR_term=epsilon_nl*Alm(l, m, thetas[0], thetas[1], filter_type);
-
-            //std::cout << "(" << l << "," << m << ") : " << "d_CF=" << CF_term*fc_l  << "            d_AR=" << AR_term*fc_l  << "         m.a1=" << m*f_s << std::endl;
+            AR_term=epsilon_nl*Alm_deg(l, m, thetas[0], thetas[1], filter_type);
+            /*std::cout << "(l,m) =  (" << l << "," << m << ")" << std::endl;
+            std::cout << "thetas =" << thetas << std::endl;
+            std::cout << "Alm =" << Alm_deg(l, m, thetas[0], thetas[1], filter_type) << std::endl;
+            std::cout << "(" << l << "," << m << ") : " << "d_CF=" << CF_term*fc_l  << "            d_AR=" << AR_term*fc_l  << "         m.a1=" << m*f_s << std::endl;
+            */
             profile=(x_l - tmp.setConstant(fc_l*(1. + CF_term + AR_term) + m*f_s + Pslm(3,l,m)*a3)).array().square();
             profile=4*profile/pow(gamma_l,2);
         } else{
