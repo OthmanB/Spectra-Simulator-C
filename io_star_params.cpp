@@ -507,7 +507,13 @@ std::string read_allfile(const std::string file){
     if (file_in.is_open()) {
     	 while(!file_in.eof()){
     	 	std::getline(file_in, line0);
-    	 	out = out + "\n" + line0;
+    	 	if(line0 != ""){
+    	 		if (out ==""){ // To avoid to jump line at the begining
+    	 			out = line0;
+    	 		} else{
+    	 			out = out + "\n" + line0;
+    	 		}
+    	 	}
     	 }
     } else{
     	file_read_error(file);
