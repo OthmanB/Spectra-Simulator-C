@@ -29,6 +29,7 @@ void artificial_spectrum_act_asym(const double Tobs, const double Cadence, const
 	Data_Nd data_modes, data_noise;
 	std::string file_in_modes=dir_core + "Configurations/tmp/modes_tmp.cfg";
 	std::string file_in_noise=dir_core + "Configurations/tmp/noise_tmp.cfg";
+	std::string dir_common_template = dir_core + "Configurations/common_modelfile/";
 	std::string fileout_spectrum;
 	std::string fileout_params;
 	std::string fileout_plot;
@@ -258,6 +259,7 @@ void artificial_spectrum_a1Alma3(const double Tobs, const double Cadence, const 
 	const std::string delimiter=" ";
 	const std::string file_in_modes=dir_core + "Configurations/tmp/modes_tmp.cfg";	
 	const std::string file_in_noise=dir_core + "Configurations/tmp/noise_tmp.cfg";
+	const std::string dir_common_template = dir_core + "Configurations/common_modelfile/";
 
 	// General variables
 	std::string fileout_spectrum;
@@ -353,7 +355,7 @@ void artificial_spectrum_a1Alma3(const double Tobs, const double Cadence, const 
 
     	if (domodelfiles==1){
     		std::cout << "        - Saving the model file" << std::endl;
-    		mode_range=write_star_model(data_modes.data, data_noise.data, file_out_modelfile, identifier, modelname);
+    		mode_range=write_star_model(data_modes.data, data_noise.data, file_out_modelfile, identifier, modelname, dir_common_template);
   			if (limit_data_range == 0){ // Reset the mode_range if the full range was requested
   				mode_range[0] =-1;
   				mode_range[1] =-1;
@@ -384,6 +386,7 @@ void artificial_spectrum_aj(const double Tobs, const double Cadence, const doubl
 	const std::string delimiter=" ";
 	const std::string file_in_modes=dir_core + "Configurations/tmp/modes_tmp.cfg";	
 	const std::string file_in_noise=dir_core + "Configurations/tmp/noise_tmp.cfg";
+	const std::string dir_common_template = dir_core + "Configurations/common_modelfile/";
 
 	// General variables
 	std::string fileout_spectrum;
@@ -480,7 +483,7 @@ void artificial_spectrum_aj(const double Tobs, const double Cadence, const doubl
 
     	if (domodelfiles==1){
     		std::cout << "        - Saving the model file" << std::endl;
-    		mode_range=write_star_model(data_modes.data, data_noise.data, file_out_modelfile, identifier, modelname);
+    		mode_range=write_star_model(data_modes.data, data_noise.data, file_out_modelfile, identifier, modelname,dir_common_template);
   			if (limit_data_range == 0){ // Reset the mode_range if the full range was requested
   				mode_range[0] =-1;
   				mode_range[1] =-1;

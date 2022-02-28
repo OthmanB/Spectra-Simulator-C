@@ -642,7 +642,6 @@ VectorXd order_input_params(const VectorXd& cte_params, const VectorXd& var_para
 int str_to_int(const std::string str){
 
 	int int_out;
-
 	std::stringstream(strtrim(str)) >> int_out;
 return int_out;
 }

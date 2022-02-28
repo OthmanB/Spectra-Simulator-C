@@ -1,5 +1,9 @@
 # Version history #
 
+### v1.0.2-dev ###
+	* Improvment: 
+		- Adding the possibility to use a file for defining the common section. See explanations in the Configuration/common_modelfile directory
+
 ### v1.0.1-dev ###
 	* Bug fixes and improvments:
 		- generate_cfg_from_synthese_file_Wscaled_a1Alma3asymovGamma():

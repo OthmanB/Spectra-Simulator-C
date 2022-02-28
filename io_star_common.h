@@ -28,3 +28,4 @@ void write_asym_key(std::ofstream& outfile, const bool fix, const double fix_val
 void write_a1_key(std::ofstream& outfile, const MatrixXd& mode_params, const bool fix, const double fix_val);
 void write_a3_key(std::ofstream& outfile, const MatrixXd& mode_params, const bool fix, const double fix_val);
 void write_aj_keys_2params_default(std::ofstream& outfile, const MatrixXd& mode_params, const bool fix, const double fix_val, const double j, const VectorXi& aj_ind);
+void common_use_file_template(std::ofstream& outfile, const std::string template_file);

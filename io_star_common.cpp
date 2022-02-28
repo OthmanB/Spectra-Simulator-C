@@ -14,6 +14,7 @@
 #include <vector>
 #include <string>
 #include "io_star_common.h"
+#include "io_star_params.h"
 
 using Eigen::MatrixXd;
 using Eigen::VectorXi;
@@ -42,6 +43,15 @@ void common_case0(std::ofstream& outfile, const MatrixXd& mode_params){//, std::
 	outfile << "Visibility_l3     Gaussian       0.08      0.08     0.02"  << std::endl;
 }
 */
+
+
+void common_use_file_template(std::ofstream& outfile, const std::string template_file){
+	// Read a small template file that contains all the common parameters that need to be written
+	// at the end of  the .model file.
+	std::string txt;
+	txt=read_allfile(template_file);
+	outfile << txt;
+}
 
 void common_model_MS_Global_a1a2a3_HarveyLike(std::ofstream& outfile, const MatrixXd& mode_params){
 	const std::string modelname="model_MS_Global_a1a2a3_HarveyLike";
@@ -170,12 +180,12 @@ void write_aj_keys_2params_default(std::ofstream& outfile, const MatrixXd& mode_
 				outfile << " a1_1          Fix             " << std::setw(Nchars) << std::setprecision(precision)  << "0.0" << std::endl;
 			}
 		} 
-		if (j==2){ // a2 is up to 30% of a1, and constant
-			outfile << " a2_0          Uniform_abs         " << std::setw(Nchars) << std::setprecision(precision)  << mode_params.col(aj_ind[j-1]).mean() << "          0.0          "<<  mode_params.col(aj_ind[0]).mean()*0.3 << std::endl;
+		if (j==2){ // a2 is up to 50% of a1, and constant
+			outfile << " a2_0          Uniform_abs         " << std::setw(Nchars) << std::setprecision(precision)  << mode_params.col(aj_ind[j-1]).mean() << "          0.0          "<<  mode_params.col(aj_ind[0]).mean()*0.5 << std::endl;
 			outfile << " a2_1          Fix                 " << std::setw(Nchars) << std::setprecision(precision)  << "0.0" << std::endl;
 		}
-		if (j==3){ // a3 is up to 20% of a1, and constant
-			outfile << " a3_0          Uniform_abs         " << std::setw(Nchars) << std::setprecision(precision)  << mode_params.col(aj_ind[j-1]).mean() << "          0.0          "<<  mode_params.col(aj_ind[0]).mean()*0.2 << std::endl;
+		if (j==3){ // a3 is up to 30% of a1, and constant
+			outfile << " a3_0          Uniform_abs         " << std::setw(Nchars) << std::setprecision(precision)  << mode_params.col(aj_ind[j-1]).mean() << "          0.0          "<<  mode_params.col(aj_ind[0]).mean()*0.3 << std::endl;
 			outfile << " a3_1          Fix                 " << std::setw(Nchars) << std::setprecision(precision)  << "0.0" << std::endl;
 		}
 		if (j==4){ // a4 is up to 20% of a1, and constant
