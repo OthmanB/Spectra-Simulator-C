@@ -50,7 +50,7 @@ void common_use_file_template(std::ofstream& outfile, const std::string template
 	// at the end of  the .model file.
 	std::string txt;
 	txt=read_allfile(template_file);
-	outfile << txt;
+	outfile << txt << std::endl;
 }
 
 void common_model_MS_Global_a1a2a3_HarveyLike(std::ofstream& outfile, const MatrixXd& mode_params){
