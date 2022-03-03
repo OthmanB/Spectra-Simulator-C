@@ -1030,7 +1030,9 @@ void generate_cfg_asymptotic_act_asym_Hgauss(VectorXd input_params, std::string 
 	}	
 
 	// Define the centrifugal force effect	
-	eta=(4./3)*PI * pow( a1*1e-6 ,2) / (G * rho_sun) * pow(Dnu_sun/Dnu,2);
+	//eta=(4./3)*PI * pow( a1*1e-6 ,2) / (G * rho_sun) * pow(Dnu_sun/Dnu,2);
+	eta=pow(a1*1e-6,2)*3.*M_PI/(pow(Dnu/Dnu_sun,2.) * rho_sun*G);  // Corrected on 3 March 2022
+ 
 	//std::cout << "Fixing centrifugal term eta = " << eta << std::endl;
 	
 	// Create a list of frequencies, Height, Width, Splitting, Centrifugal terms, latitudinal terms and stellar inclination
@@ -1152,14 +1154,20 @@ void generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma(VectorXd input_p
 	beta_asym=input_params[4];
 	inc=input_params[5];
 // ---------------------------------
-
 	HNRref=ref_star.mode_params.col(2);
 	HNRref=HNRref.cwiseProduct(local_noise.cwiseInverse());
-	HNRmaxref=HNRref.maxCoeff(); // This is the maximum HNR of the reference data
+	pos_max=where_dbl(ref_star.mode_params.col(0), 0, 1e-3);
+	//std::cout << "ref_star.mode_params.col(0) =" << ref_star.mode_params.col(0) << std::endl;
+	//std::cout <<" pos_max=" << pos_max << std::endl;
+	HNRmaxref=0;
+	for (int n=0; n<pos_max.size();n++){
+		if (HNRmaxref < HNRref[pos_max[n]]){
+			HNRmaxref=HNRref[pos_max[n]];
+		}
+	}
+	//HNRmaxref=HNRref.maxCoeff(); // This is the maximum HNR of the reference data
 	Height_factor=HNR/HNRmaxref;  // compute the coeficient required to get the proper max(HNR)
-
-	tmp=ref_star.mode_params.col(2);
-	pos_max=where_dbl(ref_star.mode_params.col(2), tmp.maxCoeff(), 0.001);
+	pos_max=where_dbl(HNRref, HNRmaxref, 0.001);
 	if (pos_max[0] >= 0){
 		Gamma_coef=Gamma_at_numax/ref_star.mode_params(pos_max[0], 3); // Correction coeficient to apply on Gamma(nu) in order to ensure that we have Gamma(nu=numax) = Gamma_at_numax
 	} else{
@@ -1170,12 +1178,20 @@ void generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma(VectorXd input_p
 
 	a1=a1_ov_Gamma*Gamma_at_numax; // We can vary the Width and splitting. But we need to change the splitting in order to get the wished a1/Gamma0
 
+	// Defining the final size for all of the outptus
+	gamma_star.resize(ref_star.mode_params.rows());
+	gamma_star=Gamma_coef*ref_star.mode_params.col(3); // In IDL, AN INTERPOLATION WAS DONE FOR l>0. HERE WE ASSUME THE .in file is whatever the true model should be (no interpolation)
+	// Refactoring the heights
+	h_star.resize(ref_star.mode_params.rows());
+	//h_star=Height_factor * HNRref * N0; 
 	if (local_noise.sum()!= 0){
-		N0=1; // Imposing the the Noise background is 1
-		std::cout <<  "Using N0=" << N0 << " (white noise)" << std::endl;
-		std::cout << "HNR of all modes (degree / freq / HNR):" << std::endl;
+		//N0=1; // Imposing the the Noise background is 1
+		//std::cout <<  "Using N0=" << N0 << " (white noise)" << std::endl;
+		std::cout << "Using the Noise profile of the Reference star" << std::endl;
+		std::cout << "HNR of all modes (degree / freq / HNR  /  Height /  local_noise):" << std::endl;
 		for(i =0; i<ref_star.mode_params.rows(); i++){
-			std::cout << "     " << ref_star.mode_params(i,0) << "  " << ref_star.mode_params(i,1) << "  " << Height_factor * HNRref[i] << std::endl;
+			h_star[i]=Height_factor * HNRref[i] * local_noise[i];
+			std::cout << "     " << ref_star.mode_params(i,0) << "  " << ref_star.mode_params(i,1) << "  " << Height_factor * HNRref[i]  << "  " << h_star[i] << "  "  << local_noise[i] << std::endl;
 		}
 	} else{
 		std::cout << "Warning: bruit_local from the stat_synthese file is 0 ==> Cannot compute N0=mean(local_noise)" << std::endl;
@@ -1184,17 +1200,14 @@ void generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma(VectorXd input_p
 	}
 
 	// Defining the final size for all of the outptus
-	h_star.resize(ref_star.mode_params.rows());
-	gamma_star.resize(ref_star.mode_params.rows());
+	//h_star.resize(ref_star.mode_params.rows());
+	//gamma_star.resize(ref_star.mode_params.rows());
 	s_a1_star.resize(ref_star.mode_params.rows());
 	s_a3_star.resize(ref_star.mode_params.rows());	
 	s_asym_star.resize(ref_star.mode_params.rows());
 	inc_star.resize(ref_star.mode_params.rows());
 
-	// Refactoring the heights
-	h_star=Height_factor * HNRref * N0; 
-
-	gamma_star=Gamma_coef*ref_star.mode_params.col(3); // In IDL, AN INTERPOLATION WAS DONE FOR l>0. HERE WE ASSUME THE .in file is whatever the true model should be (no interpolation)
+	//gamma_star=Gamma_coef*ref_star.mode_params.col(3); // In IDL, AN INTERPOLATION WAS DONE FOR l>0. HERE WE ASSUME THE .in file is whatever the true model should be (no interpolation)
 	
 	if (a1 >= 0){
 		s_a1_star.setConstant(a1);
@@ -1250,7 +1263,7 @@ void generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma(VectorXd input_p
 void generate_cfg_from_synthese_file_Wscaled_a1a2a3asymovGamma(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string extra){
 
 	int i;
-	double N0, HNR, a1_ov_Gamma, a3, beta_asym, inc, HNRmaxref, Height_factor, Gamma_at_numax, a1, Gamma_coef, fl, a2; 
+	double HNR, a1_ov_Gamma, a3, beta_asym, inc, HNRmaxref, Height_factor, Gamma_at_numax, a1, Gamma_coef, fl, a2; 
 	VectorXi pos_max;
 	VectorXd tmp;
 	VectorXd HNRref, local_noise,h_star, gamma_star, s_a1_star, s_a2_star, s_a3_star, s_asym_star, inc_star, a2_terms, a3_terms;
@@ -1274,14 +1287,20 @@ void generate_cfg_from_synthese_file_Wscaled_a1a2a3asymovGamma(VectorXd input_pa
 	beta_asym=input_params[9];
 	inc=input_params[10];
 // ---------------------------------
-
 	HNRref=ref_star.mode_params.col(2);
 	HNRref=HNRref.cwiseProduct(local_noise.cwiseInverse());
-	HNRmaxref=HNRref.maxCoeff(); // This is the maximum HNR of the reference data
+	pos_max=where_dbl(ref_star.mode_params.col(0), 0, 1e-3);
+	//std::cout << "ref_star.mode_params.col(0) =" << ref_star.mode_params.col(0) << std::endl;
+	//std::cout <<" pos_max=" << pos_max << std::endl;
+	HNRmaxref=0;
+	for (int n=0; n<pos_max.size();n++){
+		if (HNRmaxref < HNRref[pos_max[n]]){
+			HNRmaxref=HNRref[pos_max[n]];
+		}
+	}
+	//HNRmaxref=HNRref.maxCoeff(); // This is the maximum HNR of the reference data
 	Height_factor=HNR/HNRmaxref;  // compute the coeficient required to get the proper max(HNR)
-
-	tmp=ref_star.mode_params.col(2);
-	pos_max=where_dbl(ref_star.mode_params.col(2), tmp.maxCoeff(), 0.001);
+	pos_max=where_dbl(HNRref, HNRmaxref, 0.001);
 	if (pos_max[0] >= 0){
 		Gamma_coef=Gamma_at_numax/ref_star.mode_params(pos_max[0], 3); // Correction coeficient to apply on Gamma(nu) in order to ensure that we have Gamma(nu=numax) = Gamma_at_numax
 	} else{
@@ -1292,13 +1311,20 @@ void generate_cfg_from_synthese_file_Wscaled_a1a2a3asymovGamma(VectorXd input_pa
 
 	a1=a1_ov_Gamma*Gamma_at_numax; // We can vary the Width and splitting. But we need to change the splitting in order to get the wished a1/Gamma0
 
-	//std::cout << "after a1" << std::endl;
+	// Defining the final size for all of the outptus
+	gamma_star.resize(ref_star.mode_params.rows());
+	gamma_star=Gamma_coef*ref_star.mode_params.col(3); // In IDL, AN INTERPOLATION WAS DONE FOR l>0. HERE WE ASSUME THE .in file is whatever the true model should be (no interpolation)
+	// Refactoring the heights
+	h_star.resize(ref_star.mode_params.rows());
+	//h_star=Height_factor * HNRref * N0; 
 	if (local_noise.sum()!= 0){
-		N0=1; // Imposing the the Noise background is 1
-		std::cout <<  "Using N0=" << N0 << " (white noise)" << std::endl;
-		std::cout << "HNR of all modes (degree / freq / HNR):" << std::endl;
+		//N0=1; // Imposing the the Noise background is 1
+		//std::cout <<  "Using N0=" << N0 << " (white noise)" << std::endl;
+		std::cout << "Using the Noise profile of the Reference star" << std::endl;
+		std::cout << "HNR of all modes (degree / freq / HNR  /  Height /  local_noise):" << std::endl;
 		for(i =0; i<ref_star.mode_params.rows(); i++){
-			std::cout << "     " << ref_star.mode_params(i,0) << "  " << ref_star.mode_params(i,1) << "  " << Height_factor * HNRref[i] << std::endl;
+			h_star[i]=Height_factor * HNRref[i] * local_noise[i];
+			std::cout << "     " << ref_star.mode_params(i,0) << "  " << ref_star.mode_params(i,1) << "  " << Height_factor * HNRref[i]  << "  " << h_star[i] << "  "  << local_noise[i] << std::endl;
 		}
 	} else{
 		std::cout << "Warning: bruit_local from the stat_synthese file is 0 ==> Cannot compute N0=mean(local_noise)" << std::endl;
@@ -1306,8 +1332,8 @@ void generate_cfg_from_synthese_file_Wscaled_a1a2a3asymovGamma(VectorXd input_pa
 		exit(EXIT_FAILURE);
 	}
 	// Defining the final size for all of the outptus
-	h_star.resize(ref_star.mode_params.rows());
-	gamma_star.resize(ref_star.mode_params.rows());
+	//h_star.resize(ref_star.mode_params.rows());
+	//gamma_star.resize(ref_star.mode_params.rows());
 	s_a1_star.resize(ref_star.mode_params.rows());
 	s_a2_star.resize(ref_star.mode_params.rows());
 	s_a3_star.resize(ref_star.mode_params.rows());	
@@ -1315,8 +1341,8 @@ void generate_cfg_from_synthese_file_Wscaled_a1a2a3asymovGamma(VectorXd input_pa
 	inc_star.resize(ref_star.mode_params.rows());
 
 	// Refactoring the heights
-	h_star=Height_factor * HNRref * N0; 
-	gamma_star=Gamma_coef*ref_star.mode_params.col(3); // In IDL, AN INTERPOLATION WAS DONE FOR l>0. HERE WE ASSUME THE .in file is whatever the true model should be (no interpolation)
+	//h_star=Height_factor * HNRref * N0; 
+	//gamma_star=Gamma_coef*ref_star.mode_params.col(3); // In IDL, AN INTERPOLATION WAS DONE FOR l>0. HERE WE ASSUME THE .in file is whatever the true model should be (no interpolation)
 
 	if (a1 >= 0){
 		s_a1_star.setConstant(a1);
@@ -1389,7 +1415,7 @@ void generate_cfg_from_synthese_file_Wscaled_a1a2a3asymovGamma(VectorXd input_pa
 void generate_cfg_from_synthese_file_Wscaled_Alm(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string extra){
 
 	int i;
-	double N0, HNR, a1_ov_Gamma, a2, a3, a4, a5, a6, beta_asym, inc, HNRmaxref, Height_factor, Gamma_at_numax, a1, Gamma_coef, fl,rho, eta0; 
+	double HNR, a1_ov_Gamma, a2, a3, a4, a5, a6, beta_asym, inc, HNRmaxref, Height_factor, Gamma_at_numax, a1, Gamma_coef, fl,rho, eta0; 
 	VectorXi pos_max;
 	VectorXd tmp, xfit, rfit;
 	VectorXd HNRref, local_noise,h_star, gamma_star, s_a1_star, s_a2_star, s_a3_star, s_a4_star,s_a5_star,s_a6_star,
@@ -1418,9 +1444,17 @@ void generate_cfg_from_synthese_file_Wscaled_Alm(VectorXd input_params, std::str
 // ---------------------------------
 	HNRref=ref_star.mode_params.col(2);
 	HNRref=HNRref.cwiseProduct(local_noise.cwiseInverse());
-	HNRmaxref=HNRref.maxCoeff(); // This is the maximum HNR of the reference data
+	pos_max=where_dbl(ref_star.mode_params.col(0), 0, 1e-3);
+	//std::cout << "ref_star.mode_params.col(0) =" << ref_star.mode_params.col(0) << std::endl;
+	//std::cout <<" pos_max=" << pos_max << std::endl;
+	HNRmaxref=0;
+	for (int n=0; n<pos_max.size();n++){
+		if (HNRmaxref < HNRref[pos_max[n]]){
+			HNRmaxref=HNRref[pos_max[n]];
+		}
+	}
+	//HNRmaxref=HNRref.maxCoeff(); // This is the maximum HNR of the reference data
 	Height_factor=HNR/HNRmaxref;  // compute the coeficient required to get the proper max(HNR)
-
 	pos_max=where_dbl(HNRref, HNRmaxref, 0.001);
 	if (pos_max[0] >= 0){
 		Gamma_coef=Gamma_at_numax/ref_star.mode_params(pos_max[0], 3); // Correction coeficient to apply on Gamma(nu) in order to ensure that we have Gamma(nu=numax) = Gamma_at_numax
@@ -1432,25 +1466,26 @@ void generate_cfg_from_synthese_file_Wscaled_Alm(VectorXd input_params, std::str
 
 	a1=a1_ov_Gamma*Gamma_at_numax; // We can vary the Width and splitting. But we need to change the splitting in order to get the wished a1/Gamma0
 
-	//std::cout << "after a1" << std::endl;
+	// Defining the final size for all of the outptus
+	gamma_star.resize(ref_star.mode_params.rows());
+	gamma_star=Gamma_coef*ref_star.mode_params.col(3); // In IDL, AN INTERPOLATION WAS DONE FOR l>0. HERE WE ASSUME THE .in file is whatever the true model should be (no interpolation)
+	// Refactoring the heights
+	h_star.resize(ref_star.mode_params.rows());
+	//h_star=Height_factor * HNRref * N0; 
 	if (local_noise.sum()!= 0){
-		N0=1; // Imposing the the Noise background is 1
-		std::cout <<  "Using N0=" << N0 << " (white noise)" << std::endl;
-		std::cout << "HNR of all modes (degree / freq / HNR):" << std::endl;
+		//N0=1; // Imposing the the Noise background is 1
+		//std::cout <<  "Using N0=" << N0 << " (white noise)" << std::endl;
+		std::cout << "Using the Noise profile of the Reference star" << std::endl;
+		std::cout << "HNR of all modes (degree / freq / HNR  /  Height /  local_noise):" << std::endl;
 		for(i =0; i<ref_star.mode_params.rows(); i++){
-			std::cout << "     " << ref_star.mode_params(i,0) << "  " << ref_star.mode_params(i,1) << "  " << Height_factor * HNRref[i] << std::endl;
+			h_star[i]=Height_factor * HNRref[i] * local_noise[i];
+			std::cout << "     " << ref_star.mode_params(i,0) << "  " << ref_star.mode_params(i,1) << "  " << Height_factor * HNRref[i]  << "  " << h_star[i] << "  "  << local_noise[i] << std::endl;
 		}
 	} else{
 		std::cout << "Warning: bruit_local from the stat_synthese file is 0 ==> Cannot compute N0=mean(local_noise)" << std::endl;
 		std::cout << "         The program will stop now" << std::endl;
 		exit(EXIT_FAILURE);
 	}
-	// Defining the final size for all of the outptus
-	h_star.resize(ref_star.mode_params.rows());
-	gamma_star.resize(ref_star.mode_params.rows());
-	// Refactoring the heights
-	h_star=Height_factor * HNRref * N0; 
-	gamma_star=Gamma_coef*ref_star.mode_params.col(3); // In IDL, AN INTERPOLATION WAS DONE FOR l>0. HERE WE ASSUME THE .in file is whatever the true model should be (no interpolation)
 
 	if (a1 < 0){
 		std::cout << "Error: The a1 provided by the user is negative" << std::endl;
@@ -1497,7 +1532,7 @@ void generate_cfg_from_synthese_file_Wscaled_Alm(VectorXd input_params, std::str
 void generate_cfg_from_synthese_file_Wscaled_aj(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string extra){
 
 	int i;
-	double N0, HNR, a1_ov_Gamma, a2, a3, a4, a5, a6, beta_asym, inc, HNRmaxref, Height_factor, Gamma_at_numax, a1, Gamma_coef, fl,rho, eta0; 
+	double HNR, a1_ov_Gamma, a2, a3, a4, a5, a6, beta_asym, inc, HNRmaxref, Height_factor, Gamma_at_numax, a1, Gamma_coef, fl,rho, eta0; 
 	VectorXi pos_max;
 	VectorXd tmp, xfit, rfit;
 	VectorXd HNRref, local_noise,h_star, gamma_star, s_a1_star, s_a2_star, s_a3_star, s_a4_star,s_a5_star,s_a6_star,
@@ -1527,11 +1562,17 @@ void generate_cfg_from_synthese_file_Wscaled_aj(VectorXd input_params, std::stri
 // ---------------------------------
 	HNRref=ref_star.mode_params.col(2);
 	HNRref=HNRref.cwiseProduct(local_noise.cwiseInverse());
-	HNRmaxref=HNRref.maxCoeff(); // This is the maximum HNR of the reference data
+	pos_max=where_dbl(ref_star.mode_params.col(0), 0, 1e-3);
+	//std::cout << "ref_star.mode_params.col(0) =" << ref_star.mode_params.col(0) << std::endl;
+	//std::cout <<" pos_max=" << pos_max << std::endl;
+	HNRmaxref=0;
+	for (int n=0; n<pos_max.size();n++){
+		if (HNRmaxref < HNRref[pos_max[n]]){
+			HNRmaxref=HNRref[pos_max[n]];
+		}
+	}
+	//HNRmaxref=HNRref.maxCoeff(); // This is the maximum HNR of the reference data
 	Height_factor=HNR/HNRmaxref;  // compute the coeficient required to get the proper max(HNR)
-
-	//tmp=ref_star.mode_params.col(2);
-	//pos_max=where_dbl(ref_star.mode_params.col(2), tmp.maxCoeff(), 0.001);
 	pos_max=where_dbl(HNRref, HNRmaxref, 0.001);
 	if (pos_max[0] >= 0){
 		Gamma_coef=Gamma_at_numax/ref_star.mode_params(pos_max[0], 3); // Correction coeficient to apply on Gamma(nu) in order to ensure that we have Gamma(nu=numax) = Gamma_at_numax
@@ -1543,26 +1584,26 @@ void generate_cfg_from_synthese_file_Wscaled_aj(VectorXd input_params, std::stri
 
 	a1=a1_ov_Gamma*Gamma_at_numax; // We can vary the Width and splitting. But we need to change the splitting in order to get the wished a1/Gamma0
 
-	//std::cout << "after a1" << std::endl;
+	// Defining the final size for all of the outptus
+	gamma_star.resize(ref_star.mode_params.rows());
+	gamma_star=Gamma_coef*ref_star.mode_params.col(3); // In IDL, AN INTERPOLATION WAS DONE FOR l>0. HERE WE ASSUME THE .in file is whatever the true model should be (no interpolation)
+	// Refactoring the heights
+	h_star.resize(ref_star.mode_params.rows());
+	//h_star=Height_factor * HNRref * N0; 
 	if (local_noise.sum()!= 0){
-		N0=1; // Imposing the the Noise background is 1
-		std::cout <<  "Using N0=" << N0 << " (white noise)" << std::endl;
-		std::cout << "HNR of all modes (degree / freq / HNR):" << std::endl;
+		//N0=1; // Imposing the the Noise background is 1
+		//std::cout <<  "Using N0=" << N0 << " (white noise)" << std::endl;
+		std::cout << "Using the Noise profile of the Reference star" << std::endl;
+		std::cout << "HNR of all modes (degree / freq / HNR  /  Height /  local_noise):" << std::endl;
 		for(i =0; i<ref_star.mode_params.rows(); i++){
-			std::cout << "     " << ref_star.mode_params(i,0) << "  " << ref_star.mode_params(i,1) << "  " << Height_factor * HNRref[i] << std::endl;
+			h_star[i]=Height_factor * HNRref[i] * local_noise[i];
+			std::cout << "     " << ref_star.mode_params(i,0) << "  " << ref_star.mode_params(i,1) << "  " << Height_factor * HNRref[i]  << "  " << h_star[i] << "  "  << local_noise[i] << std::endl;
 		}
 	} else{
 		std::cout << "Warning: bruit_local from the stat_synthese file is 0 ==> Cannot compute N0=mean(local_noise)" << std::endl;
 		std::cout << "         The program will stop now" << std::endl;
 		exit(EXIT_FAILURE);
 	}
-	// Defining the final size for all of the outptus
-	h_star.resize(ref_star.mode_params.rows());
-	gamma_star.resize(ref_star.mode_params.rows());
-	// Refactoring the heights
-	h_star=Height_factor * HNRref * N0; 
-	gamma_star=Gamma_coef*ref_star.mode_params.col(3); // In IDL, AN INTERPOLATION WAS DONE FOR l>0. HERE WE ASSUME THE .in file is whatever the true model should be (no interpolation)
-
 	if (a1 < 0){
 		std::cout << "Error: The a1 provided by the user is negative" << std::endl;
 		std::cout << "       Only positive values are valid" << std::endl;

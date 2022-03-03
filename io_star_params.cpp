@@ -1106,17 +1106,13 @@ void file_read_error(std::string file_out){
 /*
 // Small test program
 int main(){
-
 	int N=100;
-
 	MatrixXd mode_params1(2, 8);
 	MatrixXd mode_params2(3, 11);
 	MatrixXd noise_params(3, 3);
 	VectorXd x(N),y(N),z(N), spec_params(2);
-
 	std::string identifier;
 	std::string file_out1, file_out2, file_out3, file_out4, file_out5;
-
 	file_out1="output_test1.txt";
 	std::cout << "Test of write_star_mode_params_a1a2a3...outputs in " << file_out1 <<  std::endl;
 	mode_params1.setRandom();
@@ -1129,15 +1125,9 @@ int main(){
 	}
 	write_star_mode_params_a1a2a3(mode_params1, file_out1);
 	std::cout << "--------------" << std::endl;
-
-
-
-
 	file_out2="output_test2.txt";
 	std::cout << "Test of write_star_mode_params_act_asym...outputs in " << file_out2 << std::endl;
-
 	mode_params2.setRandom();	
-
 	for(int i=0; i<mode_params2.rows(); i++){
 		for(int j=0; j<mode_params2.cols(); j++){
 			std::cout << std::setw(10) << std::setprecision(5) << mode_params2(i,j);
@@ -1146,15 +1136,10 @@ int main(){
 	}
 	write_star_mode_params_act_asym(mode_params2, file_out2);
 	std::cout << "--------------" << std::endl;
-
-
-
-
 	noise_params.setRandom();
 	
 	file_out3="output_test3.txt";
 	std::cout << "Test of write_star_noise_params... outputs in " << file_out3 << std::endl;
-
 	for(int i=0; i<noise_params.rows(); i++){
 		for(int j=0; j<noise_params.cols(); j++){
 			std::cout << std::setw(10) << std::setprecision(5) << noise_params(i,j);
@@ -1163,26 +1148,19 @@ int main(){
 	}
 	write_star_noise_params(noise_params, file_out3);
 	std::cout << "--------------" << std::endl;
-
 	file_out4="output_test4.txt";
 	std::cout << "Test of write_spectrum...outputs in " << file_out4  << std::endl;
-
 	x.setLinSpaced(0,1000);
 	y.setRandom();
 	z.setConstant(5);
 	
 	write_spectrum(x, y, z, file_out4);
-
 	std::cout << "--------------" << std::endl;
-
 	file_out5="output_test5.txt";
 	std::cout << "Test of write_star_params_act_asym...outputs in " << file_out5  << std::endl;
-
 	spec_params[0]=10;
 	spec_params[1]=50;
-
 	identifier="01234567";
 	write_star_params_act_asym(spec_params, mode_params2, noise_params, file_out5, identifier);
-
 }
 */

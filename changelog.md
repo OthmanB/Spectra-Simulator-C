@@ -1,5 +1,15 @@
 # Version history #
 
+### v1.0.3-dev ###
+	* Bug Fix:
+		- Correcting eta in the *Hgauss model
+		- The rescaling of HNR in the models 'generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma' , 'generate_cfg_from_synthese_file_Wscaled_a1a2a3asymovGamma', 'generate_cfg_from_synthese_file_Wscaled_Alm', 'generate_cfg_from_synthese_file_Wscaled_aj' was incorrect due to a wrong generalisation from the old IDL code. 
+		The old code was considering a fix noise background of N=N0=1. The new implementation was supposed to instead keep the noise background
+		profile of the reference star in the new artificial star. This was not performed as it was still considering N0=1. 
+		The modification consist in replacing N0 by N(v)=local_noise 
+		- The rescaling was made considering the absolute highest HNR. This implies that it was considering the HNRmax for the l=1 (due to higher visibility of that mode). Instead, it is better to use the HNRmax(l=0) for reference when defining the HNR. A change was made in that way.
+		- Fix an issue with some infiles used as a template: The Cadence and Tobs was wrongly commented by #, which was leading to ignore the first l=0
+		
 ### v1.0.2-dev ###
 	* Improvment: 
 		- Adding the possibility to use a file for defining the common section. See explanations in the Configuration/common_modelfile directory
