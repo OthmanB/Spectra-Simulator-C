@@ -228,7 +228,7 @@ std::string write_allcombi(MatrixXd allcombi, VectorXd cte_params, Config_Data c
 	VectorXd input_params, var_params;
 	std::ofstream outfile;
 
-	Nchars = 11;
+	Nchars = 17;
 	precision = 5;
 
 	if(erase_old_file == 1 && iter == 0) {
@@ -236,17 +236,6 @@ std::string write_allcombi(MatrixXd allcombi, VectorXd cte_params, Config_Data c
 	} else{
 		outfile.open(fileout.c_str(), std::ios::app); // append
 	}
-	/*
-	if (erase_old_file == 1) {
-		outfile.open(fileout.c_str()); // write a new file
-	} else {
-		if(iter != 0){
-			outfile.open(fileout.c_str(), std::ios::app); // append
-		} else {
-			outfile.open(fileout.c_str()); // write a new file
-		}
-	}
-	*/
 	if(outfile.is_open()){
 		//std::cout << "File opened" << std::endl;
 		if(erase_old_file == 1 && iter == 0) { // Write Header only if we do not erase the old file AND this is the first execution of the function
@@ -254,9 +243,9 @@ std::string write_allcombi(MatrixXd allcombi, VectorXd cte_params, Config_Data c
 			outfile << " --------------------------" << std::endl;
 			outfile << "  List of all combinations " << std::endl;
 			outfile << " --------------------------" << std::endl;
-			outfile << "#" << std::setw(5) << "id  ";
+			outfile << "#" << std::setw(7) << "id  ";
 			for(int s=0; s<param_names.size(); s++){
-				outfile << std::setw(11) << param_names[s];
+				outfile << std::setw(Nchars) << param_names[s];
 			}
 			outfile << std::endl;
 		} 

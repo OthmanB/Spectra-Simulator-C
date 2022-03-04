@@ -9,6 +9,7 @@
 		The modification consist in replacing N0 by N(v)=local_noise 
 		- The rescaling was made considering the absolute highest HNR. This implies that it was considering the HNRmax for the l=1 (due to higher visibility of that mode). Instead, it is better to use the HNRmax(l=0) for reference when defining the HNR. A change was made in that way.
 		- Fix an issue with some infiles used as a template: The Cadence and Tobs was wrongly commented by #, which was leading to ignore the first l=0
+		- Fix an issue with the names of the variables in the Combinations.txt file: Some parameters names could be sticked together
 		
 ### v1.0.2-dev ###
 	* Improvment: 
