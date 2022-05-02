@@ -903,6 +903,7 @@ Config_Data read_main_cfg(std::string cfg_file){
 					cfg.extra_params = cfg.extra_params +  strtrim(tmp_vec_str[i]) + " ";
 				}
 			}
+ 
 			cfg.extra_params=strtrim(cfg.extra_params);
 
 			std::getline(file_in, line0);
@@ -937,24 +938,25 @@ Config_Data read_main_cfg(std::string cfg_file){
 
       std::getline(file_in, line0);
       cfg.write_inmodel=str_to_bool(rem_comments(line0, "#"));
-
+ 
       std::getline(file_in, line0);
       cfg.limit_data_range=str_to_bool(rem_comments(line0, "#"));
-
+      			
       std::getline(file_in, line0);
       tmp_vec_str=strsplit(rem_comments(line0, "#"), " "); // split the line into segments of strings
-
       cfg.do_modelfiles=str_to_bool(tmp_vec_str[0]);
-      cfg.modefile_modelname=strtrim(tmp_vec_str[1]);
-			file_in.close();
+      if (tmp_vec_str.size() > 1){
+		cfg.modefile_modelname=strtrim(tmp_vec_str[1]);
+      } else{
+      	cfg.modefile_modelname="";
+      }
+	  file_in.close();
 	} else {
 		std::cout << "Could not open the configuration file!" << std::endl;
 		std::cout << "Configuration file: " << cfg_file << std::endl;
 		exit(EXIT_FAILURE);
 
 	}
-	
-
 	if(cfg.step.size() != cfg.val_min.size() && cfg.step.size() != cfg.val_max.size()){
 		std::cout << "The configuration file contains input vectors (val_min, val_max, step) of different size" << std::endl;
 		std::cout << "The input vectors must gave the same size!" << std::endl;
@@ -965,8 +967,7 @@ Config_Data read_main_cfg(std::string cfg_file){
 		std::cout << "cfg.val_max.size()=" << cfg.val_max.size() << std::endl;
 		exit(EXIT_FAILURE);
 	}
-
-
+	
 	// ------- Verbose setup ------
 	std::cout << "   cfg.model_name = ";
 	std::cout << cfg.model_name << std::endl;

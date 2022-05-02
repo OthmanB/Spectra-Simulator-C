@@ -13,6 +13,7 @@
 # include <vector>
 # include <Eigen/Dense>
 # include "data.h" // contains the structure Data
+# include "external/ARMM/data_solver.h" // contains the structure Data
 # include <fstream>
 # include <string>
 # include "ioproc.h"

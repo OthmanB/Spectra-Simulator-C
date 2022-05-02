@@ -1,20 +1,19 @@
 cmake_minimum_required(VERSION 3.4.1)
 
-project(specsim VERSION 1.0.1)
+project(specsim VERSION 1.0.4)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(Boost_USE_MULTITHREADED TRUE)
-
 option(WITH_OPENMP "OpenMP Library" ON)
 option(BUILD_ON_DALMA "Building for NYU DALMA Supercomputer" OFF)
 
 if(NOT BUILD_ON_DALMA)
 	if(CMAKE_COMPILER_IS_GNUCXX)
-		set(CMAKE_CXX_FLAGS "-O3")
+		set(CMAKE_CXX_FLAGS "-O3 -fopenmp")
 	endif()
 	if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-		set(CMAKE_CXX_FLAGS "-O3")
+		set(CMAKE_CXX_FLAGS "-O3 -fopenmp=libomp")
 	endif()
 	if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
 		set(CMAKE_CXX_FLAGS "-O3")
@@ -39,12 +38,10 @@ set(HEADERS  #_COMMON
     data.h
     gnuplot-iostream.h
     models_database.h
-    solver_mm.h
     derivatives_handler.h
     interpol.h
     linfit.h
     linspace.h
-    bump_DP.h
     plots_diags.h
     version.h
     build_lorentzian.h
@@ -58,6 +55,9 @@ set(HEADERS  #_COMMON
     stellar_models.h
     models_database_grid.h
     format.h
+    external/ARMM/bump_DP.h
+    external/ARMM/solver_mm.h
+    external/ARMM/data_solver.h
     acoefs.h
     )
 
@@ -66,8 +66,6 @@ set(SOURCES_MAIN  #_COMMON
 	iterative_artificial_spectrum.cpp
 	artificial_spectrum.cpp
     models_database.cpp
-    solver_mm.cpp
-    bump_DP.cpp
     derivatives_handler.cpp
     interpol.cpp
     linfit.cpp
@@ -86,6 +84,8 @@ set(SOURCES_MAIN  #_COMMON
     format.cpp
     acoefs.cpp
     external/integrate/activity.cpp
+    external/ARMM/bump_DP.cpp
+    external/ARMM/solver_mm.cpp
     )
 
 set(SOURCES_TEST_LORENTZIAN

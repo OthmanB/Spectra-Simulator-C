@@ -1,0 +1,6 @@
+model_name= asymptotic_mm_v3
+ --------------------------
+  List of all combinations 
+ --------------------------
+#   id          nurot_env       nurot_core              Dnu          epsilon  delta0l_percent      beta_p_star      nmax_spread   DP_var_percent            alpha                q              SNR         maxGamma              Vl1              Vl2              Vl3        H0_spread          A_Pgran          B_Pgran          C_Pgran        A_taugran        B_taugran        C_taugran                P               N0          Hfactor          Wfactor
+0000001          0.27096            3.415           80.515            0.211           1.5385        0.0077134                5              2.5         0.031107          0.38142           61.913           1.2519           1.5799          0.47942         0.093355               10           0.9757          -2.0069          0.08705           1.1965          -1.1529         0.018944           1.8025          0.34608          0.82426          0.95125

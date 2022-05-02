@@ -8,13 +8,13 @@ void showversion();
 #define APP_ID        "CPPSpecSim"
 #define APP_NAME      "CPPSpecSim"
 #define APP_DESC      "Spectrum Simulator for Asteroseismology"
-#define APP_VERSION   "1.0.31-DEV"
+#define APP_VERSION   "1.0.4-DEV"
 #define APP_DOMAIN    ""
 #define APP_SITE      ""
 #define APP_COPYRIGHT "Othman Benomar"
 
 #define APP_VER_MAJOR  1
-#define APP_VER_MINOR  0.31
+#define APP_VER_MINOR  0.4
 //#define APP_VER_BUILD  0
 //#define APP_VER_REV    0
 

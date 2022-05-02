@@ -106,6 +106,7 @@ struct Deriv_out{
 };
 
 
+/*
 // ----------------------------------------
 // ----- For mixed modes calculation ------
 // ----------------------------------------
@@ -188,3 +189,4 @@ struct Params_synthetic_star{
     double fmin;
     double fmax;
 };
+*/

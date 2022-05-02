@@ -1,0 +1,12 @@
+# Debug file for code crashing with fl1 completely non-sense
+# This file can be read by the solver main program (built using ./compile_solver.sh with g++)
+# The parameters a listed in this order: el, DP, epsilon_g, delta0l, q_star, fl0_all, step, fmin, fmax
+1
+176
+0.20
+-0.02
+0.3
+602.831     649.962     694.375     739.273     784.194     829.073     874.265     919.844     965.491
+0.00814215
+0
+10000

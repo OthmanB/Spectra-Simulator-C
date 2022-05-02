@@ -1,5 +1,13 @@
 # Version history #
 
+### v1.0.4-dev ###
+	* Bug Fix:
+		- Corrected a bug happening when reading the cfg file due to imporper syntax
+	* Improvements:
+		- Minimising the changes required to bump_DP.cpp amd solver_mm.cpp when migrating them from the standalone version: Only need to remove the imp section
+		- Slight restructuration of the ARMM calls
+	* Addition:
+		- Introducing the Hfactor and the Wfactor in asymptotic models for the mixed modes: It allows to 'break' the assumption of (1) equipartition of energy (Hfactor>0) and (2) inertia scaling with the Width, ie not considering that the damping is purely due to the evanescent zone between cavity (Wfactor<1)
 ### v1.0.3-dev ###
 	* Bug Fix:
 		- Correcting eta in the *Hgauss model

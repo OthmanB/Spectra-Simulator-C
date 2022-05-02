@@ -17,7 +17,7 @@
 #include "noise_models.h"
 //#include "string_handler.h" // Replaced by ioproc.h on 17/06/2021
 #include "ioproc.h"
-#include "bump_DP.h"
+#include "external/ARMM/bump_DP.h"
 #include "linspace.h"
 #include "linfit.h"
 
@@ -101,6 +101,8 @@ void asymptotic_mm_v1(VectorXd input_params, std::string file_out_modes, std::st
 	cfg_star.maxHNR_l0=input_params[9];
 	cfg_star.H0_spread=input_params[14];
 	cfg_star.Gamma_max_l0=input_params[10];
+	cfg_star.Hfactor=input_params[23];
+	cfg_star.Wfactor=input_params[24];
 	cfg_star.rot_env_input=-1;
 	cfg_star.rot_ratio_input=-1;
 	cfg_star.rot_core_input=-1;
@@ -258,6 +260,8 @@ void asymptotic_mm_v2(VectorXd input_params, std::string file_out_modes, std::st
 	cfg_star.maxHNR_l0=input_params[10];
 	cfg_star.H0_spread=input_params[15];
 	cfg_star.Gamma_max_l0=input_params[11];
+	cfg_star.Hfactor=input_params[24];
+	cfg_star.Wfactor=input_params[25];
 	cfg_star.rot_env_input=input_params[0];
 	cfg_star.rot_ratio_input=input_params[1];
 	cfg_star.rot_core_input=-1;
@@ -417,6 +421,8 @@ void asymptotic_mm_v3(VectorXd input_params, std::string file_out_modes, std::st
 	cfg_star.maxHNR_l0=input_params[10];
 	cfg_star.H0_spread=input_params[15];
 	cfg_star.Gamma_max_l0=input_params[11];
+	cfg_star.Hfactor=input_params[24];
+	cfg_star.Wfactor=input_params[25];
 	cfg_star.rot_env_input=input_params[0];
 	cfg_star.rot_ratio_input=-1;
 	cfg_star.rot_core_input=input_params[1];
@@ -474,7 +480,6 @@ void asymptotic_mm_v3(VectorXd input_params, std::string file_out_modes, std::st
 	if (cfg_star.Dnu_star <= 15){
 		std::cout << "    Model with small Dnu ==> many mixed modes. This might be long to find the solutions..." << std::endl; 
 	}
-
 	tau=input_params[19] * pow(cfg_star.numax_star*1e-6,input_params[20]) + input_params[21]; // Granulation timescale (in seconds)
 	H=input_params[16] * pow(cfg_star.numax_star*1e-6,input_params[17]) + input_params[18]; // Granulation Amplitude
 	H=H/tau ; //This is due to the used definition for the Harvey profile (conversion from Hz to microHz)
@@ -569,6 +574,8 @@ void asymptotic_mm_freeDp_numaxspread_curvepmodes_v1(VectorXd input_params, std:
 	cfg_star.maxHNR_l0=input_params[9];
 	cfg_star.H0_spread=input_params[15];
 	cfg_star.Gamma_max_l0=input_params[10];
+	cfg_star.Hfactor=input_params[24];
+	cfg_star.Wfactor=input_params[25];
 	cfg_star.rot_env_input=-1;
 	cfg_star.rot_ratio_input=-1;
 	cfg_star.rot_core_input=-1;
@@ -720,6 +727,8 @@ void asymptotic_mm_freeDp_numaxspread_curvepmodes_v2(VectorXd input_params, std:
 	cfg_star.maxHNR_l0=input_params[10];
 	cfg_star.H0_spread=input_params[16];
 	cfg_star.Gamma_max_l0=input_params[11];
+	cfg_star.Hfactor=input_params[25];
+	cfg_star.Wfactor=input_params[26];
 	cfg_star.rot_env_input=input_params[0];
 	cfg_star.rot_ratio_input=input_params[1];
 	cfg_star.rot_core_input=-1;
@@ -872,6 +881,8 @@ void asymptotic_mm_freeDp_numaxspread_curvepmodes_v3(VectorXd input_params, std:
 	cfg_star.maxHNR_l0=input_params[10];
 	cfg_star.H0_spread=input_params[16];
 	cfg_star.Gamma_max_l0=input_params[11];
+	cfg_star.Hfactor=input_params[25];
+	cfg_star.Wfactor=input_params[26];
 	cfg_star.rot_env_input=input_params[0];
 	cfg_star.rot_ratio_input=-1;
 	cfg_star.rot_core_input=input_params[1];
