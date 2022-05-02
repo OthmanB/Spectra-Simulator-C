@@ -645,8 +645,8 @@ Params_synthetic_star make_synthetic_asymptotic_star(Cfg_synthetic_star cfg_star
 	}
 	
 	//
-	std::cout << "cfg_star.Hfactor =" << cfg_star.Hfactor << std::endl;
-	std::cout << "cfg_star.Wfactor =" << cfg_star.Wfactor << std::endl;
+	//std::cout << "cfg_star.Hfactor =" << cfg_star.Hfactor << std::endl;
+	//std::cout << "cfg_star.Wfactor =" << cfg_star.Wfactor << std::endl;
 	
 	// Generating widths profiles for l=1 modes using the ksi function
 	Dnu_p=freqs.dnup;
