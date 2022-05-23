@@ -1019,8 +1019,8 @@ void generate_cfg_asymptotic_act_asym_Hgauss(VectorXd input_params, std::string 
     //std::cout << "           - Variables..." << std::endl;
 
 	// --------- Variables ---------
-	int k;
-	double el, en, n_at_numax, height, eta;
+	int el, en, k;
+	double n_at_numax, height, eta;
 	VectorXd en_list(Nmax);
 	MatrixXd nu(int(lmax+1), Nmax), h(int(lmax+1), Nmax), w(int(lmax+1), Nmax), s_a1(int(lmax+1), Nmax), s_eta(int(lmax+1), Nmax), 
 		 s_a3(int(lmax+1), Nmax), s_asym(int(lmax+1), Nmax), s_b(int(lmax+1), Nmax), s_alfa(int(lmax+1), Nmax), i(int(lmax+1), Nmax), 

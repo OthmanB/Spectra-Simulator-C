@@ -28,6 +28,8 @@ std::vector<int> where_str(const std::vector<std::string> vec, const std::string
 VectorXi where_strXi(const std::vector<std::string> vec, const std::string value);
 std::vector<double> where(const std::vector<double> vec, const std::string condition, const double value, const bool return_values);
 std::vector<double> where(const VectorXd& vec, const std::string condition, const double value, const bool return_values);
+std::vector<int> where_index(const std::vector<double> vec, const std::string condition, const double value);
+std::vector<int> where_index(const VectorXd& vec, const std::string condition, const double value);
 
 
 std::string read_lastline_ascii(const std::string filename);

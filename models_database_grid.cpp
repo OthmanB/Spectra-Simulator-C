@@ -208,7 +208,7 @@ void generate_cfg_from_refstar_HWscaled(VectorXd input_params, Model_data input_
 	const int pref_freq=1, pref_h=2, pref_w=3, pref_n=11; // positions in the reference table for frequencies, heights, widths and the local noise
 	int Nmax, k, el, en;
 	double dnu_ref, numax_ref, norm;
-	std::vector<double> pos;
+	std::vector<int> pos;
 	VectorXi pos2;
 	VectorXd  tmp, tmp2, ones, x_ref, height_ref, fit;
 	MatrixXd nu_ref, w_ref, h_ref, a_ref, hnr_ref;
@@ -266,7 +266,7 @@ void generate_cfg_from_refstar_HWscaled(VectorXd input_params, Model_data input_
 		exit(EXIT_SUCCESS);
 	}
 	for(el=0; el<lmax+1;el++){
-		pos=where(data_ref.data.col(0), "=", el, 0);
+		pos=where_index(data_ref.data.col(0), "=", el);
 		if(el == 0){
 			if(pos.size() >= Nmax_min){
 				Nmax=pos.size()+2; // We add 2 because of boundary conditions: nu=0 ==> w=h=a=hnr=0. Same at nu=10000.
@@ -324,7 +324,7 @@ void generate_cfg_from_refstar_HWscaled(VectorXd input_params, Model_data input_
 	numax_ref=0;
 	norm=0;
 	for(el=0;el<lmax+1;el++){
-		pos=where(a_ref.row(el), "=", a_ref.row(el).maxCoeff(), 0);
+		pos=where_index(a_ref.row(el), "=", a_ref.row(el).maxCoeff());
 		numax_ref=numax_ref + nu_ref(el, pos[0]) * a_ref.row(el).maxCoeff(); // Weighted mean
 		norm=norm + a_ref.row(el).maxCoeff();
 		//std::cout << "numax(l="<< el << ")=" << nu_ref(el, pos[0]) <<std::endl;
@@ -343,12 +343,12 @@ void generate_cfg_from_refstar_HWscaled(VectorXd input_params, Model_data input_
 	//exit(EXIT_SUCCESS);
 
 	tmp=nu_ref.row(0).segment(1,Nmax-2);
-	pos=where(tmp/numax_ref-ones, ">=", -0.25, 0);// AND nu_l0/numax_star-1 le 0.2);
+	pos=where_index(tmp/numax_ref-ones, ">=", -0.25);// AND nu_l0/numax_star-1 le 0.2);
 	tmp2.resize(pos.size());
 	for(int i=0; i<pos.size(); i++){tmp2[i]=tmp[pos[i]];}
 	//std::cout << "tmp2=" << tmp2 << std::endl;	
 	ones.setOnes(tmp2.size());
-	pos=where(tmp2/numax_ref-ones, "<=", 0.25, 0);
+	pos=where_index(tmp2/numax_ref-ones, "<=", 0.25);
 	tmp.resize(pos.size());
 	for(int i=0; i<pos.size(); i++){tmp[i]=tmp2[pos[i]];}
 	//std::cout << "tmp=" << tmp << std::endl;
@@ -370,7 +370,7 @@ void generate_cfg_from_refstar_HWscaled(VectorXd input_params, Model_data input_
 	Nmax_star=10000.; // large value to begin with
 	for(el=0; el<lmax+1; el++){
 		//std::cout << "el=" << el << std::endl;
-		pos=where(input_model.freqs.col(0), "=", el, 0);
+		pos=where_index(input_model.freqs.col(0), "=", el);
 		if (pos.size() < Nmax_star){ Nmax_star=pos.size();} // Keep the minimal number of radial order from the list of modes (ensure that Nmax_star is same for all l)
 		//std::cout << "Nmax_star=" << Nmax_star << std::endl;
 	}
@@ -391,7 +391,7 @@ void generate_cfg_from_refstar_HWscaled(VectorXd input_params, Model_data input_
 	for(el=0; el<lmax+1; el++){
 		//std::cout << "el=" << el << std::endl;
 		// ------- Organise frequencies in a (l,n) table ---------
-		pos=where(input_model.freqs.col(0), "=", el, 0);
+		pos=where_index(input_model.freqs.col(0), "=", el);
 		//for(int i=0;i<pos.size();i++){
 		for(int i=0;i<Nmax_star;i++){
 			//std::cout << "[" << i << "/" << Nmax_star-1 << "] " << "l=" << input_model.freqs(pos[i],0) << "pos=" << pos[i]  << " input_model.freqs(2,pos[i])= " << input_model.freqs(pos[i],2) << std::endl;
@@ -450,7 +450,7 @@ void generate_cfg_from_refstar_HWscaled(VectorXd input_params, Model_data input_
 			//std::cout << height[en]/noise_star[en]/maxHNR << std::endl;
 		}
 		
-		pos=where(height, "=", height.maxCoeff(),0);
+		pos=where_index(height, "=", height.maxCoeff());
 		gamma=gamma * Gamma_Hmax_star/gamma(pos[0]); // Rescaling of the Widths in the y-axis. Gamma_star(pos[0]) is the width at Hmax
 		// --------------------------
 
@@ -528,7 +528,7 @@ void generate_cfg_from_refstar_HWscaled_GRANscaled(VectorXd input_params, Model_
 	const int pref_freq=1, pref_h=2, pref_w=3, pref_n=11; // positions in the reference table for frequencies, heights, widths and the local noise
 	int Nmax, k, el, en;
 	double dnu_ref, numax_ref, norm;
-	std::vector<double> pos;
+	std::vector<int> pos;
 	VectorXi pos2;
 	VectorXd  tmp, tmp2, ones, x_ref, height_ref, fit;
 	MatrixXd nu_ref, w_ref, h_ref, a_ref, hnr_ref;
@@ -596,7 +596,7 @@ void generate_cfg_from_refstar_HWscaled_GRANscaled(VectorXd input_params, Model_
 		exit(EXIT_SUCCESS);
 	}
 	for(el=0; el<lmax+1;el++){
-		pos=where(data_ref.data.col(0), "=", el, 0);
+		pos=where_index(data_ref.data.col(0), "=", el);
 		if(el == 0){
 			if(pos.size() >= Nmax_min){
 				Nmax=pos.size()+2; // We add 2 because of boundary conditions: nu=0 ==> w=h=a=hnr=0. Same at nu=10000.
@@ -652,7 +652,7 @@ void generate_cfg_from_refstar_HWscaled_GRANscaled(VectorXd input_params, Model_
 	numax_ref=0;
 	norm=0;
 	for(el=0;el<lmax+1;el++){
-		pos=where(a_ref.row(el), "=", a_ref.row(el).maxCoeff(), 0);
+		pos=where_index(a_ref.row(el), "=", a_ref.row(el).maxCoeff());
 		numax_ref=numax_ref + nu_ref(el, pos[0]) * a_ref.row(el).maxCoeff(); // Weighted mean
 		norm=norm + a_ref.row(el).maxCoeff();
 		//std::cout << "numax(l="<< el << ")=" << nu_ref(el, pos[0]) <<std::endl;
@@ -671,11 +671,11 @@ void generate_cfg_from_refstar_HWscaled_GRANscaled(VectorXd input_params, Model_
 	//exit(EXIT_SUCCESS);
 
 	tmp=nu_ref.row(0).segment(1,Nmax-2);
-	pos=where(tmp/numax_ref-ones, ">=", -0.25, 0);// AND nu_l0/numax_star-1 le 0.2);
+	pos=where_index(tmp/numax_ref-ones, ">=", -0.25);// AND nu_l0/numax_star-1 le 0.2);
 	tmp2.resize(pos.size());
 	for(int i=0; i<pos.size(); i++){tmp2[i]=tmp[pos[i]];}
 	ones.setOnes(tmp2.size());
-	pos=where(tmp2/numax_ref-ones, "<=", 0.25, 0);
+	pos=where_index(tmp2/numax_ref-ones, "<=", 0.25);
 	tmp.resize(pos.size());
 	for(int i=0; i<pos.size(); i++){tmp[i]=tmp2[pos[i]];}
 	//std::cout << "tmp=" << tmp << std::endl;
@@ -697,7 +697,7 @@ void generate_cfg_from_refstar_HWscaled_GRANscaled(VectorXd input_params, Model_
 	Nmax_star=10000.; // large value to begin with
 	for(el=0; el<lmax+1; el++){
 		//std::cout << "el=" << el << std::endl;
-		pos=where(input_model.freqs.col(0), "=", el, 0);
+		pos=where_index(input_model.freqs.col(0), "=", el);
 		if (pos.size() < Nmax_star){ Nmax_star=pos.size();} // Keep the minimal number of radial order from the list of modes (ensure that Nmax_star is same for all l)
 		//std::cout << "Nmax_star=" << Nmax_star << std::endl;
 	}
@@ -718,7 +718,7 @@ void generate_cfg_from_refstar_HWscaled_GRANscaled(VectorXd input_params, Model_
 	for(el=0; el<lmax+1; el++){
 		//std::cout << "el=" << el << std::endl;
 		// ------- Organise frequencies in a (l,n) table ---------
-		pos=where(input_model.freqs.col(0), "=", el, 0);
+		pos=where_index(input_model.freqs.col(0), "=", el);
 		//for(int i=0;i<pos.size();i++){
 		for(int i=0;i<Nmax_star;i++){
 			//std::cout << "[" << i << "/" << Nmax_star-1 << "] " << "l=" << input_model.freqs(pos[i],0) << "pos=" << pos[i]  << " input_model.freqs(2,pos[i])= " << input_model.freqs(pos[i],2) << std::endl;
@@ -777,7 +777,7 @@ void generate_cfg_from_refstar_HWscaled_GRANscaled(VectorXd input_params, Model_
 			//std::cout << height[en]/noise_star[en]/maxHNR << std::endl;
 		}
 		
-		pos=where(height, "=", height.maxCoeff(),0);
+		pos=where_index(height, "=", height.maxCoeff());
 		gamma=gamma * Gamma_Hmax_star/gamma(pos[0]); // Rescaling of the Widths in the y-axis. Gamma_star(pos[0]) is the width at Hmax
 		// --------------------------
 

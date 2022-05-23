@@ -193,6 +193,122 @@ std::vector<double> where(const VectorXd& vec, const std::string condition, cons
 
 }
 
+std::vector<int> where_index(const VectorXd& vec, const std::string condition, const double value){
+/*
+ * If return_values == 0:
+ * 	Gives the indexes of values of an array that fullfil the condition
+ * If return_values == 1:
+ * 	Gives the values of an array that fullfil the condition
+ *
+ * The condition can be the operator "=", "!=", ">", "<", ">=" or "<="
+*/
+	std::vector<int> index;
+	
+	if(condition == "="){
+		for(int i=0; i<vec.size(); i++){
+			if(vec[i] == value){
+				index.push_back(i);
+				//std::cout << "vec[" << i << "]= " << vec[i] << std::endl;
+			}		
+		}
+	}
+
+	if(condition == "!="){
+		for(int i=0; i<vec.size(); i++){
+			if(vec[i] != value){
+				index.push_back(i);
+			}		
+		}
+	}
+	if(condition == ">"){
+		for(int i=0; i<vec.size(); i++){
+			if(vec[i] > value){
+				index.push_back(i);
+			}		
+		}
+	}
+	if(condition == "<"){
+		for(int i=0; i<vec.size(); i++){
+			if(vec[i] < value){
+				index.push_back(i);
+			}		
+		}
+	}
+	if(condition == ">="){
+		for(int i=0; i<vec.size(); i++){
+			if(vec[i] >= value){
+				index.push_back(i);
+			}		
+		}
+	}
+	if(condition == "<="){
+		for(int i=0; i<vec.size(); i++){
+			if(vec[i] <= value){
+				index.push_back(i);
+			}		
+		}
+	}
+	return index;
+}
+
+std::vector<int> where_index(const std::vector<double> vec, const std::string condition, const double value){
+/*
+ * If return_values == 0:
+ * 	Gives the indexes of values of an array that fullfil the condition
+ * If return_values == 1:
+ * 	Gives the values of an array that fullfil the condition
+ *
+ * The condition can be the operator "=", "!=", ">", "<", ">=" or "<="
+*/
+	std::vector<int> index;
+	
+	if(condition == "="){
+		for(int i=0; i<vec.size(); i++){
+			if(vec[i] == value){
+				index.push_back(i);
+				//std::cout << "vec[" << i << "]= " << vec[i] << std::endl;
+			}		
+		}
+	}
+
+	if(condition == "!="){
+		for(int i=0; i<vec.size(); i++){
+			if(vec[i] != value){
+				index.push_back(i);
+			}		
+		}
+	}
+	if(condition == ">"){
+		for(int i=0; i<vec.size(); i++){
+			if(vec[i] > value){
+				index.push_back(i);
+			}		
+		}
+	}
+	if(condition == "<"){
+		for(int i=0; i<vec.size(); i++){
+			if(vec[i] < value){
+				index.push_back(i);
+			}		
+		}
+	}
+	if(condition == ">="){
+		for(int i=0; i<vec.size(); i++){
+			if(vec[i] >= value){
+				index.push_back(i);
+			}		
+		}
+	}
+	if(condition == "<="){
+		for(int i=0; i<vec.size(); i++){
+			if(vec[i] <= value){
+				index.push_back(i);
+			}		
+		}
+	}
+	return index;
+}
+
 
 std::vector<double> where(const std::vector<double> vec, const std::string condition, const double value, const bool return_values){
 /*
