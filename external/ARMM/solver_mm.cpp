@@ -285,6 +285,7 @@ VectorXd asympt_nu_p_from_l0_Xd(const VectorXd& nu_l0, const long double Dnu_p, 
 long double asympt_nu_g(const long double DPl, const int ng, const long double alpha, long double r=0)
 {
 	const long double Pl=(ng + alpha)*DPl;
+	//std::cout << "ng = " << ng << "  Pl =" << Pl <<  "     r= " << r << std::endl;
 	return 1e6/(Pl+r);
 }
 

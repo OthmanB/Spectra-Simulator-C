@@ -1,0 +1,31 @@
+# use_nu_nl : 0 = false / 1 = true
+1
+# Global frequency parameters
+Dnu=15
+DPl=80
+q=0.2
+alpha_g=0.5
+# Frequencies l, nu_nl
+0   100     
+0   115
+0   130
+0   145
+1   90
+1   93
+1   95
+1   105
+1   108
+1   110
+1   121
+1   123
+1   125
+1   135
+1   138
+1   140
+2   98
+2   113
+2   128
+2   143
+3  106
+3  121
+3  136

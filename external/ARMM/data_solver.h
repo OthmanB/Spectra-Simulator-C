@@ -171,15 +171,15 @@ struct Data_rot2zone{
 struct Cfg_synthetic_star{
 	long double Teff_star; 
 	long double numax_star;
-	long double Dnu_star;
+	long double Dnu_star=-1;
 	long double epsilon_star;
 	long double delta0l_percent_star;
 	long double beta_p_star;
 	long double alpha_p_star;
 	long double nmax_star;
-	long double DPl_star;
-	long double alpha_g_star;
-	long double q_star;
+	long double DPl_star=-1;
+	long double alpha_g_star=-1;
+	long double q_star = -1;
 	long double fmin; 
 	long double fmax;
 	long double maxHNR_l0;
@@ -196,6 +196,9 @@ struct Cfg_synthetic_star{
 	long double sigma_m;
 	long double Hfactor;
 	long double Wfactor;
+	MatrixXd nu_nl; // Frequencies of the modes, are here if provided by a template (e.g a theoretical model) and handled by the MCMC model
+	VectorXi Nf_el; // Gives the number of modes 
+	bool use_nu_nl=false; // If set to true, use the nu_nl frequencies instead of computing them from the asymptotic. These must be set
 };
 
 struct Params_synthetic_star{

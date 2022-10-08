@@ -867,7 +867,16 @@ void asymptotic_mm_freeDp_numaxspread_curvepmodes_v3(VectorXd input_params, std:
 	const double c=36.8222;
 	const double b=2.63897;
 	const double a=0.0168202;
-	
+	try{ // Attempting to read file_cfg_mm, if exist. 
+		std::cout << "Trying to find and read the mixed modes configuration file" << file_cfg_mm << std::endl;
+		cfg_star=read_theoretical_freqs(file_cfg_mm);
+		if (cfg_star.use_nu_nl == true){
+			std::cout << "    " << file_cfg_mm << " read! and use_nu_nl = true" << std::endl;
+			std::cout << "    The frequencies of l=0,1,2,3 listed in the file will be used! " << std::endl;
+		}
+	} catch(...){
+		std::cout << "     " << file_cfg_mm << " not found. Pursuing assuming cfg_star.use_nu_nl=false" << std::endl;
+	}
 	// -----------
 	cfg_star.Teff_star=-1;
 	cfg_star.Dnu_star=input_params[2];
@@ -943,6 +952,7 @@ void asymptotic_mm_freeDp_numaxspread_curvepmodes_v3(VectorXd input_params, std:
 
 	tau=input_params[20] * pow(cfg_star.numax_star*1e-6,input_params[21]) + input_params[22]; // Granulation timescale (in seconds)
 	H=input_params[17] * pow(cfg_star.numax_star*1e-6,input_params[18]) + input_params[19]; // Granulation Amplitude
+	//std::cout << "pass" << std::endl;
 	H=H/tau ; //This is due to the used definition for the Harvey profile (conversion from Hz to microHz)
 	tau=tau/1000. ; //conversion in ksec
 	p=input_params[23];// power law:  MUST BE CLOSE TO 2
@@ -956,6 +966,8 @@ void asymptotic_mm_freeDp_numaxspread_curvepmodes_v3(VectorXd input_params, std:
 	noise_params(2, 0)=N0; // White noise
 	noise_params(2, 1)=-2;
 	noise_params(2, 2)=-2;
+	//std::cout << "pass" << std::endl;
+	//exit(EXIT_SUCCESS);
 
 	// A FUNCTION THAT WRITES THE Noise
 	write_star_noise_params(noise_params, file_out_noise);

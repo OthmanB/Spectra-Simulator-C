@@ -61,10 +61,10 @@ void iterative_artificial_spectrum(std::string dir_core){
 	external_path=dir_core + "external/"; 
 	templates_dir=dir_core + "Configurations/templates/";
 	cfg_file=dir_core + "Configurations/main.cfg";
-	model_file=dir_core + "external/MESA_grid/models.params";
+	model_file=dir_core + "external/MESA_grid/models.params"; // This is for models of MS stars from a grid
 	file_out_modes=dir_core + "Configurations/tmp/modes_tmp.cfg";
 	file_out_noise=dir_core + "Configurations/tmp/noise_tmp.cfg";
-	file_cfg_mm=dir_core + "external/ARMM-solver/star_params.global"; // Used only for models with mixed modes and interfaced with the Python solver
+	file_cfg_mm=dir_core + "Configurations/MixedModes_models/star_params.theoretical"; // This is for models of Evolved stars. Used only when the user has already a set of frequencies and want to use them to compute a model
 	
 	file_out_combi=dir_core + "Data/Combinations.txt";
 
@@ -845,10 +845,12 @@ bool call_model_random(std::string model_name, VectorXd input_params, std::strin
 			subpassed=1;
 		}
 		if(model_name =="asymptotic_mm_freeDp_numaxspread_curvepmodes_v1"){ 
+			file_cfg_mm=""; // By-pass the definition to avoid issues
 			asymptotic_mm_freeDp_numaxspread_curvepmodes_v1(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path, template_file);
 			subpassed=1;
 		}
 		if(model_name =="asymptotic_mm_freeDp_numaxspread_curvepmodes_v2"){ 
+			file_cfg_mm=""; // By-pass the definiton to avoid issues
 			asymptotic_mm_freeDp_numaxspread_curvepmodes_v2(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path, template_file);
 			subpassed=1;
 		}
@@ -865,17 +867,19 @@ bool call_model_random(std::string model_name, VectorXd input_params, std::strin
 		
 		//artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
 		artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
-		std::cout << "   - [Warning DIRTY CODE IN LINE 281, iterative_artificial_spectrum.cpp] Hard coded path for saving python3 cfg in the spectra_info dir" << std::endl;
-		std::cout << "                                                                         Stable final version should avoid this" << std::endl;
+		//std::cout << "   - [Warning DIRTY CODE IN LINE 281, iterative_artificial_spectrum.cpp] Hard coded path for saving python3 cfg in the spectra_info dir" << std::endl;
+		//std::cout << "                                                                         Stable final version should avoid this" << std::endl;
 		str="cp " + file_cfg_mm + " " + dir_core + "Data/Spectra_info/" + strtrim(id_str) + ".global";
 		const char *command = str.c_str(); 
 		system(command);
-		str="cp " + dir_core + "external/ARMM-solver/star_params.range " + dir_core + "Data/Spectra_info/" + strtrim(id_str) + ".range";
+		/*
+		str="cp " + dir_core + "external/ARMM/star_params.range " + dir_core + "Data/Spectra_info/" + strtrim(id_str) + ".range";
 		const char *command2 = str.c_str(); 
 		system(command2);
-		str="cp " + dir_core + "external/ARMM-solver/star_params.rot " + dir_core + "Data/Spectra_info/" + strtrim(id_str) + ".rot";
+		str="cp " + dir_core + "external/ARMM/star_params.rot " + dir_core + "Data/Spectra_info/" + strtrim(id_str) + ".rot";
 		const char *command3 = str.c_str(); 
 		system(command3);
+		*/
 		passed=1;
 	}
 

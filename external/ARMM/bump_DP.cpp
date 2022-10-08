@@ -539,7 +539,8 @@ Params_synthetic_star make_synthetic_asymptotic_star(Cfg_synthetic_star cfg_star
 	std::default_random_engine gen_m(seed); 
 	std::normal_distribution<double> distrib_m(0.,cfg_star.sigma_m);
 
-
+	//std::cout << "cfg_star.use_nu_nl = " << cfg_star.use_nu_nl << std::endl;
+	//exit(EXIT_SUCCESS);
 	int en, el, np_min, np_max;
 	long double r, tmp, resol, c, xmin ,xmax, delta0l_star;
 	VectorXi posOK;
@@ -549,12 +550,16 @@ Params_synthetic_star make_synthetic_asymptotic_star(Cfg_synthetic_star cfg_star
 		height_l0, height_l1, height_l2, height_l3, height_l1p, 
 		width_l0, width_l1, width_l2, width_l3,
 		a1_l1, a1_l2, a1_l3; // Simulate a single harvey profile
+	int ng, ng_min, ng_max;  // used only if cfg_star.use_nu_nl = true
+	VectorXd nu_p_l1, nu_g_l1; // used only if cfg_star.use_nu_nl = true
 
 	Data_2vectXd width_height_l0;
 	Data_rot2zone rot2data;
 	Params_synthetic_star params_out;
 	Data_eigensols freqs;
 
+	//std::cout << cfg_star.numax_star << std::endl;
+	//exit(EXIT_SUCCESS);
 	//Defining what should be Hmax_l0 in order to get the desired HNR
 	//                   04           1         2           3            4           5          6       7
 	//noise_params_harvey_like=[A_Pgran ,  B_Pgran , C_Pgran   ,  A_taugran ,  B_taugran  , C_taugran    , p      N0] // 
@@ -569,27 +574,31 @@ Params_synthetic_star make_synthetic_asymptotic_star(Cfg_synthetic_star cfg_star
 	// Fix the resolution to 4 years (converted into microHz)
 	resol=1e6/(4*365.*86400.);
 
-	// ----- l=0 modes -----
-	// This section generate l=0 modes following the asymptotic relation of p modes, and make
-	// rescaled width and height profiles for the star using the solar width and height profiles
+	if (cfg_star.use_nu_nl == false){ // Do all the stuff related to computing frequencies only if requested
+		// ----- l=0 modes -----
+		// This section generate l=0 modes following the asymptotic relation of p modes, and make
+		// rescaled width and height profiles for the star using the solar width and height profiles
 
-	// Use fmin and fmax to define the number of pure p modes and pure g modes to be considered
-	np_min=int(floor(cfg_star.fmin/cfg_star.Dnu_star - cfg_star.epsilon_star));
-	np_max=int(ceil(cfg_star.fmax/cfg_star.Dnu_star - cfg_star.epsilon_star));
-	np_min=int(floor(np_min - cfg_star.alpha_p_star*std::pow(np_min - cfg_star.nmax_star, 2) /2.));
-	np_max=int(ceil(np_max + cfg_star.alpha_p_star*std::pow(np_max - cfg_star.nmax_star, 2) /2.));  // The minus plus is there because (np_max - nmax_star)^2 is always positive
-	
-	if (np_min < 1)
-	{
-		np_min=1;
-	}
-//	std::cout << "np_min =" << np_min << std::endl;
-//	std::cout << "np_max =" << np_max << std::endl;
-	nu_l0.resize(np_max-np_min);
-	for (en=np_min; en<np_max; en++)
-	{
-		tmp=asympt_nu_p(cfg_star.Dnu_star, en, cfg_star.epsilon_star, 0, 0, cfg_star.alpha_p_star, cfg_star.nmax_star);
-		nu_l0[en-np_min]=tmp;
+		// Use fmin and fmax to define the number of pure p modes and pure g modes to be considered
+		np_min=int(floor(cfg_star.fmin/cfg_star.Dnu_star - cfg_star.epsilon_star));
+		np_max=int(ceil(cfg_star.fmax/cfg_star.Dnu_star - cfg_star.epsilon_star));
+		np_min=int(floor(np_min - cfg_star.alpha_p_star*std::pow(np_min - cfg_star.nmax_star, 2) /2.));
+		np_max=int(ceil(np_max + cfg_star.alpha_p_star*std::pow(np_max - cfg_star.nmax_star, 2) /2.));  // The minus plus is there because (np_max - nmax_star)^2 is always positive
+		
+		if (np_min < 1)
+		{
+			np_min=1;
+		}
+	//	std::cout << "np_min =" << np_min << std::endl;
+	//	std::cout << "np_max =" << np_max << std::endl;
+		nu_l0.resize(np_max-np_min);
+		for (en=np_min; en<np_max; en++)
+		{
+			tmp=asympt_nu_p(cfg_star.Dnu_star, en, cfg_star.epsilon_star, 0, 0, cfg_star.alpha_p_star, cfg_star.nmax_star);
+			nu_l0[en-np_min]=tmp;
+		}
+	} else{
+		nu_l0=cfg_star.nu_nl.row(0).segment(0, cfg_star.Nf_el[0]);
 	}
 	width_height_l0=width_height_load_rescale(nu_l0, cfg_star.Dnu_star, cfg_star.numax_star, cfg_star.filetemplate); // Function that ensure that Hmax and Wplateau is at numax
 	width_l0=width_height_l0.vecXd1;
@@ -625,34 +634,76 @@ Params_synthetic_star make_synthetic_asymptotic_star(Cfg_synthetic_star cfg_star
 	}
 	width_l0=width_l0*cfg_star.Gamma_max_l0;
 	// ------- l=1 modes ------
-	// Use the solver to get mixed modes
-	el=1;
-	delta0l_star=-el*(el + 1) * cfg_star.delta0l_percent_star / 100.;
-	freqs=solve_mm_asymptotic_O2p(cfg_star.Dnu_star, cfg_star.epsilon_star, el, delta0l_star, cfg_star.alpha_p_star, cfg_star.nmax_star, cfg_star.DPl_star, 
-								  cfg_star.alpha_g_star, cfg_star.q_star, cfg_star.sigma_p, cfg_star.fmin, cfg_star.fmax, resol, true, false);
+		// Use the solver to get mixed modes
+	if (cfg_star.use_nu_nl == false){ // Do all the stuff related to computing frequencies only if requested
+		el=1;
+		delta0l_star=-el*(el + 1) * cfg_star.delta0l_percent_star / 100.;
+		freqs=solve_mm_asymptotic_O2p(cfg_star.Dnu_star, cfg_star.epsilon_star, el, delta0l_star, cfg_star.alpha_p_star, cfg_star.nmax_star, cfg_star.DPl_star, 
+									cfg_star.alpha_g_star, cfg_star.q_star, cfg_star.sigma_p, cfg_star.fmin, cfg_star.fmax, resol, true, false);
 
-	// Filter solutions that endup at frequencies higher/lower than the nu_l0 because we will need to extrapolate height/widths otherwise...
-	posOK=where_in_range(freqs.nu_m, nu_l0.minCoeff(), nu_l0.maxCoeff(), false);
-	nu_m_l1.resize(posOK.size());
-	for (int i=0; i<posOK.size();i++)
-	{
-		nu_m_l1[i]=freqs.nu_m[posOK[i]];
-		if (cfg_star.sigma_m !=0) // If requested, we add a random gaussian qty to the mixed mode solution
+		// Filter solutions that endup at frequencies higher/lower than the nu_l0 because we will need to extrapolate height/widths otherwise...
+		posOK=where_in_range(freqs.nu_m, nu_l0.minCoeff(), nu_l0.maxCoeff(), false);
+		nu_m_l1.resize(posOK.size());
+		for (int i=0; i<posOK.size();i++)
 		{
-			r = distrib_m(gen_m);
-			nu_m_l1[i]=nu_m_l1[i]+r;
+			nu_m_l1[i]=freqs.nu_m[posOK[i]];
+			if (cfg_star.sigma_m !=0) // If requested, we add a random gaussian qty to the mixed mode solution
+			{
+				r = distrib_m(gen_m);
+				nu_m_l1[i]=nu_m_l1[i]+r;
+			}
 		}
+		
+		// Generating widths profiles for l=1 modes using the ksi function
+		Dnu_p=freqs.dnup;
+		DPl=freqs.dPg; 
+		ksi_pg=ksi_fct2(nu_m_l1, freqs.nu_p, freqs.nu_g, Dnu_p, DPl, cfg_star.q_star, "precise"); //"precise" // assume Dnu_p, DPl and q constant
+	} else{
+		nu_m_l1=cfg_star.nu_nl.row(1).segment(0, cfg_star.Nf_el[1]);
+		std::cout << "nu_m_l1=" << nu_m_l1.transpose() << std::endl;
+		if (cfg_star.Dnu_star == -1 || cfg_star.DPl_star == -1 || cfg_star.alpha_g_star == -1 || cfg_star.q_star == -1){
+			std::cout << "Error: cfg_star.use_nu_l is set to true " << std::endl;
+			std::cout << "       You must provide in the cfg_star structure: " << std::endl;
+			std::cout << "             - nu_nl in a matrix form" << std::endl;
+			std::cout << "             - Dnu_star" << std::endl;
+			std::cout << "             - DPl_star" << std::endl;
+			std::cout << "             - alpha_g_star" << std::endl;
+			std::cout << "             - q_star" << std::endl;
+			exit(EXIT_FAILURE);
+		}
+		// get epsilon_p
+		std::cout << "epsilon " << std::endl;
+		cfg_star.epsilon_star=0;
+		for (int c=0; c<cfg_star.nu_nl.rows(); c++){
+			cfg_star.epsilon_star=cfg_star.epsilon_star + cfg_star.nu_nl(0,c)/cfg_star.Dnu_star  - floor(cfg_star.nu_nl(0,c)/cfg_star.Dnu_star);
+		}
+		cfg_star.epsilon_star=cfg_star.epsilon_star/cfg_star.nu_nl.rows();
+		std::cout << "epsilon = " << cfg_star.epsilon_star << std::endl;
+		el=1;
+		delta0l_star=-el*(el + 1) * cfg_star.delta0l_percent_star / 100.;
+		np_min=int(floor(cfg_star.fmin/cfg_star.Dnu_star - cfg_star.epsilon_star - el/2 - delta0l_star));
+		np_max=int(ceil(cfg_star.fmax/cfg_star.Dnu_star - cfg_star.epsilon_star - el/2 - delta0l_star));
+		ng_min=int(floor(1e6/(cfg_star.fmax*cfg_star.DPl_star) - cfg_star.alpha_g_star));
+		ng_max=int(ceil(1e6/(cfg_star.fmin*cfg_star.DPl_star) - cfg_star.alpha_g_star));
+		nu_p_l1.resize(np_max-np_min);
+		std::cout << "delta0l_star = " << delta0l_star << std::endl;
+		for (en=np_min; en<np_max;en++){
+			//nu_p=asympt_nu_p(Dnu_p, en, cfg_star.epsilon_star, 1, 0, 0, 0);	
+			nu_p_l1[en-np_min]=asympt_nu_p(cfg_star.Dnu_star, en, cfg_star.epsilon_star, 1, delta0l_star, 0, 0);
+		}
+		//std::cout << "nu_p_l1 = " << nu_p_l1.transpose() << std::endl;
+		nu_g_l1.resize(ng_max-ng_min);
+		for (ng=ng_min; ng<ng_max;ng++){
+			nu_g_l1[ng-ng_min]=asympt_nu_g(cfg_star.DPl_star, ng, cfg_star.alpha_g_star);
+		}
+		//std::cout << "nu_g_l1 = " << nu_g_l1.transpose() << std::endl;
+		//std::cout << " ---" << std::endl;
+		Dnu_p.resize(nu_p_l1.size());
+		DPl.resize(nu_g_l1.size());
+		Dnu_p.setConstant(cfg_star.Dnu_star);
+		DPl.setConstant(cfg_star.DPl_star);
+		ksi_pg=ksi_fct2(nu_m_l1, nu_p_l1, nu_g_l1, Dnu_p, DPl, cfg_star.q_star, "precise"); //"precise" // assume Dnu_p, DPl and q constant
 	}
-	
-	//
-	//std::cout << "cfg_star.Hfactor =" << cfg_star.Hfactor << std::endl;
-	//std::cout << "cfg_star.Wfactor =" << cfg_star.Wfactor << std::endl;
-	
-	// Generating widths profiles for l=1 modes using the ksi function
-	Dnu_p=freqs.dnup;
-	DPl=freqs.dPg; 
-
-	ksi_pg=ksi_fct2(nu_m_l1, freqs.nu_p, freqs.nu_g, Dnu_p, DPl, cfg_star.q_star, "precise"); //"precise" // assume Dnu_p, DPl and q constant
 	h1_h0_ratio=h_l_rgb(ksi_pg, cfg_star.Hfactor); // WARNING: Valid assummption only not too evolved RGB stars (below the bump, see Kevin mail 10 August 2019). Hfactor added on May 2, 2022
 	
 	height_l1p.resize(nu_m_l1.size());
@@ -693,15 +744,19 @@ Params_synthetic_star make_synthetic_asymptotic_star(Cfg_synthetic_star cfg_star
 
 	a1_l1=dnu_rot_2zones(ksi_pg, rot2data.rot_env, rot2data.rot_core);
 	// ------- l=2 modes -----
-	el=2;
-	delta0l_star=-el*(el + 1) * cfg_star.delta0l_percent_star / 100.;
-	nu_l2.resize(np_max-np_min);
-	for (int en=np_min; en< np_max;en++)
-	{
-		tmp=asympt_nu_p(cfg_star.Dnu_star, en, cfg_star.epsilon_star, el, delta0l_star, cfg_star.alpha_p_star, cfg_star.nmax_star);
-		nu_l2[en-np_min]=tmp;
+	if (cfg_star.use_nu_nl == false){ // Do all the stuff related to computing frequencies only if requested
+		el=2;
+		delta0l_star=-el*(el + 1) * cfg_star.delta0l_percent_star / 100.;
+		nu_l2.resize(np_max-np_min);
+		for (int en=np_min; en< np_max;en++)
+		{
+			tmp=asympt_nu_p(cfg_star.Dnu_star, en, cfg_star.epsilon_star, el, delta0l_star, cfg_star.alpha_p_star, cfg_star.nmax_star);
+			nu_l2[en-np_min]=tmp;
+		}
+	} else{
+		nu_l2=cfg_star.nu_nl.row(2).segment(0, cfg_star.Nf_el[2]);
+		std::cout << "nu_l2 = " << nu_l2 << std::endl;
 	}
-
 	// Filter solutions that endup at frequencies higher/lower than the nu_l0 because we will need to extrapolate height/widths otherwise...
 	posOK=where_in_range(nu_l2, nu_l0.minCoeff(), nu_l0.maxCoeff(), false);
 	tmpXd=nu_l2;
@@ -721,13 +776,18 @@ Params_synthetic_star make_synthetic_asymptotic_star(Cfg_synthetic_star cfg_star
 	a1_l2.setConstant(rot2data.rot_env);
 	
 	// ------ l=3 modes ----
-	el=3;
-	delta0l_star=-el*(el + 1) * cfg_star.delta0l_percent_star / 100.;
-	nu_l3.resize(np_max-np_min);
-	for (int en=np_min; en<np_max;en++)
-	{
-		tmp=asympt_nu_p(cfg_star.Dnu_star, en, cfg_star.epsilon_star, el, delta0l_star, cfg_star.alpha_p_star, cfg_star.nmax_star);
-		nu_l3[en-np_min]=tmp;
+	if (cfg_star.use_nu_nl == false){ // Do all the stuff related to computing frequencies only if requested
+		el=3;
+		delta0l_star=-el*(el + 1) * cfg_star.delta0l_percent_star / 100.;
+		nu_l3.resize(np_max-np_min);
+		for (int en=np_min; en<np_max;en++)
+		{
+			tmp=asympt_nu_p(cfg_star.Dnu_star, en, cfg_star.epsilon_star, el, delta0l_star, cfg_star.alpha_p_star, cfg_star.nmax_star);
+			nu_l3[en-np_min]=tmp;
+		}
+	} else{
+		nu_l3=cfg_star.nu_nl.row(3).segment(0, cfg_star.Nf_el[3]);
+		//std::cout << "nu_l3 = " << nu_l3 << std::endl;
 	}
 	posOK=where_in_range(nu_l3, nu_l0.minCoeff(), nu_l0.maxCoeff(), false);
 	tmpXd=nu_l3;
@@ -742,14 +802,19 @@ Params_synthetic_star make_synthetic_asymptotic_star(Cfg_synthetic_star cfg_star
 		tmp=lin_interpol(nu_l0, width_l0, nu_l3[i]);
 		width_l3[i]=tmp;		
 	}
-	
 	// Assume that the l=3 modes are only sensitive to the envelope rotation
 	a1_l3.resize(nu_l3.size());
 	a1_l3.setConstant(rot2data.rot_env);//=numpy.repeat(rot_env, len(nu_l3))
 
 	params_out.nu_l0=nu_l0;
-	params_out.nu_p_l1=freqs.nu_p;
-	params_out.nu_g_l1=freqs.nu_g;
+	if (cfg_star.use_nu_nl == false){ // Do all the stuff related to computing frequencies only if requested
+		params_out.nu_p_l1=freqs.nu_p;
+		params_out.nu_g_l1=freqs.nu_g;
+	} else{
+		params_out.nu_p_l1=nu_p_l1;
+		params_out.nu_g_l1=nu_g_l1;
+	}
+	params_out.nu_l0=nu_l0;
 	params_out.nu_m_l1=nu_m_l1;
 	params_out.nu_l2=nu_l2;
 	params_out.nu_l3=nu_l3;
@@ -764,7 +829,22 @@ Params_synthetic_star make_synthetic_asymptotic_star(Cfg_synthetic_star cfg_star
 	params_out.a1_l1=a1_l1;
 	params_out.a1_l2=a1_l2;
 	params_out.a1_l3=a1_l3;
-		
+	std::cout << "nu_l0  = " << nu_l0.transpose() << std::endl;
+	std::cout << "nu_l1  = " << nu_m_l1.transpose() << std::endl;
+	std::cout << "nu_l2  = " << nu_l2.transpose() << std::endl;
+	std::cout << "nu_l3  = " << nu_l3.transpose() << std::endl;	
+	std::cout << "width_l0  = " << width_l0 << std::endl;
+	std::cout << "width_l1  = " << width_l1 << std::endl;
+	std::cout << "width_l2  = " << width_l2 << std::endl;
+	std::cout << "width_l3  = " << width_l3 << std::endl;
+	std::cout << "height_l0 = " << height_l0 << std::endl;
+	std::cout << "height_l1 = " << height_l1 << std::endl;
+	std::cout << "height_l2 = " << height_l2 << std::endl;
+	std::cout << "height_l3 = " << height_l3 << std::endl;
+	std::cout << "a1_l1     = " << a1_l1 << std::endl;
+	std::cout << "a1_l2     = " << a1_l2 << std::endl;
+	std::cout << "a1_l3     = " << a1_l3 << std::endl;
+	
 	return params_out;
 }
 

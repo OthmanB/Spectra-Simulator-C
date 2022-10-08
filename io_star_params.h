@@ -22,7 +22,7 @@ using Eigen::VectorXd;
 using Eigen::VectorXi;
 using Eigen::MatrixXd;
 
-
+std::string rem_comments(std::string str0, std::string terminator);
 std::string read_allfile(const std::string file); // Read a full file without caring about the content
 std::vector<std::string> read_allfile_vect(const std::string file);  // Read a full file without caring about the content But separate each line in a vector
 void write_global_info(VectorXd spec_params, std::string file_out, std::string identifier, bool append=false); // Write Identifier, Cadence and observation duration
@@ -45,6 +45,7 @@ MatrixXd bumpoutputs_2_MatrixXd(Params_synthetic_star params, double inc);
 Config_Data read_main_cfg(std::string cfg_file);			
 Data_Nd read_data_ascii_Ncols(const std::string file_in_name, const std::string delimiter, const bool verbose_data);
 Star_params read_star_params(const std::string file_in_name);
+Cfg_synthetic_star read_theoretical_freqs(const std::string file);
 VectorXd smooth(VectorXd in, double scoef);
 void file_read_error(std::string);
 

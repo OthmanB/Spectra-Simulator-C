@@ -537,6 +537,106 @@ std::vector<std::string> read_allfile_vect(const std::string file){
     return out;
 }
 
+ Cfg_synthetic_star read_theoretical_freqs(const std::string file){
+	std::ifstream file_in;
+	//std::vector<std::string> read_allfile_vect(file); // Each line in a vector
+	Cfg_synthetic_star cfg_star;
+	//VectorXi Nf_el(4); // How many modes of each degree
+	std::vector<int> pos_l, l_vec; // temporary vector
+	std::vector<double> nu_vec; // temporary vector
+	std::vector<std::string> tmp_vec_str;
+	std::string line0, subline0;
+	//
+	int cpt, cptmax=10; //maximum number of header lines
+    file_in.open(file.c_str());
+    if (file_in.is_open()) {
+		std::cout << "Mixed modes configuration file opened... processing lines" << std::endl;
+
+		// [1] Ignore the header
+		cpt=0;
+		std::getline(file_in, line0);
+		line0=strtrim(line0); // remove any white space at the begining/end of the string
+		subline0=strtrim(line0.substr(0, 1)); // pick the first character
+		subline0=subline0.c_str();
+		while(subline0 == "#" && !file_in.eof() && cpt < cptmax){
+			std::getline(file_in, line0);
+			line0=strtrim(line0); // remove any white space at the begining/end of the string
+			subline0=strtrim(line0.substr(0, 1)); // pick the first character
+			subline0=subline0.c_str();
+			cpt=cpt+1;
+		}
+		std::cout << "After comments" << std::endl;
+		if(cpt > cptmax){
+			std::cout << "Only comments were found on the file!" << std::endl;
+			std::cout << "Maximum authorized comment lines: " << cptmax << std::endl;
+			std::cout << "Debug required" <<std::endl;
+			std::cout << "The program will exit now" << std::endl;
+			exit(EXIT_FAILURE);
+		}
+		// [2] Get relevant data
+		//     Global parameters Dnu, DP, q, alpha_g
+		cfg_star.use_nu_nl=str_to_bool(rem_comments(line0, "#")); // Get the value telling us whether we use frequencies from the table or not
+		std::cout << "[1] cfg_star.use_nu_nl=" << cfg_star.use_nu_nl << std::endl;
+		std::getline(file_in, line0); // SKIP COMMENT
+		std::getline(file_in, line0);
+		tmp_vec_str=strsplit(rem_comments(line0, "#"), " ");
+		cfg_star.Dnu_star=str_to_dbl(tmp_vec_str[0]);
+		std::cout << "[2] cfg_star.Dnu_star=" << cfg_star.Dnu_star << std::endl;
+		std::getline(file_in, line0);
+		tmp_vec_str=strsplit(rem_comments(line0, "#"), " ");
+		cfg_star.DPl_star=str_to_dbl(tmp_vec_str[0]);
+		std::cout << "[3] cfg_star.DPl_star=" << cfg_star.DPl_star << std::endl;
+		std::getline(file_in, line0);
+		tmp_vec_str=strsplit(rem_comments(line0, "#"), " ");
+		cfg_star.q_star=str_to_dbl(tmp_vec_str[0]);
+		std::cout << "[4] cfg_star.q_star=" << cfg_star.q_star << std::endl;
+		std::getline(file_in, line0);
+		tmp_vec_str=strsplit(rem_comments(line0, "#"), " ");
+		cfg_star.alpha_g_star=str_to_dbl(tmp_vec_str[0]);
+		std::cout << "[5] cfg_star.alpha_g_star=" << cfg_star.alpha_g_star << std::endl;
+		//     The frequencies
+		std::getline(file_in, line0); // SKIP A COMMENT LINE 
+		std::cout << "[5] " << line0 << std::endl;
+		cpt=0;
+		std::cout << "[6] " << "Vectors ..." << std::endl;
+		while(!file_in.eof() && cpt < cptmax){
+			std::getline(file_in, line0); // Read the lines
+			tmp_vec_str=strsplit(rem_comments(line0, "#"), " "); // we expect l and nu_nl
+			l_vec.push_back(str_to_int(tmp_vec_str[0]));
+			nu_vec.push_back(str_to_dbl(tmp_vec_str[1]));
+		}
+		file_in.close();
+	} else {
+		std::cout << "Could not open the configuration file!" << std::endl;
+		std::cout << "Configuration file: " << file << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	cfg_star.Nf_el.resize(4);
+	// [3] Organize the frequencies in cfg_star.nu_nl
+	for (int el=0; el<4; el++){
+		pos_l=where_int(l_vec, el);
+		if (pos_l[0] != -1){
+			cfg_star.Nf_el[el]=pos_l.size();
+		} else{
+			cfg_star.Nf_el[el]=0;
+		}
+	}
+	std::cout << "cfg_star.Nf_el =" << cfg_star.Nf_el.transpose() << std::endl;
+	cfg_star.nu_nl.resize(4, cfg_star.Nf_el.maxCoeff()); // The size of the matrix is the larger number of modes
+	cfg_star.nu_nl.setZero();
+	for (int el=0; el<4; el++){
+		pos_l=where_int(l_vec, el);
+		for (int n=0; n<cfg_star.Nf_el[el];n++){
+			//std::cout << "[" << n << "]  " << nu_vec[pos_l[n]] << std::endl;
+			cfg_star.nu_nl(el, n)=nu_vec[pos_l[n]];
+		}
+	}
+//	std::cout << cfg_star.nu_nl << std::endl;
+//	exit(EXIT_SUCCESS);
+	return cfg_star;
+}
+
+
 Star_params read_star_params(const std::string file_in_name){
 
     const int data_Maxsize=1000; 
