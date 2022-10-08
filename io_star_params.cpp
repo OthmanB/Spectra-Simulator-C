@@ -565,7 +565,7 @@ std::vector<std::string> read_allfile_vect(const std::string file){
 			subline0=subline0.c_str();
 			cpt=cpt+1;
 		}
-		std::cout << "After comments" << std::endl;
+		//std::cout << "After comments" << std::endl;
 		if(cpt > cptmax){
 			std::cout << "Only comments were found on the file!" << std::endl;
 			std::cout << "Maximum authorized comment lines: " << cptmax << std::endl;
@@ -579,24 +579,25 @@ std::vector<std::string> read_allfile_vect(const std::string file){
 		std::cout << "[1] cfg_star.use_nu_nl=" << cfg_star.use_nu_nl << std::endl;
 		std::getline(file_in, line0); // SKIP COMMENT
 		std::getline(file_in, line0);
-		tmp_vec_str=strsplit(rem_comments(line0, "#"), " ");
-		cfg_star.Dnu_star=str_to_dbl(tmp_vec_str[0]);
+		tmp_vec_str=strsplit(rem_comments(line0, "#"), "=");
+		cfg_star.Dnu_star=str_to_dbl(tmp_vec_str[1]);
+		//std::cout << str_to_dbl(tmp_vec_str[0]) << "   " << str_to_dbl(tmp_vec_str[1]) << std::endl;
 		std::cout << "[2] cfg_star.Dnu_star=" << cfg_star.Dnu_star << std::endl;
 		std::getline(file_in, line0);
-		tmp_vec_str=strsplit(rem_comments(line0, "#"), " ");
-		cfg_star.DPl_star=str_to_dbl(tmp_vec_str[0]);
+		tmp_vec_str=strsplit(rem_comments(line0, "#"), "=");
+		cfg_star.DPl_star=str_to_dbl(tmp_vec_str[1]);
 		std::cout << "[3] cfg_star.DPl_star=" << cfg_star.DPl_star << std::endl;
 		std::getline(file_in, line0);
-		tmp_vec_str=strsplit(rem_comments(line0, "#"), " ");
-		cfg_star.q_star=str_to_dbl(tmp_vec_str[0]);
+		tmp_vec_str=strsplit(rem_comments(line0, "#"), "=");
+		cfg_star.q_star=str_to_dbl(tmp_vec_str[1]);
 		std::cout << "[4] cfg_star.q_star=" << cfg_star.q_star << std::endl;
 		std::getline(file_in, line0);
-		tmp_vec_str=strsplit(rem_comments(line0, "#"), " ");
-		cfg_star.alpha_g_star=str_to_dbl(tmp_vec_str[0]);
+		tmp_vec_str=strsplit(rem_comments(line0, "#"), "=");
+		cfg_star.alpha_g_star=str_to_dbl(tmp_vec_str[1]);
 		std::cout << "[5] cfg_star.alpha_g_star=" << cfg_star.alpha_g_star << std::endl;
 		//     The frequencies
 		std::getline(file_in, line0); // SKIP A COMMENT LINE 
-		std::cout << "[5] " << line0 << std::endl;
+		//std::cout << "[5] " << line0 << std::endl;
 		cpt=0;
 		std::cout << "[6] " << "Vectors ..." << std::endl;
 		while(!file_in.eof() && cpt < cptmax){
