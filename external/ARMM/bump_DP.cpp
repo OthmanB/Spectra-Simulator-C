@@ -660,7 +660,7 @@ Params_synthetic_star make_synthetic_asymptotic_star(Cfg_synthetic_star cfg_star
 		ksi_pg=ksi_fct2(nu_m_l1, freqs.nu_p, freqs.nu_g, Dnu_p, DPl, cfg_star.q_star, "precise"); //"precise" // assume Dnu_p, DPl and q constant
 	} else{
 		nu_m_l1=cfg_star.nu_nl.row(1).segment(0, cfg_star.Nf_el[1]);
-		std::cout << "nu_m_l1=" << nu_m_l1.transpose() << std::endl;
+		//std::cout << "nu_m_l1=" << nu_m_l1.transpose() << std::endl;
 		if (cfg_star.Dnu_star == -1 || cfg_star.DPl_star == -1 || cfg_star.alpha_g_star == -1 || cfg_star.q_star == -1){
 			std::cout << "Error: cfg_star.use_nu_l is set to true " << std::endl;
 			std::cout << "       You must provide in the cfg_star structure: " << std::endl;
@@ -672,13 +672,13 @@ Params_synthetic_star make_synthetic_asymptotic_star(Cfg_synthetic_star cfg_star
 			exit(EXIT_FAILURE);
 		}
 		// get epsilon_p
-		std::cout << "epsilon " << std::endl;
+		//std::cout << "epsilon " << std::endl;
 		cfg_star.epsilon_star=0;
 		for (int c=0; c<cfg_star.nu_nl.rows(); c++){
 			cfg_star.epsilon_star=cfg_star.epsilon_star + cfg_star.nu_nl(0,c)/cfg_star.Dnu_star  - floor(cfg_star.nu_nl(0,c)/cfg_star.Dnu_star);
 		}
 		cfg_star.epsilon_star=cfg_star.epsilon_star/cfg_star.nu_nl.rows();
-		std::cout << "epsilon = " << cfg_star.epsilon_star << std::endl;
+		std::cout << "     epsilon = " << cfg_star.epsilon_star << std::endl;
 		el=1;
 		delta0l_star=-el*(el + 1) * cfg_star.delta0l_percent_star / 100.;
 		np_min=int(floor(cfg_star.fmin/cfg_star.Dnu_star - cfg_star.epsilon_star - el/2 - delta0l_star));
@@ -686,7 +686,7 @@ Params_synthetic_star make_synthetic_asymptotic_star(Cfg_synthetic_star cfg_star
 		ng_min=int(floor(1e6/(cfg_star.fmax*cfg_star.DPl_star) - cfg_star.alpha_g_star));
 		ng_max=int(ceil(1e6/(cfg_star.fmin*cfg_star.DPl_star) - cfg_star.alpha_g_star));
 		nu_p_l1.resize(np_max-np_min);
-		std::cout << "delta0l_star = " << delta0l_star << std::endl;
+		//std::cout << "delta0l_star = " << delta0l_star << std::endl;
 		for (en=np_min; en<np_max;en++){
 			//nu_p=asympt_nu_p(Dnu_p, en, cfg_star.epsilon_star, 1, 0, 0, 0);	
 			nu_p_l1[en-np_min]=asympt_nu_p(cfg_star.Dnu_star, en, cfg_star.epsilon_star, 1, delta0l_star, 0, 0);
@@ -755,7 +755,7 @@ Params_synthetic_star make_synthetic_asymptotic_star(Cfg_synthetic_star cfg_star
 		}
 	} else{
 		nu_l2=cfg_star.nu_nl.row(2).segment(0, cfg_star.Nf_el[2]);
-		std::cout << "nu_l2 = " << nu_l2 << std::endl;
+		//std::cout << "nu_l2 = " << nu_l2.transpose() << std::endl;
 	}
 	// Filter solutions that endup at frequencies higher/lower than the nu_l0 because we will need to extrapolate height/widths otherwise...
 	posOK=where_in_range(nu_l2, nu_l0.minCoeff(), nu_l0.maxCoeff(), false);
@@ -829,6 +829,7 @@ Params_synthetic_star make_synthetic_asymptotic_star(Cfg_synthetic_star cfg_star
 	params_out.a1_l1=a1_l1;
 	params_out.a1_l2=a1_l2;
 	params_out.a1_l3=a1_l3;
+	/*
 	std::cout << "nu_l0  = " << nu_l0.transpose() << std::endl;
 	std::cout << "nu_l1  = " << nu_m_l1.transpose() << std::endl;
 	std::cout << "nu_l2  = " << nu_l2.transpose() << std::endl;
@@ -844,7 +845,7 @@ Params_synthetic_star make_synthetic_asymptotic_star(Cfg_synthetic_star cfg_star
 	std::cout << "a1_l1     = " << a1_l1 << std::endl;
 	std::cout << "a1_l2     = " << a1_l2 << std::endl;
 	std::cout << "a1_l3     = " << a1_l3 << std::endl;
-	
+	*/
 	return params_out;
 }
 

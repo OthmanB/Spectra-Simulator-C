@@ -876,17 +876,27 @@ void asymptotic_mm_freeDp_numaxspread_curvepmodes_v3(VectorXd input_params, std:
 		}
 	} catch(...){
 		std::cout << "     " << file_cfg_mm << " not found. Pursuing assuming cfg_star.use_nu_nl=false" << std::endl;
+		cfg_star.use_nu_nl=false;
 	}
-	// -----------
+	// ----------
+	if (cfg_star.use_nu_nl == false){ // we use the parameters defined in the main.cfg
+		cfg_star.Dnu_star=input_params[2];
+		cfg_star.DPl_star=input_params[7];                
+		cfg_star.q_star=input_params[9];
+		cfg_star.alpha_g_star=input_params[8];
+		cfg_star.epsilon_star=input_params[3];
+	} else{
+		std::cout << "Using:" << std::endl;
+		std::cout << "    cfg_star.Dnu_star = " << cfg_star.Dnu_star << std::endl;
+		std::cout << "    cfg_star.DPl_star = " << cfg_star.DPl_star << std::endl;
+		std::cout << "    cfg_star.q_star   = " << cfg_star.alpha_g_star << std::endl;
+		std::cout << "    epsilon_p_star will be calculated using the provided list of frequencies and Dnu_star" << std::endl;
+		std::cout << "    Note that delta0l_percent_star is taken from the main.cfg configuration " << std::endl;
+	}
 	cfg_star.Teff_star=-1;
-	cfg_star.Dnu_star=input_params[2];
-	cfg_star.epsilon_star=input_params[3];
 	cfg_star.delta0l_percent_star=input_params[4];
 	cfg_star.beta_p_star=input_params[5];
 	
-	cfg_star.DPl_star=input_params[7];                
-	cfg_star.alpha_g_star=input_params[8];
-	cfg_star.q_star=input_params[9];
 	cfg_star.maxHNR_l0=input_params[10];
 	cfg_star.H0_spread=input_params[16];
 	cfg_star.Gamma_max_l0=input_params[11];
