@@ -599,12 +599,19 @@ std::vector<std::string> read_allfile_vect(const std::string file){
 		std::getline(file_in, line0); // SKIP A COMMENT LINE 
 		//std::cout << "[5] " << line0 << std::endl;
 		cpt=0;
+		cptmax=1000;
 		std::cout << "[6] " << "Vectors ..." << std::endl;
 		while(!file_in.eof() && cpt < cptmax){
 			std::getline(file_in, line0); // Read the lines
-			tmp_vec_str=strsplit(rem_comments(line0, "#"), " "); // we expect l and nu_nl
-			l_vec.push_back(str_to_int(tmp_vec_str[0]));
-			nu_vec.push_back(str_to_dbl(tmp_vec_str[1]));
+			if (line0 != ""){
+				//std::cout << "line0 =" << line0 << std::endl;
+				tmp_vec_str=strsplit(rem_comments(line0, "#"), " "); // we expect l and nu_nl
+				//std::cout << "  [" << cpt << "/" << cptmax << "]   tmp_vec_str[0] =" << tmp_vec_str[0] << std::endl;
+				//std::cout << "  [" << cpt << "/" << cptmax << "]   tmp_vec_str[1] =" << tmp_vec_str[1] << std::endl;
+				l_vec.push_back(str_to_int(tmp_vec_str[0]));
+				nu_vec.push_back(str_to_dbl(tmp_vec_str[1]));
+			}
+			cpt=cpt+1;
 		}
 		file_in.close();
 	} else {
@@ -612,6 +619,12 @@ std::vector<std::string> read_allfile_vect(const std::string file){
 		std::cout << "Configuration file: " << file << std::endl;
 		exit(EXIT_FAILURE);
 	}
+/*
+	for (int i=0; i<l_vec.size(); i++){
+		std::cout << l_vec[i] << "   " << nu_vec[i] << std::endl;
+	}
+	exit(EXIT_SUCCESS);
+*/
 	cfg_star.Nf_el.resize(4);
 	// [3] Organize the frequencies in cfg_star.nu_nl
 	for (int el=0; el<4; el++){
@@ -632,8 +645,9 @@ std::vector<std::string> read_allfile_vect(const std::string file){
 			cfg_star.nu_nl(el, n)=nu_vec[pos_l[n]];
 		}
 	}
-//	std::cout << cfg_star.nu_nl << std::endl;
-//	exit(EXIT_SUCCESS);
+	//std::cout << cfg_star.nu_nl << std::endl;
+	//std::cout << "All good" << std::endl;
+	//exit(EXIT_SUCCESS);
 	return cfg_star;
 }
 
