@@ -889,7 +889,8 @@ void asymptotic_mm_freeDp_numaxspread_curvepmodes_v3(VectorXd input_params, std:
 		std::cout << "Using:" << std::endl;
 		std::cout << "    cfg_star.Dnu_star = " << cfg_star.Dnu_star << std::endl;
 		std::cout << "    cfg_star.DPl_star = " << cfg_star.DPl_star << std::endl;
-		std::cout << "    cfg_star.q_star   = " << cfg_star.alpha_g_star << std::endl;
+		std::cout << "    cfg_star.q_star   = " << cfg_star.q_star << std::endl;
+		std::cout << "    cfg_star.alpha_g_star   = " << cfg_star.alpha_g_star << std::endl;
 		std::cout << "    epsilon_p_star will be calculated using the provided list of frequencies and Dnu_star" << std::endl;
 		std::cout << "    Note that delta0l_percent_star is taken from the main.cfg configuration " << std::endl;
 	}
