@@ -469,7 +469,6 @@ void iterative_artificial_spectrum(std::string dir_core){
 	}
 	if(cfg.forest_type == "grid"){
 		std::cout << "   Values are generated over a grid using all possible combinations according to inputs in the main configuration file" << std::endl;
-		//generate_grid();
 		generate_grid(cfg, usemodels, models, param_names, dir_core, dir_freqs, file_out_modes, file_out_noise, file_out_combi, Nmodel);
 	}
 	if(cfg.forest_type != "random" && cfg.forest_type != "grid"){ 
@@ -596,12 +595,9 @@ void generate_random(Config_Data cfg, std::vector<std::string> param_names, std:
 		std::cout << "                 Note that no deleting action is performed by this program" << std::endl;
 		std::cout << "                 But any older file might be overwritten!" << std::endl;
 		std::cout << "                 Be sure to have no important previous results in the Data directory and subdirectories!" << std::endl;
-		//std::cout << "                  The program will start now" << std::endl;
-		//sleep(1000*5); // give 5 seconds to kill the process
 	}
 	id0=lastid+1;
 
-	//allcombi.resize(cfg.forest_params[0], pos_one.size());
 	currentcombi.resize(1, pos_one.size());
 	for(int c=0; c<cfg.forest_params[0]; c++){
 		for(int i=0; i<pos_one.size();i++){
@@ -986,146 +982,6 @@ std::vector<std::string> list_dir(const std::string path, const std::string exte
    	}
    	return files;
 }
-
-/*
-long read_id_allcombi(std::string file_combi){
-
-	std::string lastline;
-	std::vector<std::string> vals_last;
-
-	lastline=read_lastline_ascii(file_combi);
-	vals_last=strsplit(strtrim(lastline), " ");
-
-	std::cout << "lastline=" << lastline << std::endl;
-	for(int i=0; i<vals_last.size(); i++){
-		std::cout << "vals_last[" << i << "]=" << vals_last[i] << std::endl;	
-	}
-	return str_to_long(vals_last[0]);
-}
-*/
-
-/*
-std::string read_lastline_ascii(std::string filename){
-//
-// Code that jumps to last line and read it
-//
-//
-
-	std::string line;
-	int i;
-	std::string lastline;
-
-	std::ifstream myfile;
-        myfile.open(filename.c_str());
-
-	while (getline (myfile,line)){
-  		lastline=line;
-	} 
-        myfile.close();
-   
-	return lastline;
-  
-}
-*/
-
-/*
-std::string write_allcombi(MatrixXd allcombi, VectorXd cte_params, Config_Data cfg, std::string fileout, bool erase_old_file, long iter, long id0, 
-		    std::vector<std::string> cte_names, std::vector<std::string> var_names, std::vector<std::string> param_names){
-	
-	int Nchars, precision;
-	std::string id_str;
-	VectorXd input_params, var_params;
-	std::ofstream outfile;
-
-	Nchars = 14;
-	precision = 5;
-
-	if(erase_old_file == 1 && iter == 0) {
-		outfile.open(fileout.c_str()); // write a new file
-	} else{
-		outfile.open(fileout.c_str(), std::ios::app); // append
-	}
-	if(outfile.is_open()){
-		//std::cout << "File opened" << std::endl;
-		if(erase_old_file == 1 && iter == 0) { // Write Header only if we do not erase the old file AND this is the first execution of the function
-			outfile << "model_name= " << cfg.model_name << std::endl;
-			outfile << " --------------------------" << std::endl;
-			outfile << "  List of all combinations " << std::endl;
-			outfile << " --------------------------" << std::endl;
-			outfile << "#" << std::setw(5) << "id  ";
-			for(int s=0; s<param_names.size(); s++){
-				outfile << std::setw(14) << param_names[s];
-			}
-			outfile << std::endl;
-		} 
-
-		for(int i=0; i<allcombi.rows(); i++){
-			id_str=identifier2chain(i + id0); // The identifier corresponds to the index of the current process + the initial id0
-			outfile << std::setw(7) << id_str;
-			//std::cout << "id_str=" << id_str << std::endl;
-			
-			var_params=allcombi.row(i).transpose();
-			input_params=order_input_params(cte_params, var_params, cte_names, var_names, param_names);
-			//std::cout << "input_params=" << input_params << std::endl;
-			for(int j=0; j<input_params.size(); j++){			
-				outfile << std::setw(Nchars) << std::setprecision(precision) << input_params(j);	
-			}
-			outfile << std::endl;
-		}
-	outfile.close();
-	}  
-	else {
-		std::cout << " Unable to open file " << fileout << std::endl;	
-		std::cout << " Check that the full path exists" << std::endl;
-		std::cout << " The program will exit now" << std::endl;
-		exit(EXIT_FAILURE);
-	}
-
-	return id_str;
-}
-*/
-
-/*
-std::string identifier2chain(long identifier){
-
-	std::string out;
-
-	if  (identifier < 10) { out="000000" + strtrim(lng_to_str(identifier)); }
-	if ((identifier >= 10) && (identifier < 100)) { out="00000" + strtrim(lng_to_str(identifier));}
-	if ((identifier >= 100) && (identifier < 1000)) { out="0000" + strtrim(lng_to_str(identifier));}
-	if ((identifier >= 1000) && (identifier < 10000)) { out="000" + strtrim(lng_to_str(identifier));}
-	if ((identifier >= 10000) && (identifier  < 100000)) { out= "00" + strtrim(lng_to_str(identifier)); }
-	if ((identifier >= 100000) && (identifier< 1000000)) { out="0" + strtrim(lng_to_str(identifier));}
-	if (identifier  >  10000000) { 
-		std::cout << "Warning: This cannot handle greater number than 99999" << std::endl;
-		std::cout << "Pursuing will lead to an improper naming of the models" << std::endl;
-		std::cout << "Please update identifier2chain in order to handle greater numbers" << std::endl;
-		std::cout << "The program will stop now" << std::endl;
-		exit(EXIT_FAILURE);
-	}
-	return out;
-}
-
-std::string identifier2chain(std::string identifier){
-
-	std::string out;
-
-	if  (str_to_dbl(identifier) < 10) { out="000000" + strtrim(identifier); }
-	if ((str_to_dbl(identifier) >= 10) && (str_to_dbl(identifier)    < 100)) { out="00000" + strtrim(identifier);}
-	if ((str_to_dbl(identifier) >= 100) && (str_to_dbl(identifier)   < 1000)) { out="0000" + strtrim(identifier);}
-	if ((str_to_dbl(identifier) >= 1000) && (str_to_dbl(identifier)  < 10000)) { out="000" + strtrim(identifier);}
-	if ((str_to_dbl(identifier)  >= 10000) && (str_to_dbl(identifier)  < 100000)) { out= "00" + strtrim(identifier); }
-	if ((str_to_dbl(identifier) >= 100000) && (str_to_dbl(identifier)< 1000000)) { out="0" + strtrim(identifier);}
-	if (str_to_dbl(identifier)  >  10000000) { 
-		std::cout << "Warning: This cannot handle greater number than 9999999" << std::endl;
-		std::cout << "Pursuing will lead to an improper naming of the models" << std::endl;
-		std::cout << "Please update identifier2chain in order to handle greater numbers" << std::endl;
-		std::cout << "The program will stop now" << std::endl;
-		exit(EXIT_FAILURE);
-	}
-	return out;
-}
-*/
 
 void showversion()
 {

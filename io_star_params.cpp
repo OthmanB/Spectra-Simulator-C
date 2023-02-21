@@ -124,7 +124,7 @@ void write_star_mode_params_aj(MatrixXd mode_params, std::string file_out, bool 
 	VectorXi Nchars(16), precision(16);
 
 	std::ofstream outfile;
-	Nchars << 5, 20, 20, 20, 10, 10, 10 , 10, 10, 10, 20, 16, 16, 16, 16, 10;
+	Nchars << 5, 20, 20, 20, 16, 16, 16 , 16, 16, 16, 20, 16, 16, 16, 16, 10;
 	precision << 1, 10, 10, 10, 10, 10, 10, 10 , 10, 10, 8, 8, 8, 2, 8, 3;
 	
 	if(append == false){
