@@ -97,7 +97,6 @@ namespace gnuplotio {
     };
 };
 
-
 // Structure that keep information of the derivatives
 struct Deriv_out{
     VectorXd xderiv;

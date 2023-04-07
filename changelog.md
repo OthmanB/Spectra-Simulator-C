@@ -1,5 +1,8 @@
 # Version history #
 
+### v1.1.1 ###
+	* Improvments:
+		- In the aj model, adding rescaling capabilities so that Dnu, epsilon, numax and d0l can be modified
 ### v1.1.0 ###
 	* Bug Fix:
 		- Removed system command that were copying .rot and .range files from a temporary directory to the data directory. This was a relic of the time when python3 was called to solve the ARMM

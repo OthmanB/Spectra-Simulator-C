@@ -50,15 +50,17 @@ set(HEADERS  #_COMMON
     io_star_common.h
     noise_models.h
     ioproc.h
-    external/integrate/activity.h
     combi.h
     stellar_models.h
     models_database_grid.h
     format.h
+    acoefs.h
+    external/integrate/activity.h
     external/ARMM/bump_DP.h
     external/ARMM/solver_mm.h
     external/ARMM/data_solver.h
-    acoefs.h
+    external/rescale/rescale_freqs.h
+    external/rescale/decompose_nu.h
     )
 
 #Bring the core program sources into the project
@@ -86,6 +88,9 @@ set(SOURCES_MAIN  #_COMMON
     external/integrate/activity.cpp
     external/ARMM/bump_DP.cpp
     external/ARMM/solver_mm.cpp
+    external/rescale/rescale_freqs.cpp
+    external/rescale/decompose_nu.cpp
+    external/rescale/data.h
     )
 
 set(SOURCES_TEST_LORENTZIAN

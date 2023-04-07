@@ -1566,15 +1566,19 @@ void generate_cfg_from_synthese_file_Wscaled_Alm(VectorXd input_params, std::str
 void generate_cfg_from_synthese_file_Wscaled_aj(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string extra){
 
 	int i;
-	double HNR, a1_ov_Gamma, a2, a3, a4, a5, a6, beta_asym, inc, HNRmaxref, Height_factor, Gamma_at_numax, a1, Gamma_coef, fl,rho, eta0; 
-	VectorXi pos_max;
-	VectorXd tmp, xfit, rfit;
+	double HNR, a1_ov_Gamma, a2, a3, a4, a5, a6, beta_asym, inc, 
+			HNRmaxref, Height_factor, Gamma_at_numax, a1, Gamma_coef, fl,rho, eta0,
+			Dnu, epsilon, delta0l_percent, numax_spread; 
+	VectorXi pos;
+	VectorXd tmp, xfit, rfit, d0l(3), f_rescaled_lin;
 	VectorXd HNRref, local_noise,h_star, gamma_star, s_a1_star, s_a2_star, s_a3_star, s_a4_star,s_a5_star,s_a6_star,
 		s_eta0_star, s_epsilon_star, s_theta0_star, s_delta_star, s_asym_star, inc_star, activity_terms;
 	Star_params ref_star;
+	Freq_modes f_rescaled, f_ref;
 	MatrixXd mode_params, noise_params;
 
 	ref_star=read_star_params(extra); 
+	mode_params.setZero(ref_star.mode_params.rows(), 16); // Final table of values that define a star
 
 	// Defining the noise profile parameters
 	// Note about the noise: -1 means that it is ignored. -2 mean that the value is irrelevant
@@ -1583,33 +1587,109 @@ void generate_cfg_from_synthese_file_Wscaled_aj(VectorXd input_params, std::stri
 	local_noise=harvey_like(ref_star.noise_params, ref_star.mode_params.col(1), tmp); // Generate a list of local noise values for each frequencies
 
 // ---- Deploy the parameters -----
-	HNR=input_params[0];
-	a1_ov_Gamma=input_params[1];
-	Gamma_at_numax=input_params[2];
-	a2=input_params[3];
-	a3=input_params[4];
-	a4=input_params[5];
-	a5=input_params[6];
-	a6=input_params[7];
-	beta_asym=input_params[8];
-	inc=input_params[9];
+	Dnu=input_params[0];
+	epsilon=input_params[1];
+	delta0l_percent=input_params[2];
+	numax_spread=input_params[3];
+	HNR=input_params[4];
+	a1_ov_Gamma=input_params[5];
+	Gamma_at_numax=input_params[6];
+	a2=input_params[7];
+	a3=input_params[8];
+	a4=input_params[9];
+	a5=input_params[10];
+	a6=input_params[11];
+	beta_asym=input_params[12];
+	inc=input_params[13];
 // ---------------------------------
+	// --- Perform rescaling of frequencies  ---
+	d0l << delta0l_percent*Dnu/100., delta0l_percent*Dnu/100., delta0l_percent*Dnu/100.; // small separation l=1,2,3
+	pos=where_dbl(ref_star.mode_params.col(0), 0, 1e-3); // pick l=0
+	if(pos[0] != -1){
+		f_ref.fl0.resize(pos.size());
+		for(int n=0; n<pos.size();n++){
+			f_ref.fl0[n]=ref_star.mode_params(pos[n],1);
+		}
+	} else{
+		std::cerr << "Error in generate_cfg_from_synthese_file_Wscaled_aj : You must have at least l=0 to perform a rescale" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	if(pos[0] != -1){
+		pos=where_dbl(ref_star.mode_params.col(0), 1, 1e-3); // pick l=1
+		f_ref.fl1.resize(pos.size());
+		for(int n=0; n<pos.size();n++){
+			f_ref.fl1[n]=ref_star.mode_params(pos[n],1);
+		}
+	}
+	pos=where_dbl(ref_star.mode_params.col(0), 2, 1e-3); // pick l=2
+	if(pos[0] != -1){
+		f_ref.fl2.resize(pos.size());
+		for(int n=0; n<pos.size();n++){
+			f_ref.fl2[n]=ref_star.mode_params(pos[n],1);
+		}
+	}
+	pos=where_dbl(ref_star.mode_params.col(0), 3, 1e-3); // pick l=3
+	if(pos[0] != -1){
+		f_ref.fl3.resize(pos.size());
+		for(int n=0; n<pos.size();n++){
+			f_ref.fl3[n]=ref_star.mode_params(pos[n],1);
+		}
+	}
+	/*
+	std::cout << "f_ref.fl0 = " << f_ref.fl0.transpose() << std::endl;
+	std::cout << "f_ref.fl1 = " << f_ref.fl1.transpose() << std::endl;
+	std::cout << "f_ref.fl2 = " << f_ref.fl2.transpose() << std::endl;
+	std::cout << "f_ref.fl3 = " << f_ref.fl3.transpose() << std::endl;
+	*/
+	f_rescaled=rescale_freqs(Dnu, epsilon, f_ref, d0l);
+	if (f_rescaled.error_status == true){
+		std::cerr << "Error while rescaling: There is likely an issue in frequency tagging." << std::endl;
+		std::cerr << "                       Debug in generate_cfg_from_synthese_file_Wscaled_aj required " << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	f_rescaled_lin.resize(f_ref.fl0.size()+ f_ref.fl1.size()+f_ref.fl2.size()+ f_ref.fl3.size());
+	for(int n=0; n<f_ref.fl0.size(); n++){
+		mode_params(n,0)=0;
+		f_rescaled_lin[n]=f_rescaled.fl0[n];
+	}
+	for(int n=0; n<f_ref.fl1.size(); n++){
+		mode_params(n+f_ref.fl0.size(),0)=1;
+		f_rescaled_lin[n+f_ref.fl0.size()]=f_rescaled.fl1[n];
+	}
+	for(int n=0; n<f_ref.fl2.size(); n++){
+		mode_params(n+f_ref.fl0.size()+f_ref.fl1.size(),0)=2;
+		f_rescaled_lin[n+f_ref.fl0.size()+f_ref.fl1.size()]=f_rescaled.fl2[n];
+	}
+	for(int n=0; n<f_ref.fl3.size(); n++){
+		mode_params(n+f_ref.fl0.size()+f_ref.fl1.size()+f_ref.fl2.size(),0)=3;
+		f_rescaled_lin[n+f_ref.fl0.size()+f_ref.fl1.size()+f_ref.fl2.size()]=f_rescaled.fl3[n];
+	}
+	/*
+	std::cout << "Dnu = " << Dnu << std::endl;
+	std::cout << "epsilon = " << epsilon << std::endl;
+	std::cout << "d0l = " << d0l.transpose() << std::endl;
+	std::cout << "f_rescale.fl0 = " << f_rescaled.fl0.transpose() << std::endl;
+	std::cout << "f_rescale.fl1 = " << f_rescaled.fl1.transpose() << std::endl;
+	std::cout << "f_rescale.fl2 = " << f_rescaled.fl2.transpose() << std::endl;
+	std::cout << "f_rescale.fl3 = " << f_rescaled.fl3.transpose() << std::endl;
+	*/
+	// ---- Rescaling Height and Width profiles ----
 	HNRref=ref_star.mode_params.col(2);
 	HNRref=HNRref.cwiseProduct(local_noise.cwiseInverse());
-	pos_max=where_dbl(ref_star.mode_params.col(0), 0, 1e-3);
+	pos=where_dbl(ref_star.mode_params.col(0), 0, 1e-3);
 	//std::cout << "ref_star.mode_params.col(0) =" << ref_star.mode_params.col(0) << std::endl;
-	//std::cout <<" pos_max=" << pos_max << std::endl;
+	//std::cout <<" pos=" << pos << std::endl;
 	HNRmaxref=0;
-	for (int n=0; n<pos_max.size();n++){
-		if (HNRmaxref < HNRref[pos_max[n]]){
-			HNRmaxref=HNRref[pos_max[n]];
+	for (int n=0; n<pos.size();n++){
+		if (HNRmaxref < HNRref[pos[n]]){
+			HNRmaxref=HNRref[pos[n]];
 		}
 	}
 	//HNRmaxref=HNRref.maxCoeff(); // This is the maximum HNR of the reference data
 	Height_factor=HNR/HNRmaxref;  // compute the coeficient required to get the proper max(HNR)
-	pos_max=where_dbl(HNRref, HNRmaxref, 0.001);
-	if (pos_max[0] >= 0){
-		Gamma_coef=Gamma_at_numax/ref_star.mode_params(pos_max[0], 3); // Correction coeficient to apply on Gamma(nu) in order to ensure that we have Gamma(nu=numax) = Gamma_at_numax
+	pos=where_dbl(HNRref, HNRmaxref, 0.001);
+	if (pos[0] >= 0){
+		Gamma_coef=Gamma_at_numax/ref_star.mode_params(pos[0], 3); // Correction coeficient to apply on Gamma(nu) in order to ensure that we have Gamma(nu=numax) = Gamma_at_numax
 	} else{
 		std::cout << "Error! could not find the max position for the mode Widths profile" << std::endl;
 		std::cout << "Code debug required" << std::endl;
@@ -1628,10 +1708,10 @@ void generate_cfg_from_synthese_file_Wscaled_aj(VectorXd input_params, std::stri
 		//N0=1; // Imposing the the Noise background is 1
 		//std::cout <<  "Using N0=" << N0 << " (white noise)" << std::endl;
 		std::cout << "Using the Noise profile of the Reference star" << std::endl;
-		std::cout << "HNR of all modes (degree / freq / HNR  /  Height /  local_noise):" << std::endl;
+		std::cout << "HNR of all modes (degree / freq_template  / freq_rescaled / HNR  /  Height /  local_noise):" << std::endl;
 		for(i =0; i<ref_star.mode_params.rows(); i++){
 			h_star[i]=Height_factor * HNRref[i] * local_noise[i];
-			std::cout << "     " << ref_star.mode_params(i,0) << "  " << ref_star.mode_params(i,1) << "  " << Height_factor * HNRref[i]  << "  " << h_star[i] << "  "  << local_noise[i] << std::endl;
+			std::cout << "     " << ref_star.mode_params(i,0) << "  " << ref_star.mode_params(i,1)  << "  "  << f_rescaled_lin[i] << "  " << Height_factor * HNRref[i]  << "  " << h_star[i] << "  "  << local_noise[i] << std::endl;
 		}
 	} else{
 		std::cout << "Warning: bruit_local from the stat_synthese file is 0 ==> Cannot compute N0=mean(local_noise)" << std::endl;
@@ -1648,10 +1728,14 @@ void generate_cfg_from_synthese_file_Wscaled_aj(VectorXd input_params, std::stri
 		std::cout << "       Only positive values are valid" << std::endl;
 		exit(EXIT_FAILURE);
 	}
-	mode_params.setZero(ref_star.mode_params.rows(), 16);
+	
+	// Filling the output Matrix. 
+	//   Note on assumptions here: We assume that the template has monotonically increasing frequency, for each l. 
+	//                             It is also assumed that block of l are in the strict order l=0,1,2,3
 
-	mode_params.col(0)=ref_star.mode_params.col(0); // List of els
-	mode_params.col(1)=ref_star.mode_params.col(1); // List of frequencies
+	//mode_params.col(0)=ref_star.mode_params.col(0); // List of els
+	//mode_params.col(1)=ref_star.mode_params.col(1); // List of frequencies
+	mode_params.col(1)=f_rescaled_lin; // Frequencies in a flat array
 	mode_params.col(2)=h_star;
 	mode_params.col(3)=gamma_star; 
 	mode_params.col(4).setConstant(a1);//=s_a1_star; 
@@ -1668,6 +1752,7 @@ void generate_cfg_from_synthese_file_Wscaled_aj(VectorXd input_params, std::stri
 
 	// A FUNCTION THAT WRITES THE Noise
 	write_star_noise_params(ref_star.noise_params, file_out_noise);
+	//exit(EXIT_SUCCESS);
 }
 
 

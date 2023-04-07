@@ -15,6 +15,9 @@
 #include <Eigen/Dense>
 # include <string>
 #include "io_star_params.h"
+#include "external/rescale/rescale_freqs.h"
+#include "external/rescale/decompose_nu.h"
+#include "external/rescale/data.h"
 
 //void generate_cfg_asymptotic_Hgauss(VectorXd input_params, std::string file_out_modes, std::string file_out_noise);
 void generate_cfg_asymptotic_act_asym_Hgauss(VectorXd input_params, std::string file_out_modes, std::string file_out_noise);
