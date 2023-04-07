@@ -1590,17 +1590,16 @@ void generate_cfg_from_synthese_file_Wscaled_aj(VectorXd input_params, std::stri
 	Dnu=input_params[0];
 	epsilon=input_params[1];
 	delta0l_percent=input_params[2];
-	numax_spread=input_params[3];
-	HNR=input_params[4];
-	a1_ov_Gamma=input_params[5];
-	Gamma_at_numax=input_params[6];
-	a2=input_params[7];
-	a3=input_params[8];
-	a4=input_params[9];
-	a5=input_params[10];
-	a6=input_params[11];
-	beta_asym=input_params[12];
-	inc=input_params[13];
+	HNR=input_params[3];
+	a1_ov_Gamma=input_params[4];
+	Gamma_at_numax=input_params[5];
+	a2=input_params[6];
+	a3=input_params[7];
+	a4=input_params[8];
+	a5=input_params[9];
+	a6=input_params[10];
+	beta_asym=input_params[11];
+	inc=input_params[12];
 // ---------------------------------
 	// --- Perform rescaling of frequencies  ---
 	d0l << delta0l_percent*Dnu/100., delta0l_percent*Dnu/100., delta0l_percent*Dnu/100.; // small separation l=1,2,3

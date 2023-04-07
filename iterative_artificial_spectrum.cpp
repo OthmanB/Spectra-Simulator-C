@@ -141,11 +141,10 @@ void iterative_artificial_spectrum(std::string dir_core){
 		passed=1;
 	}
 	if(cfg.model_name == "generate_cfg_from_synthese_file_Wscaled_aj"){
-		Nmodel=14;
+		Nmodel=13;
 		param_names.push_back("Dnu");
 		param_names.push_back("epsilon"); 
 		param_names.push_back("delta0l_percent"); 
-		param_names.push_back("numax_spread"); 
 		param_names.push_back("HNR"); 
 		param_names.push_back("a1ovGamma"); 
 		param_names.push_back("Gamma_at_numax"); 
