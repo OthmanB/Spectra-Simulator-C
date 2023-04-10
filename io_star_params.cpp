@@ -1197,7 +1197,12 @@ void write_global_info(VectorXd spec_params, std::string file_out, std::string i
 	VectorXi Nchars_spec(2),  precision_spec(2);
 	
 	std::ofstream outfile;
-
+	
+	if(append == false){
+		outfile.open(file_out.c_str());	
+	} else{
+		outfile.open(file_out.c_str(), std::ios::app);	
+	}
     if(outfile.is_open()){
 		// ---------------------
 		Nchars_spec << 20, 20;

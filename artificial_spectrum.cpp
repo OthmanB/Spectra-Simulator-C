@@ -482,7 +482,7 @@ void artificial_spectrum_aj(const double Tobs, const double Cadence, const doubl
     	std::cout << "Done" << std::endl;
 
     	if (domodelfiles==1){
-    		std::cout << "        - Saving the model file" << std::endl;
+    		std::cout << "        - Saving the model file for MCMC analysis" << std::endl;
     		mode_range=write_star_model(data_modes.data, data_noise.data, file_out_modelfile, identifier, modelname,dir_common_template);
   			if (limit_data_range == 0){ // Reset the mode_range if the full range was requested
   				mode_range[0] =-1;
@@ -502,7 +502,12 @@ void artificial_spectrum_aj(const double Tobs, const double Cadence, const doubl
 	spec_params << Tobs, Cadence;
 
 	write_star_params_aj(spec_params, data_modes.data, data_noise.data, fileout_params, identifier);
-
+	/*
+	std::cout << "   *************************  DEBUG   ************************* " << std::endl;
+	std::cout << "     identifier  = " << identifier << std::endl;
+	std::cout << "     IN FILENAME = " << fileout_params << std::endl;
+	std::cout << "   ***********************  END DEBUG   *********************** " << std::endl;
+	*/
 }
 
 /*
