@@ -12,11 +12,17 @@
 #include <fstream>
 #include <string>
 #include <Eigen/Dense>
-//# include <random>
 #include <boost/random.hpp>
 #include <boost/random/normal_distribution.hpp>
+//#include <mach/mach_time.h>
 #include "artificial_spectrum.h"
 #include "noise_models.h"
+#ifdef MACOS
+	#include <mach/mach_time.h>
+#endif
+#ifdef LINUX
+	#include <time.h>
+#endif
 
 using Eigen::VectorXd;
 using Eigen::VectorXi;
@@ -40,12 +46,21 @@ void artificial_spectrum_act_asym(const double Tobs, const double Cadence, const
 	double df, Delta, scoef1, scoef2;
 	VectorXd freq;
 
-	// Initialize the random generators 
- 	boost::mt19937 *rng = new boost::mt19937();
-  	rng->seed(time(NULL));
-
- 	boost::normal_distribution<> distribution(0, 1);
-  	boost::variate_generator< boost::mt19937, boost::normal_distribution<> > dist(*rng, distribution);
+    // Initialize the random generator
+    boost::mt19937 rng;
+	#ifdef MACOS
+		mach_timebase_info_data_t timebase;
+		mach_timebase_info(&timebase);
+		uint64_t now = mach_absolute_time();
+		rng.seed(now * timebase.numer / timebase.denom);
+	#elif LINUX
+		timespec now;
+		clock_gettime(CLOCK_MONOTONIC, &now);
+		rng.seed(now.tv_sec * 1000000000ULL + now.tv_nsec);
+	#endif
+    // Generate some random numbers
+    boost::normal_distribution<> distribution(0, 1);
+    boost::variate_generator<boost::mt19937&, boost::normal_distribution<> > dist(rng, distribution);
 	
 
 	// Variable of the models
@@ -153,12 +168,21 @@ void artificial_spectrum_a1a2a3asym(const double Tobs, const double Cadence, con
 	double df, Delta, scoef1, scoef2;
 	VectorXd freq;
 
-	// Initialize the random generators 
- 	boost::mt19937 *rng = new boost::mt19937();
-  	rng->seed(time(NULL));
-
- 	boost::normal_distribution<> distribution(0, 1);
-  	boost::variate_generator< boost::mt19937, boost::normal_distribution<> > dist(*rng, distribution);
+    // Initialize the random generator
+    boost::mt19937 rng;
+	#ifdef MACOS
+		mach_timebase_info_data_t timebase;
+		mach_timebase_info(&timebase);
+		uint64_t now = mach_absolute_time();
+		rng.seed(now * timebase.numer / timebase.denom);
+	#elif LINUX
+		timespec now;
+		clock_gettime(CLOCK_MONOTONIC, &now);
+		rng.seed(now.tv_sec * 1000000000ULL + now.tv_nsec);
+	#endif
+    // Generate some random numbers
+    boost::normal_distribution<> distribution(0, 1);
+    boost::variate_generator<boost::mt19937&, boost::normal_distribution<> > dist(rng, distribution);
 	
 
 	// Variable of the models
@@ -271,12 +295,21 @@ void artificial_spectrum_a1Alma3(const double Tobs, const double Cadence, const 
 	double df, Delta, scoef1, scoef2;
 	Data_Nd data_modes, data_noise;
 	
-	// Initialize the random generators 
- 	boost::mt19937 *rng = new boost::mt19937();
-  	rng->seed(time(NULL));
-
- 	boost::normal_distribution<> distribution(0, 1);
-  	boost::variate_generator< boost::mt19937, boost::normal_distribution<> > dist(*rng, distribution);
+    // Initialize the random generator
+    boost::mt19937 rng;
+	#ifdef MACOS
+		mach_timebase_info_data_t timebase;
+		mach_timebase_info(&timebase);
+		uint64_t now = mach_absolute_time();
+		rng.seed(now * timebase.numer / timebase.denom);
+	#elif LINUX
+		timespec now;
+		clock_gettime(CLOCK_MONOTONIC, &now);
+		rng.seed(now.tv_sec * 1000000000ULL + now.tv_nsec);
+	#endif
+    // Generate some random numbers
+    boost::normal_distribution<> distribution(0, 1);
+    boost::variate_generator<boost::mt19937&, boost::normal_distribution<> > dist(rng, distribution);
 	
 	// Variable of the models
 	int l;
@@ -398,13 +431,22 @@ void artificial_spectrum_aj(const double Tobs, const double Cadence, const doubl
 	double df, Delta, scoef1, scoef2;
 	Data_Nd data_modes, data_noise;
 	
-	// Initialize the random generators 
- 	boost::mt19937 *rng = new boost::mt19937();
-  	rng->seed(time(NULL));
+    // Initialize the random generator
+    boost::mt19937 rng;
+	#ifdef MACOS
+		mach_timebase_info_data_t timebase;
+		mach_timebase_info(&timebase);
+		uint64_t now = mach_absolute_time();
+		rng.seed(now * timebase.numer / timebase.denom);
+	#elif LINUX
+		timespec now;
+		clock_gettime(CLOCK_MONOTONIC, &now);
+		rng.seed(now.tv_sec * 1000000000ULL + now.tv_nsec);
+	#endif
+    // Generate some random numbers
+    boost::normal_distribution<> distribution(0, 1);
+    boost::variate_generator<boost::mt19937&, boost::normal_distribution<> > dist(rng, distribution);
 
- 	boost::normal_distribution<> distribution(0, 1);
-  	boost::variate_generator< boost::mt19937, boost::normal_distribution<> > dist(*rng, distribution);
-	
 	// Variable of the models
 	int l;
 	double fc_l, H_l, gamma_l, a1, a2, a3, a4,a5,a6, beta_asym, angle_l, H, tau, p, eta0;

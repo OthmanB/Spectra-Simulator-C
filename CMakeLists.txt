@@ -2,11 +2,32 @@ cmake_minimum_required(VERSION 3.4.1)
 
 project(specsim VERSION 1.0.4)
 
+# Check for macOS
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+    set(MACOS 1)
+else()
+    set(MACOS 0)
+endif()
+
+# Check for Linux
+if(CMAKE_COMPILER_IS_GNUCXX)
+    set(LINUX 1)
+else()
+    set(LINUX 0)
+endif()
+
+if(NOT CMAKE_COMPILER_IS_GNUCXX AND NOT MACOS)
+  message(FATAL_ERROR "This program works only on Mac or Linux")
+endif()
+
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(Boost_USE_MULTITHREADED TRUE)
 option(WITH_OPENMP "OpenMP Library" ON)
 option(BUILD_ON_DALMA "Building for NYU DALMA Supercomputer" OFF)
+
+# Configure the header file
+# configure_file(rgen_config.h.in rgen_config.h)
 
 if(NOT BUILD_ON_DALMA)
 	if(CMAKE_COMPILER_IS_GNUCXX)
@@ -34,6 +55,7 @@ endif()
 
 #Bring the headers into the project
 set(HEADERS  #_COMMON
+    #rgen_config.h
     artificial_spectrum.h
     data.h
     gnuplot-iostream.h
@@ -132,10 +154,27 @@ include_directories(${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIRS})
 
 add_executable(${CMAKE_PROJECT_NAME} ${HEADERS} ${SOURCES_MAIN})
-target_link_libraries(${CMAKE_PROJECT_NAME}  ${Boost_SYSTEM_LIBRARY_RELEASE} ${Boost_FILESYSTEM_LIBRARY_RELEASE} ${Boost_IOSTREAMS_LIBRARY_RELEASE})
+if(MACOS)
+  target_compile_definitions(${CMAKE_PROJECT_NAME}  PRIVATE MACOS)
+  target_link_libraries(${CMAKE_PROJECT_NAME}  ${Boost_SYSTEM_LIBRARY_RELEASE} ${Boost_FILESYSTEM_LIBRARY_RELEASE} ${Boost_IOSTREAMS_LIBRARY_RELEASE}  "-framework CoreFoundation")
+elseif(LINUX)
+  target_compile_definitions(${CMAKE_PROJECT_NAME}  PRIVATE LINUX)
+  target_link_libraries(${CMAKE_PROJECT_NAME}  ${Boost_SYSTEM_LIBRARY_RELEASE} ${Boost_FILESYSTEM_LIBRARY_RELEASE} ${Boost_IOSTREAMS_LIBRARY_RELEASE}  rt)
+endif()
 
 add_executable(test_lorentzians ${HEADERS} ${SOURCES_TEST_LORENTZIAN})
 target_link_libraries(${CMAKE_PROJECT_NAME}  ${Boost_SYSTEM_LIBRARY_RELEASE} ${Boost_FILESYSTEM_LIBRARY_RELEASE} ${Boost_IOSTREAMS_LIBRARY_RELEASE})
 
 
+# Add the include directories
+#if(MACOS)
+#    target_include_directories(random_generator PRIVATE /usr/include/mach)
+#endif()
+
+# Link against the appropriate libraries
+#if(MACOS)
+#    target_link_libraries(random_generator PRIVATE "-framework CoreFoundation")
+#elseif(LINUX)
+#    target_link_libraries(random_generator PRIVATE rt)
+#endif()
 
