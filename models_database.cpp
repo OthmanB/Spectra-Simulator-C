@@ -1755,6 +1755,210 @@ void generate_cfg_from_synthese_file_Wscaled_aj(VectorXd input_params, std::stri
 }
 
 
+/* 
+	This function use a reference star as a template to generate frequencies and Width, Height profiles
+	can be rescaled so that you can modify the HNR but keep the same height profile
+	Note that the user here provides a target a1/Width so that a1 is automatically adjusted to match the 
+	requested a1/Width. The code will not change the Width so that code is not adapted to test blending between adjacent l modes,
+	such as the l=0 and l=2 mode blending
+	It handles aj coeficient up to j=6 as well as free parameters and consider an activity term Alm ~ {a2, a4, a6, ...} following Gizon2002 idea.
+	a3 can be given as a polynomial of the frequency and you can add a random quantity (set in nHz) that will be added as a random 'error' ==> scatter ==> test robustness 
+*/
+void generate_cfg_from_synthese_file_Wscaled_aj_scalednoise(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string extra){
+
+	int i;
+	double HNR, a1_ov_Gamma, a2, a3, a4, a5, a6, beta_asym, inc, 
+			HNRmaxref, Height_factor, Gamma_at_numax, a1, Gamma_coef, fl,rho, eta0,
+			Dnu, epsilon, delta0l_percent, numax_spread; 
+	VectorXi pos;
+	VectorXd tmp, xfit, rfit, d0l(3), f_rescaled_lin;
+	VectorXd HNRref, local_noise,h_star, gamma_star, s_a1_star, s_a2_star, s_a3_star, s_a4_star,s_a5_star,s_a6_star,
+		s_eta0_star, s_epsilon_star, s_theta0_star, s_delta_star, s_asym_star, inc_star, activity_terms;
+	Star_params ref_star;
+	Freq_modes f_rescaled, f_ref;
+	MatrixXd mode_params, noise_params;
+
+	ref_star=read_star_params(extra); 
+	mode_params.setZero(ref_star.mode_params.rows(), 16); // Final table of values that define a star
+
+	// Defining the noise profile parameters
+	// Note about the noise: -1 means that it is ignored. -2 mean that the value is irrelevant
+	tmp.resize(ref_star.mode_params.rows()); 	
+	tmp.setConstant(0);
+	local_noise=harvey_like(ref_star.noise_params, ref_star.mode_params.col(1), tmp); // Generate a list of local noise values for each frequencies
+
+// ---- Deploy the parameters -----
+	Dnu=input_params[0];
+	epsilon=input_params[1];
+	delta0l_percent=input_params[2];
+	HNR=input_params[3];
+	a1_ov_Gamma=input_params[4];
+	Gamma_at_numax=input_params[5];
+	a2=input_params[6];
+	a3=input_params[7];
+	a4=input_params[8];
+	a5=input_params[9];
+	a6=input_params[10];
+	beta_asym=input_params[11];
+	inc=input_params[12];
+// ---------------------------------
+	// --- Perform rescaling of frequencies  ---
+	d0l << delta0l_percent*Dnu/100., delta0l_percent*Dnu/100., delta0l_percent*Dnu/100.; // small separation l=1,2,3
+	pos=where_dbl(ref_star.mode_params.col(0), 0, 1e-3); // pick l=0
+	if(pos[0] != -1){
+		f_ref.fl0.resize(pos.size());
+		for(int n=0; n<pos.size();n++){
+			f_ref.fl0[n]=ref_star.mode_params(pos[n],1);
+		}
+	} else{
+		std::cerr << "Error in generate_cfg_from_synthese_file_Wscaled_aj : You must have at least l=0 to perform a rescale" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	if(pos[0] != -1){
+		pos=where_dbl(ref_star.mode_params.col(0), 1, 1e-3); // pick l=1
+		f_ref.fl1.resize(pos.size());
+		for(int n=0; n<pos.size();n++){
+			f_ref.fl1[n]=ref_star.mode_params(pos[n],1);
+		}
+	}
+	pos=where_dbl(ref_star.mode_params.col(0), 2, 1e-3); // pick l=2
+	if(pos[0] != -1){
+		f_ref.fl2.resize(pos.size());
+		for(int n=0; n<pos.size();n++){
+			f_ref.fl2[n]=ref_star.mode_params(pos[n],1);
+		}
+	}
+	pos=where_dbl(ref_star.mode_params.col(0), 3, 1e-3); // pick l=3
+	if(pos[0] != -1){
+		f_ref.fl3.resize(pos.size());
+		for(int n=0; n<pos.size();n++){
+			f_ref.fl3[n]=ref_star.mode_params(pos[n],1);
+		}
+	}
+
+	f_rescaled=rescale_freqs(Dnu, epsilon, f_ref, d0l);
+	if (f_rescaled.error_status == true){
+		std::cerr << "Error while rescaling: There is likely an issue in frequency tagging." << std::endl;
+		std::cerr << "                       Debug in generate_cfg_from_synthese_file_Wscaled_aj required " << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	f_rescaled_lin.resize(f_ref.fl0.size()+ f_ref.fl1.size()+f_ref.fl2.size()+ f_ref.fl3.size());
+	for(int n=0; n<f_ref.fl0.size(); n++){
+		mode_params(n,0)=0;
+		f_rescaled_lin[n]=f_rescaled.fl0[n];
+	}
+	for(int n=0; n<f_ref.fl1.size(); n++){
+		mode_params(n+f_ref.fl0.size(),0)=1;
+		f_rescaled_lin[n+f_ref.fl0.size()]=f_rescaled.fl1[n];
+	}
+	for(int n=0; n<f_ref.fl2.size(); n++){
+		mode_params(n+f_ref.fl0.size()+f_ref.fl1.size(),0)=2;
+		f_rescaled_lin[n+f_ref.fl0.size()+f_ref.fl1.size()]=f_rescaled.fl2[n];
+	}
+	for(int n=0; n<f_ref.fl3.size(); n++){
+		mode_params(n+f_ref.fl0.size()+f_ref.fl1.size()+f_ref.fl2.size(),0)=3;
+		f_rescaled_lin[n+f_ref.fl0.size()+f_ref.fl1.size()+f_ref.fl2.size()]=f_rescaled.fl3[n];
+	}
+
+	// ---- Rescaling Height and Width profiles ----
+	HNRref=ref_star.mode_params.col(2);
+	HNRref=HNRref.cwiseProduct(local_noise.cwiseInverse());
+	pos=where_dbl(ref_star.mode_params.col(0), 0, 1e-3);
+
+	HNRmaxref=0;
+	for (int n=0; n<pos.size();n++){
+		if (HNRmaxref < HNRref[pos[n]]){
+			HNRmaxref=HNRref[pos[n]];
+		}
+	}
+	//HNRmaxref=HNRref.maxCoeff(); // This is the maximum HNR of the reference data
+	Height_factor=HNR/HNRmaxref;  // compute the coeficient required to get the proper max(HNR)
+	pos=where_dbl(HNRref, HNRmaxref, 0.001);
+	if (pos[0] >= 0){
+		Gamma_coef=Gamma_at_numax/ref_star.mode_params(pos[0], 3); // Correction coeficient to apply on Gamma(nu) in order to ensure that we have Gamma(nu=numax) = Gamma_at_numax
+	} else{
+		std::cout << "Error! could not find the max position for the mode Widths profile" << std::endl;
+		std::cout << "Code debug required" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+
+	a1=a1_ov_Gamma*Gamma_at_numax; // We can vary the Width and splitting. But we need to change the splitting in order to get the wished a1/Gamma0
+
+	// Defining the final size for all of the outptus
+	gamma_star.resize(ref_star.mode_params.rows());
+	gamma_star=Gamma_coef*ref_star.mode_params.col(3); // In IDL, AN INTERPOLATION WAS DONE FOR l>0. HERE WE ASSUME THE .in file is whatever the true model should be (no interpolation)
+	// Refactoring the heights
+	h_star.resize(ref_star.mode_params.rows());
+	//h_star=Height_factor * HNRref * N0; 
+	if (local_noise.sum()!= 0){
+		//N0=1; // Imposing the the Noise background is 1
+		//std::cout <<  "Using N0=" << N0 << " (white noise)" << std::endl;
+		std::cout << "Using the Noise profile of the Reference star" << std::endl;
+		std::cout << "HNR of all modes (degree / freq_template  / freq_rescaled / HNR  /  Height /  local_noise):" << std::endl;
+		for(i =0; i<ref_star.mode_params.rows(); i++){
+			h_star[i]=Height_factor * HNRref[i] * local_noise[i];
+			std::cout << "     " << ref_star.mode_params(i,0) << "  " << ref_star.mode_params(i,1)  << "  "  << f_rescaled_lin[i] << "  " << Height_factor * HNRref[i]  << "  " << h_star[i] << "  "  << local_noise[i] << std::endl;
+		}
+	} else{
+		std::cout << "Warning: bruit_local from the stat_synthese file is 0 ==> Cannot compute N0=mean(local_noise)" << std::endl;
+		std::cout << "         The program will stop now" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	if (a1 < 0){
+		std::cout << "Error: The a1 provided by the user is negative" << std::endl;
+		std::cout << "       Only positive values are valid" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	if (inc < 0){ 
+		std::cout << "Error: The inclination provided by the user is negative" << std::endl;
+		std::cout << "       Only positive values are valid" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	
+	// Filling the output Matrix. 
+	//   Note on assumptions here: We assume that the template has monotonically increasing frequency, for each l. 
+	//                             It is also assumed that block of l are in the strict order l=0,1,2,3
+
+	//mode_params.col(0)=ref_star.mode_params.col(0); // List of els
+	//mode_params.col(1)=ref_star.mode_params.col(1); // List of frequencies
+	mode_params.col(1)=f_rescaled_lin; // Frequencies in a flat array
+	mode_params.col(2)=h_star;
+	mode_params.col(3)=gamma_star; 
+	mode_params.col(4).setConstant(a1);//=s_a1_star; 
+	mode_params.col(5).setConstant(a2);//=s_a2_star;
+	mode_params.col(6).setConstant(a3);//=s_a3_star;
+	mode_params.col(7).setConstant(a4);//=s_a4_star;
+	mode_params.col(8).setConstant(a5);//=s_a5_star;
+	mode_params.col(9).setConstant(a6);//=s_a6_star;
+	mode_params.col(10).setConstant(beta_asym);//=s_asym_star;
+	mode_params.col(11).setConstant(inc);//=inc_star;  
+	// A FUNCTION THAT WRITES THE PARAMETERS
+	// THIS MIGHT NEED TO BE WRITTEN IN ANOTHER FORMAT
+	write_star_mode_params_aj(mode_params, file_out_modes);
+
+	//tau=input_params[20] * pow(cfg_star.numax_star*1e-6,input_params[21]) + input_params[22]; // Granulation timescale (in seconds)
+	//H=input_params[17] * pow(cfg_star.numax_star*1e-6,input_params[18]) + input_params[19]; // Granulation Amplitude
+	//std::cout << "pass" << std::endl;
+	/*
+	H=H/tau ; //This is due to the used definition for the Harvey profile (conversion from Hz to microHz)
+	tau=tau/1000. ; //conversion in ksec
+	p=input_params[23];// power law:  MUST BE CLOSE TO 2
+	N0=input_params[24];
+	noise_params(0,0)=-1;
+	noise_params(0,1)=-1;
+	noise_params(0,2)=-1; 
+	noise_params(1,0)=H;
+	noise_params(1,1)=tau;
+	noise_params(1,2)=p; 
+	noise_params(2, 0)=N0; // White noise
+	noise_params(2, 1)=-2;
+	noise_params(2, 2)=-2;
+	*/
+	// A FUNCTION THAT WRITES THE Noise
+	write_star_noise_params(ref_star.noise_params, file_out_noise);
+	//exit(EXIT_SUCCESS);
+}
+
 // ------ Common ------
 double eta0_fct(const VectorXd& fl0_all){
 	const double G=6.667e-8;
