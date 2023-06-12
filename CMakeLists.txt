@@ -20,7 +20,7 @@ if(NOT CMAKE_COMPILER_IS_GNUCXX AND NOT MACOS)
   message(FATAL_ERROR "This program works only on Mac or Linux")
 endif()
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(Boost_USE_MULTITHREADED TRUE)
 option(WITH_OPENMP "OpenMP Library" ON)
@@ -149,32 +149,28 @@ include_directories()
 
 #Dependencies that are not portable (BOOST)
 set(Boost_USE_MULTITHREADED=OFF)
-find_package(Boost COMPONENTS system filesystem iostreams REQUIRED)
+find_package(Boost COMPONENTS system filesystem iostreams program_options REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIRS})
 
 add_executable(${CMAKE_PROJECT_NAME} ${HEADERS} ${SOURCES_MAIN})
 if(MACOS)
   target_compile_definitions(${CMAKE_PROJECT_NAME}  PRIVATE MACOS)
-  target_link_libraries(${CMAKE_PROJECT_NAME}  ${Boost_SYSTEM_LIBRARY_RELEASE} ${Boost_FILESYSTEM_LIBRARY_RELEASE} ${Boost_IOSTREAMS_LIBRARY_RELEASE}  "-framework CoreFoundation")
+  #target_link_libraries(${CMAKE_PROJECT_NAME}  ${Boost_SYSTEM_LIBRARY_RELEASE} ${Boost_FILESYSTEM_LIBRARY_RELEASE} ${Boost_IOSTREAMS_LIBRARY_RELEASE}  "-framework CoreFoundation")
+  target_link_libraries(${CMAKE_PROJECT_NAME}  ${Boost_LIBRARIES} "-framework CoreFoundation")
 elseif(LINUX)
   target_compile_definitions(${CMAKE_PROJECT_NAME}  PRIVATE LINUX)
-  target_link_libraries(${CMAKE_PROJECT_NAME}  ${Boost_SYSTEM_LIBRARY_RELEASE} ${Boost_FILESYSTEM_LIBRARY_RELEASE} ${Boost_IOSTREAMS_LIBRARY_RELEASE}  rt)
+  #target_link_libraries(${CMAKE_PROJECT_NAME}  ${Boost_SYSTEM_LIBRARY_RELEASE} ${Boost_FILESYSTEM_LIBRARY_RELEASE} ${Boost_IOSTREAMS_LIBRARY_RELEASE}  rt)
+  target_link_libraries(${CMAKE_PROJECT_NAME}  ${Boost_LIBRARIES}  rt)
 endif()
 
 add_executable(test_lorentzians ${HEADERS} ${SOURCES_TEST_LORENTZIAN})
 target_link_libraries(${CMAKE_PROJECT_NAME}  ${Boost_SYSTEM_LIBRARY_RELEASE} ${Boost_FILESYSTEM_LIBRARY_RELEASE} ${Boost_IOSTREAMS_LIBRARY_RELEASE})
 
 
-# Add the include directories
-#if(MACOS)
-#    target_include_directories(random_generator PRIVATE /usr/include/mach)
-#endif()
+## Add your source files here
+#add_executable(Alm_interpol ${SOURCES_TMP})
+## Link the required libraries
+#target_link_libraries(Alm_interpol ${Boost_LIBRARIES} ${GSL_LIBRARY} ${GSL_CBLAS_LIBRARY})
 
-# Link against the appropriate libraries
-#if(MACOS)
-#    target_link_libraries(random_generator PRIVATE "-framework CoreFoundation")
-#elseif(LINUX)
-#    target_link_libraries(random_generator PRIVATE rt)
-#endif()
 

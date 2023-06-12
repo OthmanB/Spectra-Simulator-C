@@ -14,6 +14,7 @@
 #include <Eigen/Dense>
 #include <boost/random.hpp>
 #include <boost/random/normal_distribution.hpp>
+#include <boost/program_options.hpp>
 #include "artificial_spectrum.h"
 #include "models_database.h"
 #include "models_database_grid.h"
@@ -22,10 +23,11 @@
 #include "stellar_models.h"
 #include "io_star_params.h"
 
+
 void showversion();
 int  options(int argc, char* argv[]);
 
-void iterative_artificial_spectrum(std::string dir_core);
+void iterative_artificial_spectrum(const std::string dir_core, const std::string cfg_file);
 //VectorXd order_input_params(VectorXd cte_params, VectorXd var_params, std::vector<std::string> cte_names, 
 //		std::vector<std::string> var_names, std::vector<std::string> param_names);
 void generate_random(Config_Data cfg, std::vector<std::string> param_names, std::string dir_core, std::string file_out_modes, 
@@ -41,7 +43,7 @@ bool call_model_grid(std::string model_name, VectorXd input_params, Model_data i
 std::vector<std::string> list_dir(const std::string path, const std::string filter);
 
 
-void iterative_artificial_spectrum(std::string dir_core){
+void iterative_artificial_spectrum(const std::string dir_core, const std::string cfg_file){
 /*
  * Run iteratively the program artificial_spectrum in order to generate a
  * serie of model according to a main configuration file (/Configurations/main.cfg).
@@ -54,13 +56,13 @@ void iterative_artificial_spectrum(std::string dir_core){
 	std::vector<std::string> param_names;
 
 	std::string delimiter=" ";
-	std::string cfg_file, model_file, file_out_modes, file_out_noise, file_cfg_mm, file_out_mm, file_out_mm2, file_out_combi;
+	std::string model_file, file_out_modes, file_out_noise, file_cfg_mm, file_out_mm, file_out_mm2, file_out_combi;
 	std::string external_path, templates_dir;
 	Config_Data cfg;
 	Data_Nd models;
 	external_path=dir_core + "external/"; 
 	templates_dir=dir_core + "Configurations/templates/";
-	cfg_file=dir_core + "Configurations/main.cfg";
+	//cfg_file=dir_core + "Configurations/main.cfg";
 	model_file=dir_core + "external/MESA_grid/models.params"; // This is for models of MS stars from a grid
 	file_out_modes=dir_core + "Configurations/tmp/modes_tmp.cfg";
 	file_out_noise=dir_core + "Configurations/tmp/noise_tmp.cfg";
@@ -498,10 +500,13 @@ void generate_random(Config_Data cfg, std::vector<std::string> param_names, std:
 	// We first check that the cfg file has a coherent setup
 	ii=0;
 	while(neg == 0 && (ii < N_model)){
-		//std::cout << "[" << ii << "] " << cfg.val_max[ii] - cfg.val_min[ii] << std::endl;
+		std::cout << "[" << ii << "] " << cfg.val_max[ii] - cfg.val_min[ii] << std::endl;
 	
 		if( (cfg.val_max[ii] - cfg.val_min[ii]) < 0){ 
 			neg=1;
+			std::cout << "       ii = " << ii << std::endl;
+			std::cout << "       val_max =" << cfg.val_max[ii] << std::endl;
+			std::cout << "       val_min =" << cfg.val_min[ii] << std::endl;
 		}
 		ii=ii+1;
 	}
@@ -1007,75 +1012,54 @@ void showversion()
     std::cout << " i386" << std::endl;
 #   elif defined(__x86_64__) || defined(_M_AMD64)
     std::cout << " x86_64" << std::endl;
+#	elif (defined(__arm64__) && defined(__APPLE__)) || defined(__aarch64__)
+		std::cout << " arm64 / Apple" << std::endl;
+#   elif 
+		std::cout << " Unknown" << std::endl;
 #   endif
     std::cout << " Author: " << APP_COPYRIGHT << std::endl;
 
 }
 
-int options(int argc, char* argv[]){
-
-	std::string arg1, arg2;
-	int val;
-	
-	val=-2;
-	arg1="";
-	
-	//std::cout << argc << std::endl;
-	if(argc == 1){
-		val=-1; // Code for do nothing here (no options)
-		//std::cout << "No option passed, continuing..." << std::endl;
-		std::cout << " ------------" << std::endl;
-		showversion();
-		std::cout << " ------------" << std::endl << std::endl;
-		
-		
-	}
-	if(argc > 1){
-		arg1=argv[1];
-	}
-	if(argc > 2){
-		std::cout << "Too many arguments. Allowed number: 1. " << std::endl;
-		std::cout << "Extra arguments will be ignored" << std::endl;	
-		//arg2=argv[2];
-	}
-	if(argc == 2){
-		if(arg1 == "version"){
-			 val=0;
-		} else{
-			std::cout << "Unknown argument. Allowed arguments: "<< std::endl;
-			std::cout << "    version : Returns the version of the code and exit" << std::endl;
-		}
-	}
-
-	if (val == -2){ // Error code
-		exit(EXIT_FAILURE);
-	} 
-	if (val == 0){ // Version code
-		showversion(); 
-		exit(EXIT_SUCCESS);
-	}
-	if (val >= -1 ){
-		return val; // Execution code val
-	} else{
-		return -2; // Default value is to return an error code
-	}
-}
 
 
 int main(int argc, char* argv[]){
 
 	boost::filesystem::path full_path( boost::filesystem::current_path() );
 
-// -------- Options Handling ------
-	int msg_code;
-	msg_code=options(argc, argv);
-	if(msg_code == -2){
-		std::cout << "Error detected in options. Cannot proceed. Debug required." << std::endl;
-		std::cout << "The program will exit now" << std::endl;
-		exit(EXIT_FAILURE);
-	} 
+	// -------- Options Handling ------
+    boost::program_options::options_description desc("Allowed options");
+    desc.add_options()
+        ("help,h", "produce help message")
+		("version,v", "show program version")
+        ("main_file,f", boost::program_options::value<std::string>()->default_value("main.cfg"), "Filename for the main configuration file. If not set, use the default filename.")
+		("main_dir, g", boost::program_options::value<std::string>()->default_value("Configurations/"), "Full path for the main configuration file. If not set, use the default sub-directory 'Configurations/.");
+	boost::program_options::variables_map vm;
+	try {
+        boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
+        boost::program_options::notify(vm);
+    } catch (const std::exception& ex) {
+        std::cerr << ex.what() << std::endl;
+        return -1;
+    }
+	if (vm.count("help")) {
+		std::cout << desc << std::endl;
+		return 1;
+	}
+	if (vm.count("version")) {
+        showversion();
+		return 1;
+    }
 	// -------------------------------
 
-	iterative_artificial_spectrum(full_path.string() + "/");
+	std::string cfg_file;
+	std::string main_f = vm["main_file"].as<std::string>();
+	std::string main_dir = vm["main_dir"].as<std::string>();
+	if(main_dir == "Configurations/"){
+		cfg_file=full_path.string() + "/" + main_dir + main_f;
+	} else{
+		cfg_file=main_dir + main_f;
+	}
+	iterative_artificial_spectrum(full_path.string() + "/", cfg_file);
 
 }
