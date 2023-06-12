@@ -1763,29 +1763,24 @@ void generate_cfg_from_synthese_file_Wscaled_aj(VectorXd input_params, std::stri
 	such as the l=0 and l=2 mode blending
 	It handles aj coeficient up to j=6 as well as free parameters and consider an activity term Alm ~ {a2, a4, a6, ...} following Gizon2002 idea.
 	a3 can be given as a polynomial of the frequency and you can add a random quantity (set in nHz) that will be added as a random 'error' ==> scatter ==> test robustness 
+	The noise background is scaled using numax, itself derived from the relation between Dnu and numax modulo a random term to add some dispersion.
+    It Implement A Single Harvey profile noise which scales with numax (+ a White Noise). The definition of the Harvey parameters are as defined by Karoff et al. 2010
+                Recommended coefficients for the scaling are Pgran = A numax^B + C with A=10^-4 and B=-2, C=0. t_gran = A numax^B + C with A=1 and B=-1 and C=0
+				The formulation is also compatible with Kallinger et al. 2014.
 */
-void generate_cfg_from_synthese_file_Wscaled_aj_scalednoise(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string extra){
+void generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string extra){
 
 	int i;
 	double HNR, a1_ov_Gamma, a2, a3, a4, a5, a6, beta_asym, inc, 
 			HNRmaxref, Height_factor, Gamma_at_numax, a1, Gamma_coef, fl,rho, eta0,
-			Dnu, epsilon, delta0l_percent, numax_spread; 
+			Dnu, epsilon, delta0l_percent, numax_star, numax_spread; 
 	VectorXi pos;
 	VectorXd tmp, xfit, rfit, d0l(3), f_rescaled_lin;
-	VectorXd HNRref, local_noise,h_star, gamma_star, s_a1_star, s_a2_star, s_a3_star, s_a4_star,s_a5_star,s_a6_star,
-		s_eta0_star, s_epsilon_star, s_theta0_star, s_delta_star, s_asym_star, inc_star, activity_terms;
+	VectorXd HNRref, local_noise,local_noise_new, h_star, gamma_star, s_a1_star, s_a2_star, s_a3_star, s_a4_star,s_a5_star,s_a6_star,
+		s_eta0_star, s_epsilon_star, s_theta0_star, s_delta_star, s_asym_star, inc_star, noise_params_harvey1985(4);
 	Star_params ref_star;
 	Freq_modes f_rescaled, f_ref;
-	MatrixXd mode_params, noise_params;
-
-	ref_star=read_star_params(extra); 
-	mode_params.setZero(ref_star.mode_params.rows(), 16); // Final table of values that define a star
-
-	// Defining the noise profile parameters
-	// Note about the noise: -1 means that it is ignored. -2 mean that the value is irrelevant
-	tmp.resize(ref_star.mode_params.rows()); 	
-	tmp.setConstant(0);
-	local_noise=harvey_like(ref_star.noise_params, ref_star.mode_params.col(1), tmp); // Generate a list of local noise values for each frequencies
+	MatrixXd mode_params, noise_params(3,3);
 
 // ---- Deploy the parameters -----
 	Dnu=input_params[0];
@@ -1801,7 +1796,31 @@ void generate_cfg_from_synthese_file_Wscaled_aj_scalednoise(VectorXd input_param
 	a6=input_params[10];
 	beta_asym=input_params[11];
 	inc=input_params[12];
+	numax_spread=input_params[21];
 // ---------------------------------
+
+	ref_star=read_star_params(extra); 
+	mode_params.setZero(ref_star.mode_params.rows(), 16); // Final table of values that define a star
+
+	// Defining the noise profile parameters
+	// Note about the noise: -1 means that it is ignored. -2 mean that the value is irrelevant
+	tmp.resize(ref_star.mode_params.rows()); 	
+	tmp.setConstant(0);
+	local_noise=harvey_like(ref_star.noise_params, ref_star.mode_params.col(1), tmp); // Generate a list of local noise values for each frequencies
+
+	// Defining the new noise harvey parameters. These will be used to compute the 
+	// local noise of the new star once we have the rescaled frequencies
+	numax_star=numax_from_stello2009(Dnu, numax_spread); // Second argument is the random spread on numax
+	std::cout << "   - numax = " << numax_star << std::endl;
+	// The noise params here follow Karoff 2010. The formulation is also compatible with Kallinger et al. 2014
+	//noise_params_harvey_like=[A_Pgran ,  B_Pgran , C_Pgran   ,  A_taugran ,  B_taugran  , C_taugran    , p      N0] // 
+	noise_params_harvey1985[0] = input_params[13] * std::pow(numax_star*1e-6,input_params[14]) + input_params[15]; // Granulation Amplitude
+	noise_params_harvey1985[1] = input_params[16] * std::pow(numax_star*1e-6, input_params[17]) + input_params[18]; // Granulation timescale (in seconds)
+	noise_params_harvey1985[0] = noise_params_harvey1985[0]/noise_params_harvey1985[1];
+	noise_params_harvey1985[1]= noise_params_harvey1985[1]/1000.; // timescale
+	noise_params_harvey1985[2]=input_params[19]; // slope
+	noise_params_harvey1985[3]=input_params[20]; // white noise
+
 	// --- Perform rescaling of frequencies  ---
 	d0l << delta0l_percent*Dnu/100., delta0l_percent*Dnu/100., delta0l_percent*Dnu/100.; // small separation l=1,2,3
 	pos=where_dbl(ref_star.mode_params.col(0), 0, 1e-3); // pick l=0
@@ -1860,6 +1879,11 @@ void generate_cfg_from_synthese_file_Wscaled_aj_scalednoise(VectorXd input_param
 		f_rescaled_lin[n+f_ref.fl0.size()+f_ref.fl1.size()+f_ref.fl2.size()]=f_rescaled.fl3[n];
 	}
 
+	// Compute the local noise for the new star
+	local_noise_new.resize(f_rescaled_lin.size());
+	local_noise_new.setZero();
+	local_noise_new=harvey1985(noise_params_harvey1985, f_rescaled_lin, local_noise_new, 1); // Iterate on Noise_l0 to update it by putting the noise profile with one harvey profile
+
 	// ---- Rescaling Height and Width profiles ----
 	HNRref=ref_star.mode_params.col(2);
 	HNRref=HNRref.cwiseProduct(local_noise.cwiseInverse());
@@ -1871,6 +1895,7 @@ void generate_cfg_from_synthese_file_Wscaled_aj_scalednoise(VectorXd input_param
 			HNRmaxref=HNRref[pos[n]];
 		}
 	}
+
 	//HNRmaxref=HNRref.maxCoeff(); // This is the maximum HNR of the reference data
 	Height_factor=HNR/HNRmaxref;  // compute the coeficient required to get the proper max(HNR)
 	pos=where_dbl(HNRref, HNRmaxref, 0.001);
@@ -1890,18 +1915,18 @@ void generate_cfg_from_synthese_file_Wscaled_aj_scalednoise(VectorXd input_param
 	// Refactoring the heights
 	h_star.resize(ref_star.mode_params.rows());
 	//h_star=Height_factor * HNRref * N0; 
-	if (local_noise.sum()!= 0){
+	if (local_noise_new.sum()!= 0){
 		//N0=1; // Imposing the the Noise background is 1
 		//std::cout <<  "Using N0=" << N0 << " (white noise)" << std::endl;
-		std::cout << "Using the Noise profile of the Reference star" << std::endl;
-		std::cout << "HNR of all modes (degree / freq_template  / freq_rescaled / HNR  /  Height /  local_noise):" << std::endl;
+		std::cout << "Using the Noise profile of the New star, using provided noise parameters and Karoff et al. 2010 prescription" << std::endl;
+		std::cout << "HNR of all modes (degree / freq_template  / freq_rescaled / HNR  /  Height /  local_noise(noise params)):" << std::endl;
 		for(i =0; i<ref_star.mode_params.rows(); i++){
-			h_star[i]=Height_factor * HNRref[i] * local_noise[i];
-			std::cout << "     " << ref_star.mode_params(i,0) << "  " << ref_star.mode_params(i,1)  << "  "  << f_rescaled_lin[i] << "  " << Height_factor * HNRref[i]  << "  " << h_star[i] << "  "  << local_noise[i] << std::endl;
+			h_star[i]=Height_factor * HNRref[i] * local_noise_new[i];
+			std::cout << "     " << ref_star.mode_params(i,0) << "  " << ref_star.mode_params(i,1)  << "  "  << f_rescaled_lin[i] << "  " << Height_factor * HNRref[i]  << "  " << h_star[i] << "  "  << local_noise_new[i] << std::endl;
 		}
 	} else{
-		std::cout << "Warning: bruit_local from the stat_synthese file is 0 ==> Cannot compute N0=mean(local_noise)" << std::endl;
-		std::cout << "         The program will stop now" << std::endl;
+		std::cerr << "Error: local_noise_new has no valid value. Debug required." << std::endl;
+		std::cerr << "         The program will stop now" << std::endl;
 		exit(EXIT_FAILURE);
 	}
 	if (a1 < 0){
@@ -1936,26 +1961,18 @@ void generate_cfg_from_synthese_file_Wscaled_aj_scalednoise(VectorXd input_param
 	// THIS MIGHT NEED TO BE WRITTEN IN ANOTHER FORMAT
 	write_star_mode_params_aj(mode_params, file_out_modes);
 
-	//tau=input_params[20] * pow(cfg_star.numax_star*1e-6,input_params[21]) + input_params[22]; // Granulation timescale (in seconds)
-	//H=input_params[17] * pow(cfg_star.numax_star*1e-6,input_params[18]) + input_params[19]; // Granulation Amplitude
-	//std::cout << "pass" << std::endl;
-	/*
-	H=H/tau ; //This is due to the used definition for the Harvey profile (conversion from Hz to microHz)
-	tau=tau/1000. ; //conversion in ksec
-	p=input_params[23];// power law:  MUST BE CLOSE TO 2
-	N0=input_params[24];
 	noise_params(0,0)=-1;
 	noise_params(0,1)=-1;
 	noise_params(0,2)=-1; 
-	noise_params(1,0)=H;
-	noise_params(1,1)=tau;
-	noise_params(1,2)=p; 
-	noise_params(2, 0)=N0; // White noise
+	noise_params(1,0)=noise_params_harvey1985[0];
+	noise_params(1,1)=noise_params_harvey1985[1];
+	noise_params(1,2)=noise_params_harvey1985[2]; 
+	noise_params(2, 0)=noise_params_harvey1985[3]; // White noise
 	noise_params(2, 1)=-2;
 	noise_params(2, 2)=-2;
-	*/
+
 	// A FUNCTION THAT WRITES THE Noise
-	write_star_noise_params(ref_star.noise_params, file_out_noise);
+	write_star_noise_params(noise_params, file_out_noise);
 	//exit(EXIT_SUCCESS);
 }
 

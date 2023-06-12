@@ -134,7 +134,7 @@ void iterative_artificial_spectrum(const std::string dir_core, const std::string
 		param_names.push_back("beta_asym");
 		param_names.push_back("i");
 		if(param_names.size() != Nmodel){
-			std::cout << "    Invalid number of parameters for model_name= 'generate_cfg_from_synthese_file_Wscaled_a1a2a3asymovGamma'" << std::endl;
+			std::cout << "    Invalid number of parameters for model_name= 'generate_cfg_from_synthese_file_Wscaled_Alm'" << std::endl;
 			std::cout << "    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size() << std::endl;
 			std::cout << "    Check your main configuration file" << std::endl;
 			std::cout << "    The program will exit now" << std::endl;
@@ -158,7 +158,40 @@ void iterative_artificial_spectrum(const std::string dir_core, const std::string
 		param_names.push_back("beta_asym");
 		param_names.push_back("i");
 		if(param_names.size() != Nmodel){
-			std::cout << "    Invalid number of parameters for model_name= 'generate_cfg_from_synthese_file_Wscaled_a1a2a3asymovGamma'" << std::endl;
+			std::cout << "    Invalid number of parameters for model_name= 'generate_cfg_from_synthese_file_Wscaled_aj'" << std::endl;
+			std::cout << "    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size() << std::endl;
+			std::cout << "    Check your main configuration file" << std::endl;
+			std::cout << "    The program will exit now" << std::endl;
+			exit(EXIT_FAILURE);
+		}
+		passed=1;
+	}
+	if(cfg.model_name == "generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled"){
+		Nmodel=22;
+		param_names.push_back("Dnu");
+		param_names.push_back("epsilon"); 
+		param_names.push_back("delta0l_percent"); 
+		param_names.push_back("HNR"); 
+		param_names.push_back("a1ovGamma"); 
+		param_names.push_back("Gamma_at_numax"); 
+		param_names.push_back("a2"); 
+		param_names.push_back("a3"); 
+		param_names.push_back("a4"); 
+		param_names.push_back("a5"); 
+		param_names.push_back("a6"); 
+		param_names.push_back("beta_asym");
+		param_names.push_back("i");
+		param_names.push_back("A_Pgran"); // Coefficients for scaling the noise with numax. See Karoff 2010 or Kallinger 2014.
+		param_names.push_back("B_Pgran");	
+		param_names.push_back("C_Pgran");	
+		param_names.push_back("A_taugran");	
+		param_names.push_back("B_taugran");	
+		param_names.push_back("C_taugran");	
+		param_names.push_back("P");	
+		param_names.push_back("N0");
+		param_names.push_back("numax_spread"); // Add a spread to numax to avoid to have a noise that stricly follow the Karoff et al. 2010 relation
+		if(param_names.size() != Nmodel){
+			std::cout << "    Invalid number of parameters for model_name= 'generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled'" << std::endl;
 			std::cout << "    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size() << std::endl;
 			std::cout << "    Check your main configuration file" << std::endl;
 			std::cout << "    The program will exit now" << std::endl;
@@ -833,6 +866,12 @@ bool call_model_random(std::string model_name, VectorXd input_params, std::strin
 									cfg.write_inmodel, cfg.do_modelfiles, cfg.limit_data_range, cfg.modefile_modelname);
 		passed=1;		
 	}
+	if(model_name =="generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled"){
+		generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled(input_params, file_out_modes,  file_out_noise, cfg.extra_params); // extra_params must points towards a .in file
+		artificial_spectrum_aj(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, 
+									cfg.write_inmodel, cfg.do_modelfiles, cfg.limit_data_range, cfg.modefile_modelname);
+		passed=1;		
+	}
 	if(model_name == "asymptotic_mm_v1" || model_name == "asymptotic_mm_v2" || model_name == "asymptotic_mm_v3" ||
 		model_name == "asymptotic_mm_freeDp_numaxspread_curvepmodes_v1" || model_name == "asymptotic_mm_freeDp_numaxspread_curvepmodes_v2" ||
 		model_name == "asymptotic_mm_freeDp_numaxspread_curvepmodes_v3"){
@@ -945,6 +984,12 @@ bool call_model_grid(std::string model_name, VectorXd input_params, Model_data i
 	}
 	if(model_name =="generate_cfg_from_synthese_file_Wscaled_aj"){
 		generate_cfg_from_synthese_file_Wscaled_aj(input_params, file_out_modes,  file_out_noise, cfg.extra_params); // extra_params must points towards a .in file
+		artificial_spectrum_aj(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, 
+									cfg.write_inmodel, cfg.do_modelfiles, cfg.limit_data_range, cfg.modefile_modelname);
+		passed=1;		
+	}
+	if(model_name =="generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled"){
+		generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled(input_params, file_out_modes,  file_out_noise, cfg.extra_params); // extra_params must points towards a .in file
 		artificial_spectrum_aj(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, 
 									cfg.write_inmodel, cfg.do_modelfiles, cfg.limit_data_range, cfg.modefile_modelname);
 		passed=1;		

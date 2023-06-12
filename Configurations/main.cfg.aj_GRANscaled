@@ -12,8 +12,8 @@ random 1 # forest_type, followed by the forest_params. If forest_type=random, th
 generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled   /Users/obenomar/Work/dev/Spectra-Simulator-C/Configurations/infiles/16CygA_mixture.in      
 NONE		        # Used template(s) name(s). If several, randomly select one/iteration. If set to 'all', will use all *.template files in Configuration/templates 
 Dnu  epsilon    delta0l_percent    HNR   a1ovGamma  Gamma_at_numax      a2      a3         a4      a5    a6      beta_asym       i       	A_Pgran   B_Pgran  C_Pgran     A_taugran   B_taugran   C_taugran   P      N0      numax_spread #Variable names 
-70    0.5          -5.              5        0.5         1.             0.1    0.05        0.0      0     0.010       10           0.0    	 0.8     -2.2       0.        0.8           -1.2         0.      1.8    0.1       0.05 #val_min
-70    0.5          -5.              20       0.72        1.     	       0.1    0.05        0.0      0     0.020       10           90        1.2     -1.8      0.5        1.2           -0.8        0.5      2.2    0.4       0.05 #val_max
+70    0.5          -5.              5        0.5         1.             0.1    0.05        0.0      0     0.010       10           0.0    	 0.8     -2.2       0.        0.8           -1.2         0.      1.8    0.1       0 #val_min
+70    0.5          -5.              20       0.72        1.     	       0.1    0.05        0.0      0     0.020       10           90        1.2     -1.8      0.5        1.2           -0.8        0.5      2.2    0.4       0 #val_max
 0      0           0               1.        1          0    	       0       0         0       0.    1           0            1           1.      1.        1.         1.             1           1        1      1        0 #If forest_type="random" ==> 1=Variable OR 0=Constant. If forest_type="grid" then must be the stepsize of the grid
 Tobs   Cadence  Naverage    Nrealisation
 300    120       1            1

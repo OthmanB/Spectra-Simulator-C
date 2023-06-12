@@ -1,5 +1,15 @@
 # Version history #
 
+### v1.2 ###
+	* New model:
+		- generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled allows you to generate a simulated spectra with the noise brackground of your choice, assuming that this noise scales with numax
+
+### v1.1.2 ###
+	* Improvments:
+		- Adding the possibility to enter your own main file name (instead of the default main.cfg) and your own directory for the configuration file (instead of the default 'Configurations/')
+		- Improved showversion() function
+		- Improved handling of options by using the boost::program_options library
+
 ### v1.1.1 ###
 	* Improvments:
 		- In the aj model, adding rescaling capabilities so that Dnu, epsilon, numax and d0l can be modified
