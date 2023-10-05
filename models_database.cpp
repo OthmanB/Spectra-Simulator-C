@@ -681,24 +681,46 @@ void asymptotic_mm_freeDp_numaxspread_curvepmodes_v2(VectorXd input_params, std:
 
 	//std::cout << "input_params=" << input_params.transpose() << std::endl;
 	//std::cout << "input_params.size()=" << input_params.size() << std::endl;
+
 	// ------- Deploy the parameters ------
 	//double rot_env=input_params[0];
 	//double rot_ratio=input_params[1];	
-	//double Dnu=input_params[2];
-	//double epsilon=input_params[3];
-	//double delta0l_percent=input_params[4];
-	//double beta_p=input_params[5];
-	double nmax_spread=input_params[6];
-	//double DP=input_params[7];
-	//double alpha=input_params[8];
-	//double q=input_params[9];
-	//double hnr_l0=input_params[10];
-	//double l0_width_at_numax=input_params[11];
-	double numax_spread=input_params[12]/100.;	
-	//double Vl1=input_params[13];
-	//double Vl2=input_params[14];
-	//double Vl3=input_params[15];
-	//double H0_spread=input_params[16];
+	//double a2_l1_core=input_params[2];	
+	//double a2_l1_env=input_params[3];	
+	//double a2_l2_env=input_params[4];	
+	//double a2_l3_env=input_params[5];	
+	//double a3_l2_env=input_params[6];	
+	//double a3_l3_env=input_params[7];	
+	//double a4_l2_env=input_params[8];	
+	//double a4_l3_env=input_params[9];		
+	//double a5_l3_env=input_params[10];	
+	//double a6_l3_env=input_params[11];	
+	//double Dnu=input_params[12];
+	//double epsilon=input_params[13];
+	//double delta0l_percent=input_params[14];
+	//double beta_p=input_params[15];
+	double nmax_spread=input_params[16];
+	//double DP=input_params[17];
+	//double alpha=input_params[18];
+	//double q=input_params[19];
+	//double hnr_l0=input_params[20];
+	//double l0_width_at_numax=input_params[21];
+	double numax_spread=input_params[22]/100.;	
+	//double Vl1=input_params[23];
+	//double Vl2=input_params[24];
+	//double Vl3=input_params[25];
+	//double H0_spread=input_params[26];
+	//double A_Pgran=input_params[27];
+	//double B_Pgran=input_params[28];
+	//double C_Pgran=input_params[29];
+	//double A_taugran=input_params[30];
+	//double B_taugran=input_params[31];
+	//double C_taugran=input_params[32];
+	//double P=input_params[33];
+	//double N0=input_params[34];
+	//double Hfactor=input_params[35];
+	//double Wfactor=input_params[36];
+
 	double inc_rad, inc_star, inc_y, inc_c;
 	double xmin, xmax, a1;
 	double H, tau, p, N0;
@@ -707,31 +729,48 @@ void asymptotic_mm_freeDp_numaxspread_curvepmodes_v2(VectorXd input_params, std:
 	Cfg_synthetic_star cfg_star;
 	Params_synthetic_star params;
 	// ------------------------------------
-
-	// ---- Evaluation of DP ----
-	// Super rought estimate derived by visual inspection of the Mosser+2015, Fig.1
-	const double c=36.8222;
-	const double b=2.63897;
-	const double a=0.0168202;
 	
 	// -----------
 	cfg_star.Teff_star=-1;
-	cfg_star.Dnu_star=input_params[2];
-	cfg_star.epsilon_star=input_params[3];
-	cfg_star.delta0l_percent_star=input_params[4];
-	cfg_star.beta_p_star=input_params[5];
+	cfg_star.Dnu_star=input_params[12];
+	cfg_star.epsilon_star=input_params[13];
+	cfg_star.delta0l_percent_star=input_params[14];
+	cfg_star.beta_p_star=input_params[15];
 	
-	cfg_star.DPl_star=input_params[7];                
-	cfg_star.alpha_g_star=input_params[8];
-	cfg_star.q_star=input_params[9];
-	cfg_star.maxHNR_l0=input_params[10];
-	cfg_star.H0_spread=input_params[16];
-	cfg_star.Gamma_max_l0=input_params[11];
-	cfg_star.Hfactor=input_params[25];
-	cfg_star.Wfactor=input_params[26];
+	cfg_star.DPl_star=input_params[17];                
+	cfg_star.alpha_g_star=input_params[18];
+	cfg_star.q_star=input_params[19];
+	cfg_star.maxHNR_l0=input_params[20];
+	cfg_star.H0_spread=input_params[26];
+	cfg_star.Gamma_max_l0=input_params[21];
+	cfg_star.Hfactor=input_params[35];
+	cfg_star.Wfactor=input_params[36];
 	cfg_star.rot_env_input=input_params[0];
 	cfg_star.rot_ratio_input=input_params[1];
 	cfg_star.rot_core_input=-1;
+	cfg_star.env_aspher.a2_l1=0; // SET TO 0 for l=1 modes. Ideally, would need a2_l1_core mixed with a2_l1_env
+	cfg_star.env_aspher.a2_l2=input_params[4];
+	if(input_params[5] <= -9999){ // If the user want l2 and l3 having the same aj coefficient, they need to put l3 to -9999 or smaller
+		cfg_star.env_aspher.a2_l3=cfg_star.env_aspher.a2_l2;
+	} else{
+		cfg_star.env_aspher.a2_l3=input_params[5];
+	}	
+	cfg_star.env_aspher.a4_l2=input_params[8];
+	if(input_params[5] <= -9999){ // If the user want l2 and l3 having the same aj coefficient, they need to put l3 to -9999 or smaller
+		cfg_star.env_aspher.a4_l3=cfg_star.env_aspher.a4_l2;
+	} else{
+		cfg_star.env_aspher.a4_l3=input_params[9];
+	}
+	cfg_star.env_aspher.a6_l3=input_params[11];
+	cfg_star.env_lat_dif_rot.a3_l2=input_params[6];
+	if(input_params[5] <= -9999){ // If the user want l2 and l3 having the same aj coefficient, they need to put l3 to -9999 or smaller
+		cfg_star.env_lat_dif_rot.a3_l3=cfg_star.env_lat_dif_rot.a3_l2;
+	} else{
+		cfg_star.env_lat_dif_rot.a3_l3=input_params[7];
+	}
+	cfg_star.env_lat_dif_rot.a5_l3=input_params[10];
+	
+	
 	cfg_star.noise_params_harvey_like.resize(8);
 	cfg_star.noise_params_harvey_like <<  input_params[17], input_params[18] , input_params[19] , input_params[20] , input_params[21] , input_params[22] , input_params[23]  , input_params[24];    //[A_Pgran ,  B_Pgran , C_Pgran   ,  A_taugran ,  B_taugran  , C_taugran    , p      N0]
 	cfg_star.numax_star=numax_from_stello2009(cfg_star.Dnu_star, numax_spread); // Second argument is the random spread on numax
@@ -739,7 +778,7 @@ void asymptotic_mm_freeDp_numaxspread_curvepmodes_v2(VectorXd input_params, std:
 	cfg_star.fmax=cfg_star.numax_star +(Nmax_pm+2)*cfg_star.Dnu_star;
 	cfg_star.output_file_rot=cpath + "/external/ARMM-solver/star_params.rot";
 	cfg_star.Vl.resize(3);
-	cfg_star.Vl << input_params[13], input_params[14], input_params[15];
+	cfg_star.Vl << input_params[23], input_params[24], input_params[25];
 	cfg_star.filetemplate = template_file;
 	cfg_star.nmax_star=cfg_star.numax_star/cfg_star.Dnu_star - cfg_star.epsilon_star;
 	cfg_star.alpha_p_star=cfg_star.beta_p_star/cfg_star.nmax_star;
@@ -779,20 +818,19 @@ void asymptotic_mm_freeDp_numaxspread_curvepmodes_v2(VectorXd input_params, std:
 	params=make_synthetic_asymptotic_star(cfg_star);
 	mode_params=bumpoutputs_2_MatrixXd(params, inc_star); // get the output in a format that can be written with the writting function
 
-	//el, nu, h, w, a1, eta, a3, b, alfa, asym, inc
-	write_star_mode_params_act_asym(mode_params, file_out_modes);
+	write_star_mode_params_aj(mode_params, file_out_modes);
 	write_range_modes(cfg_star, params, file_range);
 
 	if (cfg_star.Dnu_star <= 15){
 		std::cout << "    Model with small Dnu ==> many mixed modes. This might be long to find the solutions..." << std::endl; 
 	}
 
-	tau=input_params[20] * pow(cfg_star.numax_star*1e-6,input_params[21]) + input_params[22]; // Granulation timescale (in seconds)
-	H=input_params[17] * pow(cfg_star.numax_star*1e-6,input_params[18]) + input_params[19]; // Granulation Amplitude
+	tau=input_params[30] * pow(cfg_star.numax_star*1e-6,input_params[31]) + input_params[32]; // Granulation timescale (in seconds)
+	H=input_params[27] * pow(cfg_star.numax_star*1e-6,input_params[28]) + input_params[29]; // Granulation Amplitude
 	H=H/tau ; //This is due to the used definition for the Harvey profile (conversion from Hz to microHz)
 	tau=tau/1000. ; //conversion in ksec
-	p=input_params[23];// power law:  MUST BE CLOSE TO 2
-	N0=input_params[24];
+	p=input_params[33];// power law:  MUST BE CLOSE TO 2
+	N0=input_params[34];
 	noise_params(0,0)=-1;
 	noise_params(0,1)=-1;
 	noise_params(0,2)=-1; 
@@ -837,21 +875,41 @@ void asymptotic_mm_freeDp_numaxspread_curvepmodes_v3(VectorXd input_params, std:
 	// ------- Deploy the parameters ------
 	//double rot_env=input_params[0];
 	//double rot_core=input_params[1];	
-	//double Dnu=input_params[2];
-	//double epsilon=input_params[3];	
-	//double delta0l_percent=input_params[4];
-	//double beta_p=input_params[5];
-	double nmax_spread=input_params[6];
-	//double DP=input_params[7];
-	//double alpha=input_params[8];
-	//double q=input_params[9];
-	//double hnr_l0=input_params[10];
-	//double l0_width_at_numax=input_params[11];
-	double numax_spread=input_params[12]/100.;
-	//double Vl1=input_params[13];
-	//double Vl2=input_params[14];
-	//double Vl3=input_params[15];
-	//double H0_spread=input_params[16];
+	//double a2_l1_core=input_params[2];	
+	//double a2_l1_env=input_params[3];	
+	//double a2_l2_env=input_params[4];	
+	//double a2_l3_env=input_params[5];	
+	//double a3_l2_env=input_params[6];	
+	//double a3_l3_env=input_params[7];	
+	//double a4_l2_env=input_params[8];	
+	//double a4_l3_env=input_params[9];		
+	//double a5_l3_env=input_params[10];	
+	//double a6_l3_env=input_params[11];	
+	//double Dnu=input_params[12];
+	//double epsilon=input_params[13];
+	//double delta0l_percent=input_params[14];
+	//double beta_p=input_params[15];
+	double nmax_spread=input_params[16];
+	//double DP=input_params[17];
+	//double alpha=input_params[18];
+	//double q=input_params[19];
+	//double hnr_l0=input_params[20];
+	//double l0_width_at_numax=input_params[21];
+	double numax_spread=input_params[22]/100.;	
+	//double Vl1=input_params[23];
+	//double Vl2=input_params[24];
+	//double Vl3=input_params[25];
+	//double H0_spread=input_params[26];
+	//double A_Pgran=input_params[27];
+	//double B_Pgran=input_params[28];
+	//double C_Pgran=input_params[29];
+	//double A_taugran=input_params[30];
+	//double B_taugran=input_params[31];
+	//double C_taugran=input_params[32];
+	//double P=input_params[33];
+	//double N0=input_params[34];
+	//double Hfactor=input_params[35];
+	//double Wfactor=input_params[36];
 
 	double inc_rad, inc_star, inc_y, inc_c;
 	double xmin, xmax, a1;
@@ -862,11 +920,6 @@ void asymptotic_mm_freeDp_numaxspread_curvepmodes_v3(VectorXd input_params, std:
 	Params_synthetic_star params;
 	// ------------------------------------
 
-	// ---- Evaluation of DP ----
-	// Super rought estimate derived by visual inspection of the Mosser+2015, Fig.1
-	const double c=36.8222;
-	const double b=2.63897;
-	const double a=0.0168202;
 	try{ // Attempting to read file_cfg_mm, if exist. 
 		std::cout << "Trying to find and read the mixed modes configuration file" << file_cfg_mm << std::endl;
 		cfg_star=read_theoretical_freqs(file_cfg_mm);
@@ -880,11 +933,11 @@ void asymptotic_mm_freeDp_numaxspread_curvepmodes_v3(VectorXd input_params, std:
 	}
 	// ----------
 	if (cfg_star.use_nu_nl == false){ // we use the parameters defined in the main.cfg
-		cfg_star.Dnu_star=input_params[2];
-		cfg_star.DPl_star=input_params[7];                
-		cfg_star.q_star=input_params[9];
-		cfg_star.alpha_g_star=input_params[8];
-		cfg_star.epsilon_star=input_params[3];
+		cfg_star.Dnu_star=input_params[12];
+		cfg_star.DPl_star=input_params[17];                
+		cfg_star.q_star=input_params[19];
+		cfg_star.alpha_g_star=input_params[18];
+		cfg_star.epsilon_star=input_params[13];
 	} else{
 		std::cout << "Using:" << std::endl;
 		std::cout << "    cfg_star.Dnu_star = " << cfg_star.Dnu_star << std::endl;
@@ -895,17 +948,40 @@ void asymptotic_mm_freeDp_numaxspread_curvepmodes_v3(VectorXd input_params, std:
 		std::cout << "    Note that delta0l_percent_star is taken from the main.cfg configuration " << std::endl;
 	}
 	cfg_star.Teff_star=-1;
-	cfg_star.delta0l_percent_star=input_params[4];
-	cfg_star.beta_p_star=input_params[5];
-	
-	cfg_star.maxHNR_l0=input_params[10];
-	cfg_star.H0_spread=input_params[16];
-	cfg_star.Gamma_max_l0=input_params[11];
-	cfg_star.Hfactor=input_params[25];
-	cfg_star.Wfactor=input_params[26];
+	cfg_star.delta0l_percent_star=input_params[14];
+	cfg_star.beta_p_star=input_params[15];
+
+	cfg_star.maxHNR_l0=input_params[20];
+	cfg_star.H0_spread=input_params[26];
+	cfg_star.Gamma_max_l0=input_params[21];
+	cfg_star.Hfactor=input_params[35];
+	cfg_star.Wfactor=input_params[36];
+
 	cfg_star.rot_env_input=input_params[0];
 	cfg_star.rot_ratio_input=-1;
 	cfg_star.rot_core_input=input_params[1];
+	cfg_star.env_aspher.a2_l1=0; // SET TO 0 for l=1 modes. Ideally, would need a2_l1_core mixed with a2_l1_env
+	cfg_star.env_aspher.a2_l2=input_params[4];
+	if(input_params[5] <= -9999){ // If the user want l2 and l3 having the same aj coefficient, they need to put l3 to -9999 or smaller
+		cfg_star.env_aspher.a2_l3=cfg_star.env_aspher.a2_l2;
+	} else{
+		cfg_star.env_aspher.a2_l3=input_params[5];
+	}	
+	cfg_star.env_aspher.a4_l2=input_params[8];
+	if(input_params[5] <= -9999){ // If the user want l2 and l3 having the same aj coefficient, they need to put l3 to -9999 or smaller
+		cfg_star.env_aspher.a4_l3=cfg_star.env_aspher.a4_l2;
+	} else{
+		cfg_star.env_aspher.a4_l3=input_params[9];
+	}
+	cfg_star.env_aspher.a6_l3=input_params[11];
+	cfg_star.env_lat_dif_rot.a3_l2=input_params[6];
+	if(input_params[5] <= -9999){ // If the user want l2 and l3 having the same aj coefficient, they need to put l3 to -9999 or smaller
+		cfg_star.env_lat_dif_rot.a3_l3=cfg_star.env_lat_dif_rot.a3_l2;
+	} else{
+		cfg_star.env_lat_dif_rot.a3_l3=input_params[7];
+	}
+	cfg_star.env_lat_dif_rot.a5_l3=input_params[10];
+
 	cfg_star.noise_params_harvey_like.resize(8);
 	cfg_star.noise_params_harvey_like <<  input_params[17], input_params[18] , input_params[19] , input_params[20] , input_params[21] , input_params[22] , input_params[23]  , input_params[24];    //[A_Pgran ,  B_Pgran , C_Pgran   ,  A_taugran ,  B_taugran  , C_taugran    , p      N0]
 	cfg_star.numax_star=numax_from_stello2009(cfg_star.Dnu_star, numax_spread); // Second argument is the random spread on numax
@@ -913,7 +989,7 @@ void asymptotic_mm_freeDp_numaxspread_curvepmodes_v3(VectorXd input_params, std:
 	cfg_star.fmax=cfg_star.numax_star +(Nmax_pm+2)*cfg_star.Dnu_star;
 	cfg_star.output_file_rot=cpath + "/external/ARMM-solver/star_params.rot";
 	cfg_star.Vl.resize(3);
-	cfg_star.Vl << input_params[13], input_params[14], input_params[15];
+	cfg_star.Vl << input_params[23], input_params[24], input_params[25];
 	cfg_star.filetemplate = template_file;
 	cfg_star.nmax_star=cfg_star.numax_star/cfg_star.Dnu_star - cfg_star.epsilon_star;
 	cfg_star.alpha_p_star=cfg_star.beta_p_star/cfg_star.nmax_star;
@@ -953,16 +1029,15 @@ void asymptotic_mm_freeDp_numaxspread_curvepmodes_v3(VectorXd input_params, std:
 	params=make_synthetic_asymptotic_star(cfg_star);
 	mode_params=bumpoutputs_2_MatrixXd(params, inc_star); // get the output in a format that can be written with the writting function
 
-	//el, nu, h, w, a1, eta, a3, b, alfa, asym, inc
-	write_star_mode_params_act_asym(mode_params, file_out_modes);
+	write_star_mode_params_aj(mode_params, file_out_modes);
 	write_range_modes(cfg_star, params, file_range);
 
 	if (cfg_star.Dnu_star <= 15){
 		std::cout << "    Model with small Dnu ==> many mixed modes. This might be long to find the solutions..." << std::endl; 
 	}
 
-	tau=input_params[20] * pow(cfg_star.numax_star*1e-6,input_params[21]) + input_params[22]; // Granulation timescale (in seconds)
-	H=input_params[17] * pow(cfg_star.numax_star*1e-6,input_params[18]) + input_params[19]; // Granulation Amplitude
+	tau=input_params[30] * pow(cfg_star.numax_star*1e-6,input_params[31]) + input_params[32]; // Granulation timescale (in seconds)
+	H=input_params[27] * pow(cfg_star.numax_star*1e-6,input_params[28]) + input_params[29]; // Granulation Amplitude
 	//std::cout << "pass" << std::endl;
 	H=H/tau ; //This is due to the used definition for the Harvey profile (conversion from Hz to microHz)
 	tau=tau/1000. ; //conversion in ksec
@@ -1992,23 +2067,3 @@ double eta0_fct(const VectorXd& fl0_all){
     eta0=3.*M_PI/(rho*G); 
     return eta0;
 }
-
-
-/*
-// small test program
-int main(){
-
-	VectorXd input_params;
-	std::string file_out_modes;
-	std::string file_out_noise;
-
-	file_out_modes="file_params.txt";
-	file_out_noise="file_noise.txt";
-
-	input_params.setZero(14 +9);
-	input_params << 2000., 90., 0.2, 1.35, 10., 5., 3, 16, 1.0, 0.025, -0.05, 3., 50., 90, -1, -1, -1, -1, -1, -1, 0.1, -2, -2;  
-	//generate_cfg_asymptotic_Hgauss(input_params, file_out_modes, file_out_noise);
-	generate_cfg_asymptotic_act_asym_Hgauss(input_params, file_out_modes, file_out_noise);
-	std::cout << "End" << std::endl;
-}
-*/

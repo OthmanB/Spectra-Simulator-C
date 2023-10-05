@@ -371,6 +371,16 @@ void iterative_artificial_spectrum(const std::string dir_core, const std::string
 		//Nmodel=13;
 		param_names.push_back("nurot_env"); 
 		param_names.push_back("nurot_ratio"); 
+		param_names.push_back("a2_l1_core"); 
+		param_names.push_back("a2_l1_env"); 
+		param_names.push_back("a2_l2_env"); 
+		param_names.push_back("a2_l3_env"); 
+		param_names.push_back("a3_l2_env"); 
+		param_names.push_back("a3_l3_env"); 
+		param_names.push_back("a4_l2_env"); 
+		param_names.push_back("a4_l3_env"); 
+		param_names.push_back("a5_l3_env"); 
+		param_names.push_back("a6_l3_env"); 
 		param_names.push_back("Dnu"); 
 		param_names.push_back("epsilon");
 		param_names.push_back("delta0l_percent"); 
@@ -407,9 +417,18 @@ void iterative_artificial_spectrum(const std::string dir_core, const std::string
 		passed=1;
 	}
 	if(cfg.model_name == "asymptotic_mm_freeDp_numaxspread_curvepmodes_v3"){
-		//Nmodel=13;
 		param_names.push_back("nurot_env"); 
 		param_names.push_back("nurot_core"); 
+		param_names.push_back("a2_l1_core"); 
+		param_names.push_back("a2_l1_env"); 
+		param_names.push_back("a2_l2_env"); 
+		param_names.push_back("a2_l3_env"); 
+		param_names.push_back("a3_l2_env"); 
+		param_names.push_back("a3_l3_env"); 
+		param_names.push_back("a4_l2_env"); 
+		param_names.push_back("a4_l3_env"); 
+		param_names.push_back("a5_l3_env"); 
+		param_names.push_back("a6_l3_env");
 		param_names.push_back("Dnu"); 
 		param_names.push_back("epsilon");
 		param_names.push_back("delta0l_percent"); 
@@ -877,28 +896,36 @@ bool call_model_random(std::string model_name, VectorXd input_params, std::strin
 		model_name == "asymptotic_mm_freeDp_numaxspread_curvepmodes_v3"){
 		if(model_name =="asymptotic_mm_v1"){
 			asymptotic_mm_v1(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path, template_file);
+			artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
 			subpassed=1;
 		}
 		if(model_name =="asymptotic_mm_v2"){
 			asymptotic_mm_v2(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path, template_file);
+			artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
 			subpassed=1;
 		}
 		if(model_name =="asymptotic_mm_v3"){
 			asymptotic_mm_v3(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path, template_file);
+			artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
 			subpassed=1;
 		}
 		if(model_name =="asymptotic_mm_freeDp_numaxspread_curvepmodes_v1"){ 
 			file_cfg_mm=""; // By-pass the definition to avoid issues
 			asymptotic_mm_freeDp_numaxspread_curvepmodes_v1(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path, template_file);
+			artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
 			subpassed=1;
 		}
 		if(model_name =="asymptotic_mm_freeDp_numaxspread_curvepmodes_v2"){ 
 			file_cfg_mm=""; // By-pass the definiton to avoid issues
 			asymptotic_mm_freeDp_numaxspread_curvepmodes_v2(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path, template_file);
+			artificial_spectrum_aj(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, 
+									cfg.write_inmodel, cfg.do_modelfiles, cfg.limit_data_range, cfg.modefile_modelname);
 			subpassed=1;
 		}
 		if(model_name =="asymptotic_mm_freeDp_numaxspread_curvepmodes_v3"){ 
 			asymptotic_mm_freeDp_numaxspread_curvepmodes_v3(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path, template_file);
+			artificial_spectrum_aj(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, 
+									cfg.write_inmodel, cfg.do_modelfiles, cfg.limit_data_range, cfg.modefile_modelname);
 			subpassed=1;
 		}
 		if(subpassed == 0){
@@ -908,13 +935,11 @@ bool call_model_random(std::string model_name, VectorXd input_params, std::strin
 			exit(EXIT_FAILURE);
 		}
 		
-		//artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
-		artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
-		//std::cout << "   - [Warning DIRTY CODE IN LINE 281, iterative_artificial_spectrum.cpp] Hard coded path for saving python3 cfg in the spectra_info dir" << std::endl;
-		//std::cout << "                                                                         Stable final version should avoid this" << std::endl;
-		str="cp " + file_cfg_mm + " " + dir_core + "Data/Spectra_info/" + strtrim(id_str) + ".global";
-		const char *command = str.c_str(); 
-		system(command);
+		if(file_cfg_mm != ""){
+			str="cp " + file_cfg_mm + " " + dir_core + "Data/Spectra_info/" + strtrim(id_str) + ".global";
+			const char *command = str.c_str(); 
+			system(command);
+		}
 		/*
 		str="cp " + dir_core + "external/ARMM/star_params.range " + dir_core + "Data/Spectra_info/" + strtrim(id_str) + ".range";
 		const char *command2 = str.c_str(); 

@@ -7,9 +7,8 @@
 */
 
 # pragma once
-
-# include <Eigen/Dense>
+#include <Eigen/Dense>
 
 using Eigen::VectorXd;
 
-VectorXd linfit(const VectorXd& x, const VectorXd& y);
+VectorXd linfit(const VectorXd& x, const VectorXd& y); // A more optimal way to perform a linear fit

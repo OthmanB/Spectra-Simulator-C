@@ -148,6 +148,8 @@ void write_star_mode_params_aj(MatrixXd mode_params, std::string file_out, bool 
 	}
 }
 
+
+
 void write_star_noise_params(MatrixXd noise_params, std::string file_out, bool append){
 
 	VectorXi Nchars(3), precision(3);
@@ -976,7 +978,7 @@ Config_Data read_main_cfg(std::string cfg_file){
 	Config_Data cfg;
 
 	
-	cptmax=10; //maximum number of header lines
+	cptmax=100; //maximum number of header lines
     	file_in.open(cfg_file.c_str());
     	if (file_in.is_open()) {
 		std::cout << "Data File opened... processing lines" << std::endl;
@@ -1002,7 +1004,6 @@ Config_Data read_main_cfg(std::string cfg_file){
 			exit(EXIT_FAILURE);
 		}
 		// [2] Get relevant data
-		
 			tmp_vec_str=strsplit(rem_comments(line0, "#"), " "); // split the line into segments of strings
 			cfg.forest_type=tmp_vec_str[0]; // Get the keyword
 			tmp_vec_str.erase(tmp_vec_str.begin()); // Remove the keyword before processing the parameters of the given keyword
@@ -1023,18 +1024,41 @@ Config_Data read_main_cfg(std::string cfg_file){
 
 			std::getline(file_in, line0);
 			cfg.template_files=strsplit(rem_comments(line0, "#"), " ");
-
+			//std::cout << "  line0      : " << line0 << std::endl;
+			//for (int kk=0;kk<cfg.labels.size();kk++){
+			//	std::cout << "  cfg.template_files: " << cfg.template_files[kk] << std::endl;
+			//}
+			//std::cout << "  ---- " << std::endl;
 			std::getline(file_in, line0);
 			cfg.labels=strsplit(rem_comments(line0, "#"), " ");
-
+			//std::cout << "  line0      : " << line0 << std::endl;
+			//for (int kk=0;kk<cfg.labels.size();kk++){
+			//	std::cout << "  cfg.labels: " << cfg.labels[kk] << std::endl;
+			//}
+			//std::cout << "  ---- " << std::endl;			
 			std::getline(file_in, line0);
 			cfg.val_min=str_to_arrdbl(rem_comments(line0, "#"), " ");
-
+			//std::cout << "  line0      : " << line0 << std::endl;
+			//for (int kk=0;kk<cfg.labels.size();kk++){
+			//	std::cout << "  cfg.val_min: " << cfg.val_min[kk] << std::endl;
+			//}
+			//std::cout << "  ---- " << std::endl;
+			
 			std::getline(file_in, line0);
 			cfg.val_max=str_to_arrdbl(rem_comments(line0, "#"), " ");
+			//std::cout << "  line0      : " << line0 << std::endl;
+			//for (int kk=0;kk<cfg.labels.size();kk++){
+			//	std::cout << "  cfg.val_max: " << cfg.val_max[kk] << std::endl;
+			//}
+			//std::cout << "  ---- " << std::endl;
 
 			std::getline(file_in, line0);
 			cfg.step=str_to_arrdbl(rem_comments(line0, "#"), " ");
+			//std::cout << "  line0      : " << line0 << std::endl;
+			//for (int kk=0;kk<cfg.labels.size();kk++){
+			//	std::cout << "  cfg.step: " << cfg.step[kk] << std::endl;
+			//}
+			//std::cout << "  ---- " << std::endl;
 
 			std::getline(file_in, line0); // skip the labels of Tobs and Cadence
 
@@ -1123,15 +1147,11 @@ Config_Data read_main_cfg(std::string cfg_file){
 	return cfg;
 }
 
-/*bool file_exists(const std::string& name) {
-    return ( access( name.c_str(), F_OK ) != -1 );
-}
-*/
 
 MatrixXd bumpoutputs_2_MatrixXd(Params_synthetic_star params, double inc){
 	int i, cpt=0;
 	int Nt=params.nu_l0.size() + params.nu_m_l1.size() + params.nu_l2.size() + params.nu_l3.size();
-	MatrixXd mode_params(Nt, 11);
+	MatrixXd mode_params(Nt, 12);
 
 	for (i=0;i<params.nu_l0.size();i++){
 		mode_params(cpt, 0)=0;
@@ -1144,7 +1164,8 @@ MatrixXd bumpoutputs_2_MatrixXd(Params_synthetic_star params, double inc){
 		mode_params(cpt, 7)=0; // b is 0 in simulations
 		mode_params(cpt, 8)=0; // alfa is 0 in simulations
 		mode_params(cpt, 9)=0; // asym is 0 in simulations
-		mode_params(cpt, 10)=inc; // inc	
+		mode_params(cpt, 10)=0;
+		mode_params(cpt, 11)=inc; // inc
 		cpt=cpt+1;
 	}
 	for (i=0;i<params.nu_m_l1.size();i++){
@@ -1152,13 +1173,14 @@ MatrixXd bumpoutputs_2_MatrixXd(Params_synthetic_star params, double inc){
 		mode_params(cpt, 1)=params.nu_m_l1[i];
 		mode_params(cpt, 2)=params.height_l1[i];
 		mode_params(cpt, 3)=params.width_l1[i];
-		mode_params(cpt, 4)=params.a1_l1[i]; // a1 is 0 for l=0
-		mode_params(cpt, 5)=0; // eta is 0 in simulations
-		mode_params(cpt, 6)=0; // a3 is 0 in simulations
-		mode_params(cpt, 7)=0; // b is 0 in simulations
-		mode_params(cpt, 8)=0; // alfa is 0 in simulations
-		mode_params(cpt, 9)=0; // asym is 0 in simulations
-		mode_params(cpt, 10)=inc; // inc	
+		mode_params(cpt, 4)=params.a1_l1[i]; // 
+		mode_params(cpt, 5)=params.a2_l1[i]; //
+		mode_params(cpt, 6)=0; // 
+		mode_params(cpt, 7)=0; // 
+		mode_params(cpt, 8)=0; // 
+		mode_params(cpt, 9)=0; // 
+		mode_params(cpt, 10)=0;
+		mode_params(cpt, 11)=inc; // inc	
 		cpt=cpt+1;
 	}
 	for (i=0;i<params.nu_l2.size();i++){
@@ -1166,13 +1188,14 @@ MatrixXd bumpoutputs_2_MatrixXd(Params_synthetic_star params, double inc){
 		mode_params(cpt, 1)=params.nu_l2[i];
 		mode_params(cpt, 2)=params.height_l2[i];
 		mode_params(cpt, 3)=params.width_l2[i];
-		mode_params(cpt, 4)=params.a1_l2[i]; // a1 is 0 for l=0
-		mode_params(cpt, 5)=0; // eta is 0 in simulations
-		mode_params(cpt, 6)=0; // a3 is 0 in simulations
-		mode_params(cpt, 7)=0; // b is 0 in simulations
-		mode_params(cpt, 8)=0; // alfa is 0 in simulations
-		mode_params(cpt, 9)=0; // asym is 0 in simulations
-		mode_params(cpt, 10)=inc; // inc	
+		mode_params(cpt, 4)=params.a1_l2[i]; 
+		mode_params(cpt, 5)=params.a2_l2[i];
+		mode_params(cpt, 6)=params.a3_l2[i];
+		mode_params(cpt, 7)=params.a4_l2[i];
+		mode_params(cpt, 8)=0; 
+		mode_params(cpt, 9)=0; 
+		mode_params(cpt, 10)=0;
+		mode_params(cpt, 11)=inc; // inc
 		cpt=cpt+1;
 	}
 	for (i=0;i<params.nu_l3.size();i++){
@@ -1180,13 +1203,14 @@ MatrixXd bumpoutputs_2_MatrixXd(Params_synthetic_star params, double inc){
 		mode_params(cpt, 1)=params.nu_l3[i];
 		mode_params(cpt, 2)=params.height_l3[i];
 		mode_params(cpt, 3)=params.width_l3[i];
-		mode_params(cpt, 4)=params.a1_l3[i]; // a1 is 0 for l=0
-		mode_params(cpt, 5)=0; // eta is 0 in simulations
-		mode_params(cpt, 6)=0; // a3 is 0 in simulations
-		mode_params(cpt, 7)=0; // b is 0 in simulations
-		mode_params(cpt, 8)=0; // alfa is 0 in simulations
-		mode_params(cpt, 9)=0; // asym is 0 in simulations
-		mode_params(cpt, 10)=inc; // inc	
+		mode_params(cpt, 4)=params.a1_l3[i]; 
+		mode_params(cpt, 5)=params.a2_l3[i]; 
+		mode_params(cpt, 6)=params.a3_l3[i]; 
+		mode_params(cpt, 7)=params.a4_l3[i]; 
+		mode_params(cpt, 8)=params.a5_l3[i]; 
+		mode_params(cpt, 9)=params.a6_l3[i]; 
+		mode_params(cpt, 10)=0;
+		mode_params(cpt, 11)=inc; // inc	
 		cpt=cpt+1;
 	}
 	return mode_params;
@@ -1224,64 +1248,3 @@ void file_read_error(std::string file_out){
 		exit(EXIT_FAILURE);
 }
 
-/*
-// Small test program
-int main(){
-	int N=100;
-	MatrixXd mode_params1(2, 8);
-	MatrixXd mode_params2(3, 11);
-	MatrixXd noise_params(3, 3);
-	VectorXd x(N),y(N),z(N), spec_params(2);
-	std::string identifier;
-	std::string file_out1, file_out2, file_out3, file_out4, file_out5;
-	file_out1="output_test1.txt";
-	std::cout << "Test of write_star_mode_params_a1a2a3...outputs in " << file_out1 <<  std::endl;
-	mode_params1.setRandom();
-	
-	for(int i=0; i<mode_params1.rows(); i++){
-		for(int j=0; j<mode_params1.cols(); j++){
-			std::cout << std::setw(10) << std::setprecision(5) << mode_params1(i,j);
-		}
-		std::cout << std::endl;
-	}
-	write_star_mode_params_a1a2a3(mode_params1, file_out1);
-	std::cout << "--------------" << std::endl;
-	file_out2="output_test2.txt";
-	std::cout << "Test of write_star_mode_params_act_asym...outputs in " << file_out2 << std::endl;
-	mode_params2.setRandom();	
-	for(int i=0; i<mode_params2.rows(); i++){
-		for(int j=0; j<mode_params2.cols(); j++){
-			std::cout << std::setw(10) << std::setprecision(5) << mode_params2(i,j);
-		}
-		std::cout << std::endl;
-	}
-	write_star_mode_params_act_asym(mode_params2, file_out2);
-	std::cout << "--------------" << std::endl;
-	noise_params.setRandom();
-	
-	file_out3="output_test3.txt";
-	std::cout << "Test of write_star_noise_params... outputs in " << file_out3 << std::endl;
-	for(int i=0; i<noise_params.rows(); i++){
-		for(int j=0; j<noise_params.cols(); j++){
-			std::cout << std::setw(10) << std::setprecision(5) << noise_params(i,j);
-		}
-		std::cout << std::endl;
-	}
-	write_star_noise_params(noise_params, file_out3);
-	std::cout << "--------------" << std::endl;
-	file_out4="output_test4.txt";
-	std::cout << "Test of write_spectrum...outputs in " << file_out4  << std::endl;
-	x.setLinSpaced(0,1000);
-	y.setRandom();
-	z.setConstant(5);
-	
-	write_spectrum(x, y, z, file_out4);
-	std::cout << "--------------" << std::endl;
-	file_out5="output_test5.txt";
-	std::cout << "Test of write_star_params_act_asym...outputs in " << file_out5  << std::endl;
-	spec_params[0]=10;
-	spec_params[1]=50;
-	identifier="01234567";
-	write_star_params_act_asym(spec_params, mode_params2, noise_params, file_out5, identifier);
-}
-*/

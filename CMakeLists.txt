@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.4.1)
 
-project(specsim VERSION 1.0.4)
+project(specsim VERSION 1.1)
 
 # Check for macOS
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+if(APPLE)
     set(MACOS 1)
 else()
     set(MACOS 0)
@@ -33,11 +33,8 @@ if(NOT BUILD_ON_DALMA)
 	if(CMAKE_COMPILER_IS_GNUCXX)
 		set(CMAKE_CXX_FLAGS "-O2 -fopenmp")
 	endif()
-	if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+	if (APPLE)
 		set(CMAKE_CXX_FLAGS "-O2 -fopenmp=libomp")
-	endif()
-	if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
-		set(CMAKE_CXX_FLAGS "-O2")
 	endif()
 else()
 	message(STATUS "Building for NYU DALMA Supercomputer...")
@@ -47,43 +44,11 @@ else()
 	option(USE_AVX "Build with AVX support" ON)
 	if(USE_AVX)
 	  set(CMAKE_CXX_FLAGS "-fopenmp -O3 -mavx2 -mfma -march=haswell")
-	  #set(CMAKE_CXX_FLAGS "-O3 -mavx2 -mfma -march=haswell")
 	else()
 	  set(CMAKE_CXX_FLAGS "-O3 -msse4.2 -march=westmere")
 	endif()
 endif()
 
-#Bring the headers into the project
-set(HEADERS  #_COMMON
-    #rgen_config.h
-    artificial_spectrum.h
-    data.h
-    gnuplot-iostream.h
-    models_database.h
-    derivatives_handler.h
-    interpol.h
-    linfit.h
-    linspace.h
-    plots_diags.h
-    version.h
-    build_lorentzian.h
-    function_rot.h
-    io_star_params.h
-    io_star_common.h
-    noise_models.h
-    ioproc.h
-    combi.h
-    stellar_models.h
-    models_database_grid.h
-    format.h
-    acoefs.h
-    external/integrate/activity.h
-    external/ARMM/bump_DP.h
-    external/ARMM/solver_mm.h
-    external/ARMM/data_solver.h
-    external/rescale/rescale_freqs.h
-    external/rescale/decompose_nu.h
-    )
 
 #Bring the core program sources into the project
 set(SOURCES_MAIN  #_COMMON
@@ -135,12 +100,14 @@ endif()
 if (WITH_OPENMP)
 	find_package(OpenMP)
 	if (OPENMP_FOUND)
-	    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-	    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-	    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
-	else()
-		message(FATAL_ERROR "OpenMP not found. Use -DWITH_OPENMP=OFF to build without OpenMP")
-	endif()
+	    #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+	    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+	    #set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+      string(APPEND CMAKE_CXX_FLAGS " -fopenmp")
+  endif()
+#	else()
+#		message(FATAL_ERROR "OpenMP not found. Use -DWITH_OPENMP=OFF to build without OpenMP")
+#	endif()
 endif()
 
 #Look for eigen and explicitly specify to use it. EIGEN3_INCLUDE_DIR Must be specified in the bashrc
@@ -153,7 +120,7 @@ find_package(Boost COMPONENTS system filesystem iostreams program_options REQUIR
 include_directories(${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIRS})
 
-add_executable(${CMAKE_PROJECT_NAME} ${HEADERS} ${SOURCES_MAIN})
+add_executable(${CMAKE_PROJECT_NAME}  ${SOURCES_MAIN})
 if(MACOS)
   target_compile_definitions(${CMAKE_PROJECT_NAME}  PRIVATE MACOS)
   #target_link_libraries(${CMAKE_PROJECT_NAME}  ${Boost_SYSTEM_LIBRARY_RELEASE} ${Boost_FILESYSTEM_LIBRARY_RELEASE} ${Boost_IOSTREAMS_LIBRARY_RELEASE}  "-framework CoreFoundation")
@@ -164,13 +131,6 @@ elseif(LINUX)
   target_link_libraries(${CMAKE_PROJECT_NAME}  ${Boost_LIBRARIES}  rt)
 endif()
 
-add_executable(test_lorentzians ${HEADERS} ${SOURCES_TEST_LORENTZIAN})
-target_link_libraries(${CMAKE_PROJECT_NAME}  ${Boost_SYSTEM_LIBRARY_RELEASE} ${Boost_FILESYSTEM_LIBRARY_RELEASE} ${Boost_IOSTREAMS_LIBRARY_RELEASE})
-
-
-## Add your source files here
-#add_executable(Alm_interpol ${SOURCES_TMP})
-## Link the required libraries
-#target_link_libraries(Alm_interpol ${Boost_LIBRARIES} ${GSL_LIBRARY} ${GSL_CBLAS_LIBRARY})
-
+#add_executable(test_lorentzians ${HEADERS} ${SOURCES_TEST_LORENTZIAN})
+#target_link_libraries(${CMAKE_PROJECT_NAME}  ${Boost_SYSTEM_LIBRARY_RELEASE} ${Boost_FILESYSTEM_LIBRARY_RELEASE} ${Boost_IOSTREAMS_LIBRARY_RELEASE})
 

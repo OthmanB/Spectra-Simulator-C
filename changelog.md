@@ -1,5 +1,9 @@
 # Version history #
 
+### v1.3 ###
+	* Models asymptotic_mm_freeDp_numaxspread_curvepmodes_v2 and asymptotic_mm_freeDp_numaxspread_curvepmodes_v3 updated to work with the new parallelized ARMM solver. 
+	* Models asymptotic_mm_freeDp_numaxspread_curvepmodes_v2 and asymptotic_mm_freeDp_numaxspread_curvepmodes_v3 now handle ajl coefficients. Read instructions in the example main.cfg files associated to these models
+
 ### v1.2 ###
 	* New model:
 		- generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled allows you to generate a simulated spectra with the noise brackground of your choice, assuming that this noise scales with numax

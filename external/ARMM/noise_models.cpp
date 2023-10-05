@@ -6,13 +6,9 @@
  */
 #include <math.h>
 #include <Eigen/Dense>
-//#include <iostream>
-//#include <iomanip>
+
 
 using Eigen::VectorXd;
-
-//VectorXd harvey_like(const VectorXd noise_params, const VectorXd& x, const VectorXd& y, const int Nharvey);
-//VectorXd harvey1985(const VectorXd noise_params, const VectorXd& x, const VectorXd& y, const int Nharvey);
 
 VectorXd harvey_like(const VectorXd& noise_params, const VectorXd& x, const VectorXd& y, const int Nharvey){
 	/* This function calculate a sum of harvey like profile + a white noise and adds 

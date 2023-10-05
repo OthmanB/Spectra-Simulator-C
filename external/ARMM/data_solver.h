@@ -14,127 +14,10 @@
 #include <vector>
 #include "gnuplot-iostream.h"
 
-//using namespace std;
-
 using Eigen::MatrixXd;
 using Eigen::VectorXi;
 using Eigen::VectorXd;
-/*
-// The general structure that contain the input data (spectrum, lightcurve, ...) that has to be analysed
-struct Data{
-		VectorXd x; // In the case of a 1D fit (e.g. fit of Mass, [Fe/H], ...), this variable will be ignored by the model function.
-		VectorXd xrange; // Contains the min and max of x... in practice, it is used to limit the data range if requested by the cfg file (e.g. freq_range option in the .MCMC)
-		VectorXd y;
-		VectorXd sigma_y;
-		long Nx; // Ny is not checked but should be as long as x
-		std::string xlabel; // label for x-axis. In ASCII file, the axis labels are identified by the symbol ! at the begining of the line
-		std::string ylabel;
-		std::string xunit;
-		std::string yunit;
-		std::vector<std::string> header; // Any kind of information that is useful. e.g. if it is a test, model info + model inputs. Any header (In ASCII, marked by #), will be put there.
-};
 
-struct Input_Data{
-	std::string model_fullname; // The fullname of the model that is going to be processed
-	std::vector<std::string> inputs_names;
-	std::vector<std::string> priors_names;
-	VectorXi priors_names_switch; // Used instead of priors_names in loops. This allows the use of the switch(x) - case statements instead of if/else.
-	VectorXd inputs;
-	VectorXi relax;
-	MatrixXd priors;
-	VectorXi plength;
-	VectorXd extra_priors; // Contains extra parameters that could be used for priors
-};
-
-// A Generic structure that helps to encapsulate a Matrix of information along with some metadata
-struct Data_Nd{
-	MatrixXd data; // 2D array in which each columns are expected to contain the values of a given parameter
-	std::vector<std::string> header;
-	std::vector<std::string> labels;
-	std::vector<std::string> units;
-};
-
-// Header of the parameters
-// Useful to read the stand alone ASCII header written when dealing with BINARY OUTPUTS.
-struct Params_hdr{
-	std::vector<std::string> header; // Any comment
-	int Nsamples; // Total number of samples (no necessarily the actual number of written samples)
-	int Nchains;
- 	int Nvars;
-	int Ncons;
-	//std::vector<bool> relax;
-	VectorXi relax;
-	VectorXi plength;
-	std::vector<std::string> constant_names; // The name of the constants
-	VectorXd constant_values;
-	std::vector<std::string> variable_names; // The name of the variables
-};
-
-struct MCMC_files{
-	std::string ID;
-	double Dnu;
-	double numax;
-	double C_l;
-	VectorXi els;
-	VectorXd freq_range;
-	std::vector<std::string> param_type;
-	//std::vector<double> freqs_ref;conservativeResize
-	VectorXd freqs_ref;
-	std::vector<bool> relax_freq, relax_gamma, relax_H;
-
-	//std::vector<double> hyper_priors;
-	VectorXd hyper_priors;
-	MatrixXd eigen_params;
-	VectorXd noise_params;
-	MatrixXd noise_s2;
-
-	std::vector<std::string> common_names;
-	std::vector<std::string> common_names_priors;
-	MatrixXd modes_common;
-};
-*/
-// Structure that keep information of the derivatives
-//struct Deriv_out{
-//	VectorXd xderiv;
-//	VectorXd deriv;
-//	VectorXd error;
-//};
-
-//struct gnuplt_Data {
-/*
- * This is an encapsulator for data when ploting with gnuplot-iostream.h
-*/
-//    double x;  // x axis value
-//    double y1;             // y axis series 1
-//    double y2;             // y axis series 2
-//    double y3;             // y axis series 3
-//};
-
-/*typedef std::vector<gnuplt_Data> gnuplt_Dataset;
-
-namespace gnuplotio {
-    template<>
-    struct TextSender<gnuplt_Data> {
-        static void send(std::ostream &stream, const gnuplt_Data &v) {
-           // TextSender<std::string>::send(stream, v.x);
-            stream << " ";
-            TextSender<double>::send(stream, v.x);
-            stream << " ";
-            TextSender<double>::send(stream, v.y1);
-            stream << " ";
-            TextSender<double>::send(stream, v.y2);
-            stream << " ";
-            TextSender<float>::send(stream, v.y3);
-        }
-    };
-}
-
-struct Data_Basic{
-	std::vector<std::string> strarr; // Any comment
-	VectorXi vecXi; // Case number
-};
-
-*/
 // ----------------------------------------
 // ----- For mixed modes calculation ------
 // ----------------------------------------
@@ -168,18 +51,32 @@ struct Data_rot2zone{
 	long double rot_core, rot_env;
 };
 
+struct Envelope_lat_dif_rot{ // Added on 13 Sep 2023
+	long double a3_l2=0; 
+	long double a3_l3=0;
+	long double a5_l3=0;
+};
+
+struct Envelope_asphericity{
+	long double a2_l1; // Added on 13 Sep 2023
+	long double a2_l2; // Added on 13 Sep 2023
+	long double a2_l3; // Added on 13 Sep 2023
+	long double a4_l2; // Added on 13 Sep 2023
+	long double a4_l3; // Added on 13 Sep 2023
+	long double a6_l3; // Added on 13 Sep 2023
+};
 struct Cfg_synthetic_star{
 	long double Teff_star; 
 	long double numax_star;
-	long double Dnu_star=-1;
+	long double Dnu_star;
 	long double epsilon_star;
 	long double delta0l_percent_star;
 	long double beta_p_star;
 	long double alpha_p_star;
 	long double nmax_star;
-	long double DPl_star=-1;
-	long double alpha_g_star=-1;
-	long double q_star = -1;
+	long double DPl_star;
+	long double alpha_g_star;
+	long double q_star;
 	long double fmin; 
 	long double fmax;
 	long double maxHNR_l0;
@@ -188,6 +85,8 @@ struct Cfg_synthetic_star{
 	long double rot_env_input;
 	long double rot_ratio_input; 
 	long double rot_core_input;
+	Envelope_lat_dif_rot env_lat_dif_rot; // Added on 13 Sep 2023
+	Envelope_asphericity env_aspher;
 	std::string output_file_rot;
 	VectorXd Vl;
 	long double H0_spread;
@@ -196,10 +95,13 @@ struct Cfg_synthetic_star{
 	long double sigma_m;
 	long double Hfactor;
 	long double Wfactor;
+	long double inclination;
 	MatrixXd nu_nl; // Frequencies of the modes, are here if provided by a template (e.g a theoretical model) and handled by the MCMC model
 	VectorXi Nf_el; // Gives the number of modes 
 	bool use_nu_nl=false; // If set to true, use the nu_nl frequencies instead of computing them from the asymptotic. These must be set
 };
+
+
 
 struct Params_synthetic_star{
 	VectorXd nu_l0;
@@ -219,4 +121,13 @@ struct Params_synthetic_star{
 	VectorXd a1_l1;
 	VectorXd a1_l2; 
 	VectorXd a1_l3;
+	VectorXd a2_l1; // Added on 13 Sep 2023
+	VectorXd a2_l2; // Added on 13 Sep 2023
+	VectorXd a2_l3; // Added on 13 Sep 2023
+	VectorXd a3_l2; // Added on 13 Sep 2023
+	VectorXd a3_l3; // Added on 13 Sep 2023
+	VectorXd a4_l2; // Added on 13 Sep 2023
+	VectorXd a4_l3; // Added on 13 Sep 2023
+	VectorXd a5_l3; // Added on 13 Sep 2023
+	VectorXd a6_l3; // Added on 13 Sep 2023
 };

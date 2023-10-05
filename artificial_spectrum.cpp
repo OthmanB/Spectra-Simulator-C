@@ -551,19 +551,3 @@ void artificial_spectrum_aj(const double Tobs, const double Cadence, const doubl
 	std::cout << "   ***********************  END DEBUG   *********************** " << std::endl;
 	*/
 }
-
-/*
-int main(){
-	double Tobs, Cadence;
-	std::string dir_core;
-	std::string identifier;
-
-	Tobs=100; // days
-	Cadence=60; // seconds
-	
-	dir_core="/home/obenomar/Dropbox/Temporary/Cpp-Spec-Sim/";
-	identifier="0000";
-	artificial_spectrum_act_asym(Tobs, Cadence, dir_core, identifier);
-	//std::cout << "Hello" << std::endl;
-}
-*/
