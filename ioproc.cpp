@@ -6,6 +6,17 @@
  *  Created on: 10 Oct 2017
  *      Author: obenomar
  */
+/**
+ * @file ioproc.h
+ * @brief Header file for string handling and conversion to numbers
+ *
+ * Various functions handling strings and sorting
+ * 
+ *
+ * @date 10 Oct 2017
+ * @author obenomar
+ */
+
 
 #include <math.h>
 #include <Eigen/Dense>
@@ -21,6 +32,7 @@
 using Eigen::VectorXi;
 using Eigen::VectorXd;
 using Eigen::MatrixXd;
+
 
 std::vector<int> where_str(const std::vector<std::string> vec, const std::string value){
 /*
@@ -44,28 +56,6 @@ std::vector<int> where_str(const std::vector<std::string> vec, const std::string
 	return index;
  
 }
-
-/*
-CANNOT BE USED BECAUSE 'functions that differ only in their return type cannot be overloaded'
-VectorXi where_str(const std::vector<std::string> vec, const std::string value){
-//
-// Gives the indexes of values of an array that match the value
-//
-//
-   int cpt;
-   VectorXi index(vec.size());
-
-	cpt=0;
-	for(int i=0; i<vec.size(); i++){
-		if(vec[i] == value){
-			index[cpt]=i;
-			cpt=cpt+1;
-		}		
-	}
-	index.conservativeResize(cpt);
-	return index;
-}
-*/
 
 VectorXi where_strXi(const std::vector<std::string> vec, const std::string value){
 /*
@@ -447,6 +437,7 @@ VectorXi where_int(const VectorXi& vec, const int value){
 	return index_out;
 }
 
+
 std::vector<int> where_int(const std::vector<int> vec, const int value){
 /*
  * Gives the indexes of values of an array that match the value.
@@ -680,6 +671,8 @@ VectorXd str_to_Xdarr(const std::string str, const std::string delimiters){
 return Xdarr;
 }
 
+
+
 std::string read_lastline_ascii(std::string filename){
 /*
  * Code that jumps to last line and read it
@@ -785,14 +778,8 @@ return lng_out;
 }
 
 double str_to_dbl(const std::string str){
-
-	//std::stringstream d0;
 	double dbl_out;
-
-	//d0 <<  std::setprecision(9) << str; strtrim(str);
-	//d0 >> dbl_out;
 	std::stringstream(strtrim(str)) >> dbl_out;
-	//std::cout << "!!!! " << dbl_out;
 return dbl_out;
 }
 
@@ -817,8 +804,6 @@ std::vector<int> str_to_arrint(const std::string str, const std::string delimite
 				int_out.push_back(int_v);
 		}
 	}
-
-
 	return int_out;
 }
 
@@ -843,6 +828,7 @@ std::vector<double> str_to_arrdbl(const std::string str, const std::string delim
 	return dbl_out;
 }
 
+
 std::vector<double> str_to_dblarr(const std::string str, const std::string delimiters){
 
 	std::vector<std::string> words;
@@ -866,12 +852,10 @@ std::vector<double> arrstr_to_arrdbl(const std::vector<std::string> vals_strs){
 	*/
 
 	std::vector<double> dbl_out;
-
 	dbl_out.resize(vals_strs.size());
 	for (int i=0; i<vals_strs.size(); i++){
 		std::stringstream(vals_strs[i]) >> dbl_out[i];
 	}
-
 	return dbl_out;
 }
 
@@ -881,12 +865,10 @@ VectorXd arrstr_to_Xdarrdbl(const std::vector<std::string> vals_strs){
 	*/
 
 	VectorXd dbl_out;
-
 	dbl_out.resize(vals_strs.size());
 	for (int i=0; i<vals_strs.size(); i++){
 		std::stringstream(vals_strs[i]) >> dbl_out[i];
 	}
-
 	return dbl_out;
 }
 
@@ -897,12 +879,10 @@ VectorXi arrstr_to_Xiarr(const std::vector<std::string> vals_strs){
 	*/
 
 	VectorXi int_out;
-
 	int_out.resize(vals_strs.size());
 	for (int i=0; i<vals_strs.size(); i++){
 		std::stringstream(vals_strs[i]) >> int_out[i];
 	}
-
 	return int_out;
 }
 
@@ -932,29 +912,6 @@ std::string strtrim(const std::string& str){
     return str.substr(strBegin, strRange);
 }
 
-/*
-// WARNING ON 17/06/2021: THIS FUNCTION WAS MOVED HERE FROM STRING_HANDLER.CPP
-//                        WHEN TRYING TO FUSION IT WITH IOPROC.CPP
-//                        IT SLIGHTLY DIFFERS FROM THE ABOVE STRSPLIT() AND THE EFFECT IS YET TO ASSES
-std::vector<std::string> strsplit(const std::string str, const std::string delimiters){
-//
-// Take a string and split it each time one of the listed delimiters is detected
-//
-	std::string str0=strtrim(str);
-	size_t pos=0;
-	std::vector<std::string> str_splitted;
-
-	while ((pos = str0.find_first_of(delimiters)) != std::string::npos) {
-		    
-		str_splitted.push_back(str0.substr(0, pos)); // get the substring
-		str0.erase(0, pos + delimiters.length());
-		str0=strtrim(str0); // remove any extra white space at the begining before iterating
-	}
-	str_splitted.push_back(str0); // do not forget to add the end of the string
-
-return str_splitted;
-}
-*/
 
 std::vector<std::string> strsplit(const std::string str, const std::string delimiters){
 //
@@ -995,22 +952,16 @@ std::string int_to_str(const int value){
 
 
 std::string dbl_to_str(const double ind){
-
     std::stringstream ss;
-
     ss.str(std::string());
     ss << ind;
-
     return ss.str();
 }
 
 std::string lng_to_str(const long ind){
-
     std::stringstream ss;
-
     ss.str(std::string());
     ss << ind;
-
     return ss.str();
 }
 

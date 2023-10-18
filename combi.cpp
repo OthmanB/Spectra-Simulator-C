@@ -7,6 +7,15 @@
  *  Created on: 10 Oct 2017
  *      Author: obenomar
  */
+/**
+ * @file combi.cpp
+ * @brief Function that handles combination generation and read/write into files
+ * 
+ * This file contains functions for generating combinations and reading/writing them into files.
+ * 
+ * @date 10 Oct 2017
+ * @author obenomar
+ */ 
 
 # include <iostream>
 # include <iomanip>
@@ -22,187 +31,35 @@ using Eigen::VectorXi;
 using Eigen::VectorXd;
 using Eigen::MatrixXd;
 
-
 /*
-* Function that generate all possible combinations provided that the number
-* of variables does not exceed 10. This function could certainly be better written
-* by the use of combinatory function... but I could not find the proper algorithm
-* so that I went for the simplest solution
+* Function that generates all possible combinations recursively
 */
-MatrixXd define_all_combinations(const MatrixXd Values, const VectorXi Nvalues, const int Nparams){
-
-	if(Nparams > 10){
-		std::cout << "This function calculates combinations up to maximum Nparams=10" << std::endl;
-		std::cout << "Your value of Nparams is: ' + strtrim(Nparams,2) + ' which is greater than 10" << std::endl;
-		std::cout << "Update the program to handle larger number of parameters. The program will exit now" << std::endl;
-		exit(EXIT_SUCCESS);
-	}
-	long Ncombi=Nvalues.prod();
-	MatrixXd allcombi(Ncombi, Nparams);
-	long z=0;	
-
-	std::cout << "     Total number of combination to be processed:" << Ncombi << std::endl;
-	switch(Nparams){
-		case 1: 
-		   //std::cout << "Values=" << Values << std::endl;
-		   allcombi.col(0)=Values;
-		   //std::cout << "out" << std::endl;
-		   break;
-		case 2:
-		   for(long i=0; i<Nvalues[0];i++){
-		   	for(long j=0; j<Nvalues[1]; j++){
-		 		//std::cout << "(" << i << "," << j <<")  <===>" << z << std::endl;
-				allcombi.row(z) << Values(i,0), Values(j,1);
-				//std::cout << Values(i,0) << "  " << Values(j,1) << std::endl;
-				z=z+1.;
-			}
-		    }
-		    break;
-		case 3:
-		   for(long i=0; i<Nvalues[0];i++){
-			for(long j=0; j<Nvalues[1]; j++){
-				for(long k=0; k<Nvalues[2]; k++){
-					allcombi.row(z) << Values(i,0), Values(j,1), Values(k,2);
-					z=z+1.;
-				}
-			}
-		   }
-		   break;
-		case 4:		
-		   for(long i=0; i<Nvalues[0];i++){
-			for(long j=0; j<Nvalues[1]; j++){
-				for(long k=0; k<Nvalues[2]; k++){
-					for(long l=0; l<Nvalues[3]; l++){
-						allcombi.row(z) << Values(i,0), Values(j,1), Values(k,2),Values(l,3);
-						z=z+1.;
-					}
-				}
-			}
-		   }
-		   break;
-		case 5:
-		   for(long i=0; i<Nvalues[0];i++){
-			for(long j=0; j<Nvalues[1]; j++){
-				for(long k=0; k<Nvalues[2]; k++){
-					for(long l=0; l<Nvalues[3]; l++){
-						for(long m=0; m<Nvalues[4]; m++){
-							allcombi.row(z) << Values(i,0), Values(j,1), Values(k,2),Values(l,3), Values(m,4);
-							z=z+1.;
-						}
-					}
-				}
-			}
-		   }
-		   break;
-		case 6:
-		   for(long i=0; i<Nvalues[0];i++){
-			for(long j=0; j<Nvalues[1]; j++){
-				for(long k=0; k<Nvalues[2]; k++){
-					for(long l=0; l<Nvalues[3]; l++){
-						for(long m=0; m<Nvalues[4]; m++){
-							for(long n=0; n<Nvalues[5]; n++){
-								allcombi.row(z) << Values(i,0), Values(j,1), Values(k,2),Values(l,3), Values(m,4), Values(n,5);
-								z=z+1.;
-							}
-						}
-					}
-				}
-			}
-		   }
-		   break;
-		case 7:
-		   for(long i=0; i<Nvalues[0];i++){
-			for(long j=0; j<Nvalues[1]; j++){
-				for(long k=0; k<Nvalues[2]; k++){
-					for(long l=0; l<Nvalues[3]; l++){
-						for(long m=0; m<Nvalues[4]; m++){
-							for(long n=0; n<Nvalues[5]; n++){
-								for(long o=0; o<Nvalues[6]; o++){
-									allcombi.row(z) << Values(i,0), Values(j,1), Values(k,2),Values(l,3), Values(m,4), Values(n,5), Values(o,6);
-									z=z+1.;
-								}
-							}
-						}
-					}
-				}
-			}
-		   }
-		   break;
-		case 8:
-		   for(long i=0; i<Nvalues[0];i++){
-			for(long j=0; j<Nvalues[1]; j++){
-				for(long k=0; k<Nvalues[2]; k++){
-					for(long l=0; l<Nvalues[3]; l++){
-						for(long m=0; m<Nvalues[4]; m++){
-							for(long n=0; n<Nvalues[5]; n++){
-								for(long o=0; o<Nvalues[6]; o++){
-									for(long p=0; p<Nvalues[7]; p++){
-										allcombi.row(z) << Values(i,0), Values(j,1), Values(k,2),Values(l,3), 
-													   Values(m,4), Values(n,5), Values(o,6), Values(p,7);
-										z=z+1.;
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		   }
-		   break;
-		case 9:
-		   for(long i=0; i<Nvalues[0];i++){
-			for(long j=0; j<Nvalues[1]; j++){
-				for(long k=0; k<Nvalues[2]; k++){
-					for(long l=0; l<Nvalues[3]; l++){
-						for(long m=0; m<Nvalues[4]; m++){
-							for(long n=0; n<Nvalues[5]; n++){
-								for(long o=0; o<Nvalues[6]; o++){
-									for(long p=0; p<Nvalues[7]; p++){
-										for(long q=0; q<Nvalues[8]; q++){
-											allcombi.row(z) << Values(i,0), Values(j,1), Values(k,2),Values(l,3), 
-											 			   Values(m,4), Values(n,5), Values(o,6), Values(p,7), 
-											 			   Values(q,7);
-											z=z+1.;
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		   }
-		   break;
-		case 10:
-		   for(long i=0; i<Nvalues[0];i++){
-			for(long j=0; j<Nvalues[1]; j++){
-				for(long k=0; k<Nvalues[2]; k++){
-					for(long l=0; l<Nvalues[3]; l++){
-						for(long m=0; m<Nvalues[4]; m++){
-							for(long n=0; n<Nvalues[5]; n++){
-								for(long o=0; o<Nvalues[6]; o++){
-									for(long p=0; p<Nvalues[7]; p++){
-										for(long q=0; q<Nvalues[8]; q++){
-											for(long r=0; r<Nvalues[9]; r++){
-												allcombi.row(z) << Values(i,0), Values(j,1), Values(k,2),Values(l,3), 
-											 				   Values(m,4), Values(n,5), Values(o,6), Values(p,7), 
-											 				   Values(q,7), Values(r,8);
-												z=z+1.;
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		   }
-		   break;
-	}
-return allcombi;
+void generate_combinations(const MatrixXd& Values, const VectorXi& Nvalues, const int Nparams, MatrixXd& allcombi, long& z, VectorXd& current_combi, int current_param) {
+    if (current_param == Nparams) {
+        allcombi.row(z) = current_combi;
+        z++;
+        return;
+    }
+    
+    for (int i = 0; i < Nvalues[current_param]; i++) {
+        current_combi(current_param) = Values(i, current_param);
+        generate_combinations(Values, Nvalues, Nparams, allcombi, z, current_combi, current_param + 1);
+    }
 }
 
+/*
+* Function that generates all possible combinations
+*/
+MatrixXd define_all_combinations(const MatrixXd& Values, const VectorXi& Nvalues, const int Nparams) {
+    long Ncombi = Nvalues.prod();
+    MatrixXd allcombi(Ncombi, Nparams);
+    long z = 0;
+    VectorXd current_combi(Nparams);
+  
+    generate_combinations(Values, Nvalues, Nparams, allcombi, z, current_combi, 0);
+    
+    return allcombi;
+}
 
 
 long read_id_allcombi(std::string file_combi){
@@ -220,7 +77,7 @@ long read_id_allcombi(std::string file_combi){
 	return str_to_lng(vals_last[0]);
 }
 
-std::string write_allcombi(MatrixXd allcombi, VectorXd cte_params, Config_Data cfg, std::string fileout, bool erase_old_file, long iter, long id0, 
+std::string write_allcombi(MatrixXd& allcombi, VectorXd& cte_params, Config_Data cfg, std::string fileout, bool erase_old_file, long iter, long id0, 
 		    std::vector<std::string> cte_names, std::vector<std::string> var_names, std::vector<std::string> param_names){
 	
 	int Nchars, precision;

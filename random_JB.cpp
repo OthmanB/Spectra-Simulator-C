@@ -1,13 +1,13 @@
-/*
- * random_JB.cpp
+/**
+ * @file random_JB.cpp
+ * @brief Function generating uniform and gaussian random numbers
  *
- * Function generating uniform and gaussian random numbers.
- * Initially created by John Buckart, but modified by myself
- * in order to be more compliant with current standards
+ * Function generating uniform and gaussian random numbers. Initially created by John Buckart, but modified by myself in order to be more compliant with current standards
  *
- *  Created on: 18 Mar 2016
- *      Author: obenomar
+ * @date 10 Oct 2017
+ * @author obenomar
  */
+
 #include <iostream>
 #include <iomanip>
 # include <Eigen/Dense>
@@ -17,6 +17,29 @@ using namespace std;
 double *r8vec_normal_01 ( int n, int *seed );
 double *uniform_01 ( int n, int *seed );
 
+/** 
+ * @brief Generate a unit pseudonormal R8VEC.
+ *
+ * This function generates a unit pseudonormal R8VEC using the Box-Muller method. The standard normal probability distribution function (PDF) has mean 0 and standard deviation 1. The function can generate a vector of values on one call. It has the feature that it should provide the same results in the same order no matter how we break up the task. Before calling this function, the user may call RANDOM_SEED in order to set the seed of the random number generator.
+ *
+ * @param n The number of values desired. If n is negative, then the code will flush its internal memory; in particular, if there is a saved value to be used on the next call, it is instead discarded. This is useful if the user has reset the random number seed, for instance.
+ * @param seed A seed for the random number generator.
+ * @return A sample of the standard normal PDF.
+ *
+ * @note The Box-Muller method is used, which is efficient, but generates an even number of values each time. On any call to this function, an even number of new values are generated. Depending on the situation, one value may be left over. In that case, it is saved for the next call.
+ *
+ * @author John Burkardt
+ * @date 18 October 2004
+ *
+ * @note This code is distributed under the GNU LGPL license.
+ *
+ * @note Local parameters:
+ * - Local, int MADE, records the number of values that have been computed. On input with negative n, this value overwrites the return value of n, so the user can get an accounting of how much work has been done.
+ * - Local, real R(n+1), is used to store some uniform random values. Its dimension is n+1, but really it is only needed to be the smallest even number greater than or equal to n.
+ * - Local, int SAVED, is 0 or 1 depending on whether there is a single saved value left over from the previous call.
+ * - Local, int X_LO, X_HI, records the range of entries of x that we need to compute. This starts off as 1:n, but is adjusted if we have a saved value that can be immediately stored in x(1), and so on.
+ * - Local, real Y, the value saved from the previous call, if saved is 1.
+ */
 double *r8vec_normal_01 ( int n, int *seed )
 
 //****************************************************************************80
@@ -90,8 +113,6 @@ double *r8vec_normal_01 ( int n, int *seed )
 //    SAVED is 1.
 //
 {
-# define PI 3.141592653589793
-
   int i;
   int m;
   static int made = 0;
@@ -148,8 +169,8 @@ double *r8vec_normal_01 ( int n, int *seed )
   {
     r = uniform_01 ( 2, seed );
 
-    x[x_hi-1] = sqrt ( - 2.0 * log ( r[0] ) ) * cos ( 2.0 * PI * r[1] );
-    y =         sqrt ( - 2.0 * log ( r[0] ) ) * sin ( 2.0 * PI * r[1] );
+    x[x_hi-1] = sqrt ( - 2.0 * log ( r[0] ) ) * cos ( 2.0 * M_PI * r[1] );
+    y =         sqrt ( - 2.0 * log ( r[0] ) ) * sin ( 2.0 * M_PI * r[1] );
 
     saved = 1;
 
@@ -168,8 +189,8 @@ double *r8vec_normal_01 ( int n, int *seed )
 
     for ( i = 0; i <= 2*m-2; i = i + 2 )
     {
-      x[x_lo+i-1] = sqrt ( - 2.0 * log ( r[i] ) ) * cos ( 2.0 * PI * r[i+1] );
-      x[x_lo+i  ] = sqrt ( - 2.0 * log ( r[i] ) ) * sin ( 2.0 * PI * r[i+1] );
+      x[x_lo+i-1] = sqrt ( - 2.0 * log ( r[i] ) ) * cos ( 2.0 * M_PI * r[i+1] );
+      x[x_lo+i  ] = sqrt ( - 2.0 * log ( r[i] ) ) * sin ( 2.0 * M_PI * r[i+1] );
     }
     made = made + x_hi - x_lo + 1;
 
@@ -190,14 +211,14 @@ double *r8vec_normal_01 ( int n, int *seed )
 
     for ( i = 0; i <= 2*m-4; i = i + 2 )
     {
-      x[x_lo+i-1] = sqrt ( - 2.0 * log ( r[i] ) ) * cos ( 2.0 * PI * r[i+1] );
-      x[x_lo+i  ] = sqrt ( - 2.0 * log ( r[i] ) ) * sin ( 2.0 * PI * r[i+1] );
+      x[x_lo+i-1] = sqrt ( - 2.0 * log ( r[i] ) ) * cos ( 2.0 * M_PI * r[i+1] );
+      x[x_lo+i  ] = sqrt ( - 2.0 * log ( r[i] ) ) * sin ( 2.0 * M_PI * r[i+1] );
     }
 
     i = 2*m - 2;
 
-    x[x_lo+i-1] = sqrt ( - 2.0 * log ( r[i] ) ) * cos ( 2.0 * PI * r[i+1] );
-    y           = sqrt ( - 2.0 * log ( r[i] ) ) * sin ( 2.0 * PI * r[i+1] );
+    x[x_lo+i-1] = sqrt ( - 2.0 * log ( r[i] ) ) * cos ( 2.0 * M_PI * r[i+1] );
+    y           = sqrt ( - 2.0 * log ( r[i] ) ) * sin ( 2.0 * M_PI * r[i+1] );
 
     saved = 1;
 
@@ -207,7 +228,6 @@ double *r8vec_normal_01 ( int n, int *seed )
   }
 
   return x;
-# undef PI
 }
 //****************************************************************************80
 
@@ -234,6 +254,19 @@ double *uniform_01 ( int n, int *seed )
 //
 //  Author:
 //     Othman Benomar
+/**
+ * @brief Generate a new unit pseudorandom R8VEC.
+ *
+ * This function generates a new unit pseudorandom R8VEC using the standard method of generating uniform numbers.
+ *
+ * @param n The size of the R8VEC.
+ * @param seed The seed value for the random number generator.
+ * @return A pointer to the generated R8VEC.
+ *
+ * @note The original function written by John Burkardt was a poor random generator. This implementation uses a more standard way of generating uniform numbers. There are better random generators referenced in the literature, such as using the stdC++11 standard (std::random_device), but they may not perform well.
+ * 
+ * @author Othman Benomar
+ */
 {
   double *r;
 

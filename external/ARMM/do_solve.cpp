@@ -1,7 +1,10 @@
-/*
-   A small function that compute the results of the solver as it is implemented into models.cpp for
-   mixed modes models. Mostly for debug purpose
-*/
+/**
+ * @file do_solve.cpp
+ * @brief A small program that computes the results of the solver for mixed modes models.
+ * 
+ * This program computes the results of the solver as it is implemented into models.cpp for mixed modes models. 
+ * It is mostly used for debugging purposes.
+ */
 
 #include <Eigen/Dense>
 #include <vector>
@@ -18,11 +21,25 @@
 #include "bump_DP.h"
 #include "readparams_job.h"
 
+/**
+ * @brief Displays the version information of the program.
+ */
 void showversion();
+
+/**
+ * @brief Displays the usage information of the program.
+ */
 void usage();
 
 namespace po = boost::program_options;
 
+/**
+ * @brief The main function of the program.
+ * 
+ * @param argc The number of command line arguments.
+ * @param argv An array of C-style strings containing the command line arguments.
+ * @return int The exit status of the program.
+ */
 int main(int argc, char* argv[]){
 
 		bool verbose;
@@ -138,7 +155,9 @@ int main(int argc, char* argv[]){
 		}
 }
 
-
+/**
+ * @brief Displays the version information of the program.
+ */
 void showversion()
 {
     std::cout << APP_NAME " ARMM solver " APP_VERSION "\n built on " __DATE__ << std::endl;
@@ -165,6 +184,9 @@ void showversion()
 
 }
 
+/**
+ * @brief Displays the usage information of the program.
+ */
 void usage() {
     std::cout << " This program allows you to use the solver as stand-alone program (in command line) " << std::endl;
     std::cout << " You need to provide at least one arguments to the program" << std::endl; 

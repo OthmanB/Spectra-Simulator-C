@@ -1,1 +1,0 @@
-g++ -O3 -std=c++11 -o solve_mm do_solve.cpp bump_DP.cpp solver_mm.cpp interpol.cpp string_handler.cpp derivatives_handler.cpp noise_models.cpp linfit.cpp -I$EIGEN3_INCLUDE_DIR -L/usr/local/lib -I/usr/local/include -lboost_system -lboost_filesystem

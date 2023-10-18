@@ -7,6 +7,14 @@
  *  Created on: 10 Oct 2017
  *      Author: obenomar
  */
+/**
+ * @file format.h
+ * @brief Functions that format long or str into  a suitable format for read/write
+ * 
+ * 
+ * @date 10 Oct 2017
+ * @author obenomar
+ */ 
 
 //#include <math.h>
 //#include <Eigen/Dense>
@@ -88,12 +96,6 @@ std::string format_freqname(std::string id){
 		std::cout << "The program will exit now" << std::endl;
 		exit(EXIT_FAILURE);
 	}
-
-	//std::cout << split[0] << std::endl;
-	//std::cout << identifier << std::endl;
-	//std::cout << out << std::endl;
-	//exit(EXIT_SUCCESS);
-
 	return out;
 }
 

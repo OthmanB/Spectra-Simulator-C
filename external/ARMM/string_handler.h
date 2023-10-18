@@ -1,12 +1,11 @@
-/*
- * string_handler.h
- *
- * Contains all kind of header for the functions
- * used to arrange/handle the strings
- * 
- *  Created on: 20 Jun 2016
- *      Author: obenomar
+/**
+ * @file string_handler.h
+ * @brief Header file containing utility functions for string manipulation.
+ * @date 20 Jun 2016
+ * @author obenomar
+ * This file contains functions for trimming strings, splitting strings, and finding indexes of values in arrays.
  */
+
 #pragma once
 #include <fstream>
 #include <iostream>
@@ -18,10 +17,14 @@ using Eigen::VectorXd;
 using Eigen::VectorXi;
 using Eigen::MatrixXd;
 
+
 std::string strtrim(const std::string& str);
+
 std::vector<int> where_str(const std::vector<std::string> vec, const std::string value);
 std::vector<int> where_int(const std::vector<int> vec, const int value);
 VectorXi where_int(const VectorXi& vec, const int value);
+
+
 VectorXi where_dbl(const VectorXd& vec, const double value, const double tolerance);
 VectorXi where_dbl(const VectorXd& vec, double value, const double tolerance, const int imin_search, const int imax_search);
 std::vector<int> where_dbl(const std::vector<double> vec, const double value, const double tolerance);
@@ -40,6 +43,8 @@ bool str_to_bool(const std::string str);
 std::vector<int> str_to_arrint(const std::string str, const std::string delimiters);
 // -- Transfered from various other functions on 1 May 2018 --
 std::string dbl_to_str(const double ind);
+
+
 std::vector<std::string> strsplit(const std::string str, const std::string delimiters); // Alias of strsplit2... used in diagnostics.cpp
 std::string int_to_str(const int value);
 std::vector<double> str_to_dblarr(const std::string str, const std::string delimiters);

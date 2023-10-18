@@ -1,8 +1,11 @@
-/*
- * build_lorentzian.cpp
+/**
+ * @file build_lorentzian.cpp
+ * @brief Contains the implementation of all of the Lorentzian function used to generate spectrum.
  *
- *  Created on: 22 Feb 2016
- *      Author: obenomar
+ * This file provides the implementation of the Lorentzian mode with asymmetry and splitting based on the given parameters.
+ *
+ * @date 22 Feb 2016
+ * @author obenomar
  */
 #include <math.h>
 #include <Eigen/Dense>
@@ -75,19 +78,13 @@ VectorXd build_l_mode_a1l_a2a3(const VectorXd& x_l, const double H_l, const doub
         if(l != 0){
             a2_terms=Pslm(2,l,m)*a2;
             if(l == 1){
-                //clm=0; // a3=0 for l=1 BY DEFINITION
                 f_s=f_s1;
-                //a2_terms=(3*m*m - 2)*a2;  // From Takashi note and Pnl decomposition: c2(n,l) = [3m*m - l(l+1)] / (2l-1)
             }
             if(l == 2){
-                //clm=(5*pow(m,3) - 17*m)/3.; // a3 for l=2
                 f_s=f_s2;
-                //a2_terms=(m*m -2)*a2;
             }
             if(l == 3){
-                //clm=(pow(m,3)-7*m)/2; // a3 implemented on 30/04/2021
                 f_s=(f_s1 + f_s2)/2.; // APPROXIMATION
-                //a2_terms=(3*m*m - 12)*a2/5;
             }
             profile=(x_l - tmp.setConstant(fc_l + m*f_s + a2_terms + Pslm(3,l,m)*a3)).array().square(); // a1=f_s , a2 and a3 coefficients
             profile=4*profile/pow(gamma_l,2);
@@ -167,26 +164,9 @@ VectorXd build_l_mode_a1etaAlma3(const VectorXd& x_l, const double H_l, const do
 
     result.setZero();
     for(int m=-l; m<=l; m++){
-        //G=Glm(l, m, thetas[0], thetas[1]); // WARNING WARNING WARNING: HERE WE APPLY GLM ONLY TO l>0 BUT MAY BE NOT CORRECT. NOTE: l=0,m=0 might only be shifted
         if(l != 0){
-            /*
-            if(l == 1){
-                clm=m; // a3 for l=1 WRONG ! ERROR NOTED ON 18/11/2021
-            }
-            if(l == 2){
-                clm=(5*pow(m,3) - 17*m)/3.; // a3 for l=2
-            }
-            if(l == 3){
-               clm=(pow(m,3)-7*m)/2; // a3 implemented on 30/04/2021
-            }
-            */
             CF_term=eta0*pow(f_s*1e-6,2)*Qlm(l,m); //(4./3.)*pi*pow(a1*1e-6,2.)/(rho*G);
             AR_term=epsilon_nl*Alm_deg(l, m, thetas[0], thetas[1], filter_type);
-            /*std::cout << "(l,m) =  (" << l << "," << m << ")" << std::endl;
-            std::cout << "thetas =" << thetas << std::endl;
-            std::cout << "Alm =" << Alm_deg(l, m, thetas[0], thetas[1], filter_type) << std::endl;
-            std::cout << "(" << l << "," << m << ") : " << "d_CF=" << CF_term*fc_l  << "            d_AR=" << AR_term*fc_l  << "         m.a1=" << m*f_s << std::endl;
-            */
             profile=(x_l - tmp.setConstant(fc_l*(1. + CF_term + AR_term) + m*f_s + Pslm(3,l,m)*a3)).array().square();
             profile=4*profile/pow(gamma_l,2);
         } else{
@@ -201,10 +181,6 @@ VectorXd build_l_mode_a1etaAlma3(const VectorXd& x_l, const double H_l, const do
             result=result+ H_l*V(m+l)*asymetry.cwiseProduct(((tmp.setConstant(1) + profile)).cwiseInverse());
         }
     }
-    /*std::cout << "------" << std::endl;
-    std::cout << "XXXXXX" << std::endl;
-    std::cout << "------" << std::endl;
-    */
 return result;
 }
 
@@ -224,19 +200,6 @@ VectorXd build_l_mode_a1a2a3(const VectorXd& x_l, const double H_l, const double
         if(l != 0){
            clm=Pslm(3,l,m); // Changes made on 18/11/2021 : Use of acoefs.cpp
            a2_terms=Pslm(2,l,m)*a2;
-           /*if(l == 1){
-                clm=m; // a3 for l=1
-                a2_terms=(3*m*m - 2)*a2;  // From Takashi note and Pnl decomposition: c2(n,l) = [3m*m - l(l+1)] / (2l-1)
-            }
-            if(l == 2){
-                clm=(5*pow(m,3) - 17*m)/3.; // a3 for l=2
-                a2_terms=(m*m -2)*a2;
-            }
-            if(l == 3){
-                clm=(pow(m,3)-7*m)/2; // a3 implemented on 30/04/2021
-                a2_terms=(3*m*m - 12)*a2/5;
-            }
-            */
             profile=(x_l - tmp.setConstant(fc_l + m*f_s + a2_terms + clm*a3)).array().square();
             profile=4*profile/pow(gamma_l,2);
         } else{
@@ -377,31 +340,9 @@ VectorXd build_l_mode_a1etaa3_v2(const VectorXd& x_l, const VectorXd& H_lm, cons
     VectorXd profile(Nxl), tmp(Nxl), tmp2(Nxl), result(Nxl), asymetry(Nxl);
 	double clm;
 
-	/*std::cout << " ---------- " << std::endl;
-	std::cout << " l = " << l << std::endl;
-	std::cout << "H_lm =" << H_lm << std::endl;
-	std::cout << "fc_l =" << fc_l << std::endl;
-	std::cout << "eta =" << eta << std::endl;
-	std::cout << "a3 =" << a3 << std::endl;
-	std::cout << "asym =" << asym << std::endl;
-	std::cout << "gamma_l =" << gamma_l << std::endl;
-	std::cout << " ---------- " << std::endl;
-*/
 	result.setZero();
 	for(int m=-l; m<=l; m++){
 		if(l != 0){
-            //clm=Pslm(3,l,m); // Changes made on 18/11/2021 : Use of acoefs.cpp
-            /*
-            if(l == 1){
-				clm=m; // a3 for l=1
-			}
-			if(l == 2){
-				clm=(5*pow(m,3) - 17*m)/3.; // a3 for l=2
-			}
-			if(l == 3){
-				clm=(pow(m,3)-7*m)/2; // a3 implemented on 30/04/2021
-			}
-            */
 			profile=(x_l - tmp.setConstant(fc_l*(1. + eta0*pow(f_s*1e-6,2)*Qlm(l,m)) + m*f_s + Pslm(3,l,m)*a3)).array().square();
 			profile=4*profile/pow(gamma_l,2);
 		} else{

@@ -1,12 +1,14 @@
-/*
- * models_database.cpp
+/**
+ * @file models_database.cpp
+ * @brief Header file that contains models
  *
- * Header file that contains all kind of methods
- * used to generate models for the pulsation/noise
+ * File that contains all kind of methods used to generate models for the pulsation/noise
  * 
- *  Created on: 20 Apr 2016
- *      Author: obenomar
+ *
+ * @date 20 Apr 2016
+ * @author obenomar
  */
+
 # include <iostream>
 # include <iomanip>
 #include <fstream>
@@ -15,7 +17,6 @@
 #include <random>
 #include "models_database.h"
 #include "noise_models.h"
-//#include "string_handler.h" // Replaced by ioproc.h on 17/06/2021
 #include "ioproc.h"
 #include "external/ARMM/bump_DP.h"
 #include "linspace.h"
@@ -25,7 +26,18 @@ using Eigen::VectorXd;
 using Eigen::VectorXi;
 using Eigen::MatrixXd;
 
+/**
+ * @brief Generate an array of random numbers from a standard normal distribution.
+ *
+ * This function generates an array of random numbers from a standard normal distribution.
+ * The generated random numbers are stored in an array of type double.
+ *
+ * @param n The number of random numbers to generate.
+ * @param seed A pointer to the seed for the random number generator.
+ * @return A pointer to the array of generated random numbers.
+ */
 double *r8vec_normal_01 ( int n, int *seed );
+
 
 void asymptotic_mm_v1(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string file_cfg_mm, std::string external_path, std::string template_file){
 
@@ -342,6 +354,7 @@ void asymptotic_mm_v2(VectorXd input_params, std::string file_out_modes, std::st
 	//std::cout << "Model finished" << std::endl;
 }
 
+
 void asymptotic_mm_v3(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string file_cfg_mm, std::string external_path, std::string template_file){
 
 	int seed=(unsigned)time(NULL);
@@ -501,6 +514,7 @@ void asymptotic_mm_v3(VectorXd input_params, std::string file_out_modes, std::st
 	//exit(EXIT_SUCCESS);
 }
 
+
 void asymptotic_mm_freeDp_numaxspread_curvepmodes_v1(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string file_cfg_mm, std::string external_path, std::string template_file){
 
 	int seed=(unsigned)time(NULL);
@@ -654,6 +668,7 @@ void asymptotic_mm_freeDp_numaxspread_curvepmodes_v1(VectorXd input_params, std:
 
 }
 
+
 void asymptotic_mm_freeDp_numaxspread_curvepmodes_v2(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string file_cfg_mm, std::string external_path, std::string template_file){
 	
 	int seed=(unsigned)time(NULL);
@@ -678,9 +693,6 @@ void asymptotic_mm_freeDp_numaxspread_curvepmodes_v2(VectorXd input_params, std:
 	const std::string file_range=cpath + "/external/ARMM-solver/star_params.range";
 	const double lmax=3;
 	const double Nmax_pm=6; // Number of radial order to inject on each side of numax
-
-	//std::cout << "input_params=" << input_params.transpose() << std::endl;
-	//std::cout << "input_params.size()=" << input_params.size() << std::endl;
 
 	// ------- Deploy the parameters ------
 	//double rot_env=input_params[0];
@@ -844,6 +856,7 @@ void asymptotic_mm_freeDp_numaxspread_curvepmodes_v2(VectorXd input_params, std:
 	write_star_noise_params(noise_params, file_out_noise);
 
 }
+
 
 void asymptotic_mm_freeDp_numaxspread_curvepmodes_v3(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string file_cfg_mm, std::string external_path, std::string template_file){
 
@@ -1709,12 +1722,7 @@ void generate_cfg_from_synthese_file_Wscaled_aj(VectorXd input_params, std::stri
 			f_ref.fl3[n]=ref_star.mode_params(pos[n],1);
 		}
 	}
-	/*
-	std::cout << "f_ref.fl0 = " << f_ref.fl0.transpose() << std::endl;
-	std::cout << "f_ref.fl1 = " << f_ref.fl1.transpose() << std::endl;
-	std::cout << "f_ref.fl2 = " << f_ref.fl2.transpose() << std::endl;
-	std::cout << "f_ref.fl3 = " << f_ref.fl3.transpose() << std::endl;
-	*/
+
 	f_rescaled=rescale_freqs(Dnu, epsilon, f_ref, d0l);
 	if (f_rescaled.error_status == true){
 		std::cerr << "Error while rescaling: There is likely an issue in frequency tagging." << std::endl;
@@ -1738,15 +1746,7 @@ void generate_cfg_from_synthese_file_Wscaled_aj(VectorXd input_params, std::stri
 		mode_params(n+f_ref.fl0.size()+f_ref.fl1.size()+f_ref.fl2.size(),0)=3;
 		f_rescaled_lin[n+f_ref.fl0.size()+f_ref.fl1.size()+f_ref.fl2.size()]=f_rescaled.fl3[n];
 	}
-	/*
-	std::cout << "Dnu = " << Dnu << std::endl;
-	std::cout << "epsilon = " << epsilon << std::endl;
-	std::cout << "d0l = " << d0l.transpose() << std::endl;
-	std::cout << "f_rescale.fl0 = " << f_rescaled.fl0.transpose() << std::endl;
-	std::cout << "f_rescale.fl1 = " << f_rescaled.fl1.transpose() << std::endl;
-	std::cout << "f_rescale.fl2 = " << f_rescaled.fl2.transpose() << std::endl;
-	std::cout << "f_rescale.fl3 = " << f_rescaled.fl3.transpose() << std::endl;
-	*/
+
 	// ---- Rescaling Height and Width profiles ----
 	HNRref=ref_star.mode_params.col(2);
 	HNRref=HNRref.cwiseProduct(local_noise.cwiseInverse());
@@ -1823,10 +1823,9 @@ void generate_cfg_from_synthese_file_Wscaled_aj(VectorXd input_params, std::stri
 	// A FUNCTION THAT WRITES THE PARAMETERS
 	// THIS MIGHT NEED TO BE WRITTEN IN ANOTHER FORMAT
 	write_star_mode_params_aj(mode_params, file_out_modes);
-
 	// A FUNCTION THAT WRITES THE Noise
 	write_star_noise_params(ref_star.noise_params, file_out_noise);
-	//exit(EXIT_SUCCESS);
+
 }
 
 
@@ -2052,6 +2051,8 @@ void generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled(VectorXd input_params
 }
 
 // ------ Common ------
+
+// Compute the effect of centrifugal distorsion on mode frequencies
 double eta0_fct(const VectorXd& fl0_all){
 	const double G=6.667e-8;
     const double Dnu_sun=135.1;
@@ -2063,7 +2064,6 @@ double eta0_fct(const VectorXd& fl0_all){
     xfit=linspace(0, fl0_all.size()-1, fl0_all.size());
     rfit=linfit(xfit, fl0_all); // rfit[0] = Dnu 
     rho=pow(rfit[0]/Dnu_sun,2.) * rho_sun;
-    //eta0=3./(4.*M_PI*rho*G); // WRONG BECAUSE I WRONGLY CONSIDERED OMEGA ~ a1. It should be OMEGA ~ 2.pi.a1 of course
     eta0=3.*M_PI/(rho*G); 
     return eta0;
 }

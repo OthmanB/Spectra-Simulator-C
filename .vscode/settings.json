@@ -70,6 +70,13 @@
         "algorithm": "cpp",
         "functional": "cpp",
         "iterator": "cpp",
-        "utility": "cpp"
+        "utility": "cpp",
+        "__tree": "cpp",
+        "__verbose_abort": "cpp",
+        "charconv": "cpp",
+        "map": "cpp",
+        "queue": "cpp",
+        "set": "cpp",
+        "thread": "cpp"
     }
 }

@@ -1,10 +1,9 @@
-/*
-Date: 16 Nov 2021
-Functions that handle the acoefficients
-It can create nu(n,l,m) from acoeffs for l<=3, j={1,2,3,4,5,6}
-Or it can decompose into aj coefficients
-Adapted from acoefs.py from the acoefs_check project (see github)
-*/
+/**
+ * @file acoeffs.cpp
+ * @brief Functions that handle the acoefficients
+ *
+ * This file contains functions that handle the acoefficients. It can create nu(n,l,m) from acoeffs for l<=3, j=1,2,3,4,5,6. It can also decompose into aj coefficients. 
+ */
 #include <math.h>
 #include <Eigen/Dense>
 #include <vector>
@@ -15,6 +14,7 @@ Adapted from acoefs.py from the acoefs_check project (see github)
 using Eigen::VectorXd;
 using Eigen::VectorXi;
 using Eigen::MatrixXd;
+
 
 long double Hslm_Ritzoller1991(const int s,const int l, const int m){
 	const int L=l*(l+1);
@@ -109,7 +109,7 @@ long double Pslm(const int s,const int l,const int m){
 	return Ps;
 }
 
-
+// Symetric Splitting Tnlm
 VectorXd Tnlm(VectorXd& nu_nlm, const int l){
 	VectorXd tnlm;
 	if (l != 0 && l<=3){
@@ -143,6 +143,7 @@ VectorXd Tnlm(VectorXd& nu_nlm, const int l){
 	return tnlm;	
 }
 
+//Anti-Symetric splitting Snlm
 VectorXd Snlm(VectorXd& nu_nlm, const int l){
 	VectorXd snlm;
 	if (l != 0 && l<=3){

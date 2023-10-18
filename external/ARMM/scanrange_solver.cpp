@@ -1,3 +1,7 @@
+/**
+ * @file scanrange_solver.cpp
+ * @brief This file contains the implementation of the main function for scanning a range of a given parameter using ARMMSolver.
+ */
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -9,6 +13,13 @@
 
 namespace po = boost::program_options;
 
+/**
+ * @brief Modifies a parameter in the provided parameter map and writes the modified parameters to a new file.
+ * @param parameters The map of parameters.
+ * @param fileout The output file name.
+ * @param keyToModify The key of the parameter to modify.
+ * @param newValue The new value for the parameter.
+ */
 void modifyParameter(std::unordered_map<std::string, std::string>& parameters,
                     const std::string& fileout,
                     const std::string& keyToModify,
@@ -33,6 +44,12 @@ void modifyParameter(std::unordered_map<std::string, std::string>& parameters,
     outFile.close();
 }
 
+/**
+ * @brief The main function for scanning a range of a given parameter using ARMMSolver.
+ * @param argc The number of command line arguments.
+ * @param argv The array of command line arguments.
+ * @return 0 on success, 1 on failure.
+ */
 int main(int argc, char* argv[]){
     double keyvalmin=0., keyvalmax=1., keystep=0.1;
     std::string key = "q_star";

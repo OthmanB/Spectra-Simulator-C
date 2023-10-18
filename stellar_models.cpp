@@ -1,11 +1,12 @@
-/*
- * stellar_models.cpp
+/**
+ * @file stellar_models.cpp
+ * @brief High level functions that handle read/write of files from stellar models (ADIPLS, MESA)
  *
- *  High level functions that handle read/write
- *  of files from stellar models (ADIPLS, MESA)
- * 
- *  Created on: 10 Oct 2017
- *      Author: obenomar
+ * This file contains the declarations of high level functions that handle the read/write operations
+ * of files from stellar models, specifically for the ADIPLS and MESA models.
+ *
+ * @date 10 Oct 2017
+ * @author obenomar
  */
 
 #include <math.h>

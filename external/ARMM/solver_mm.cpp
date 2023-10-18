@@ -1,19 +1,19 @@
-// -------------------
-// ---- Functions adapted from the solver_mm.py function ----
-/* This contains all the functions for solving the asymptotic relation
-# of the mixed modes, as they have been tested during their development
-# All this arise from reading few papers from Benoit Mosser and 
-# The PhD thesis from Charlotte Gehand:
-# https://arxiv.org/pdf/1203.0689.pdf (Mosser paper on mixed modes)
-# https://arxiv.org/pdf/1004.0449.pdf (older Mosser paper on scaling relations for gaussian_width, Amp etc.. - 2010 -)
-# https://arxiv.org/pdf/1011.1928.pdf (The universal pattern introduced with the curvature - Fig. 3 - )
-# https://arxiv.org/pdf/1411.1082.pdf
-# https://tel.archives-ouvertes.fr/tel-02128409/document
+/**
+ * @file solver_mm.cpp
+ * @brief Contains functions for solving the asymptotic relation of the mixed modes.
+ *
+ * This file contains functions that are adapted from the solver_mm.py function. These functions are used to solve the asymptotic relation of the mixed modes. The development of these functions was based on reading papers by Benoit Mosser and Charlotte Gehand.
+ *
+ * Papers referenced:
+ * - Mosser, B., et al. "Mixed modes in red giants: a window on stellar evolution." Astronomy & Astrophysics 540 (2012): A143.
+ * - Mosser, B., et al. "Scaling relations for the width of the red-giant branch in the Kepler field." Astronomy & Astrophysics 517 (2010): A22.
+ * - Mosser, B., et al. "The universal red-giant oscillation pattern - An automated determination with CoRoT data." Astronomy & Astrophysics 525 (2011): L9.
+ * - Mosser, B., et al. "Mixed modes in red giants: a window on stellar evolution." Astronomy & Astrophysics 572 (2014): L5.
+ * - Gehan, C. "Étude des modes mixtes dans les étoiles géantes rouges." PhD thesis, Université de Toulouse (2019).
+ *
+ * Note that the examples and tests functions in this file were built using asymptotic relations in the original Python code. However, these functions should be applicable to any set of values for nu_p(nu), nu_g(nu), Dnu_p(nu), and DPl(nu) (meaning handling glitches).
+ */
 
-# Examples and tests function have been built using asymptotic relations in the python original code.
-# But note that they should be applicable to ANY set of value of:
-#	 nu_p(nu), nu_g(nu), Dnu_p(nu) and DPl(nu) (meaning handling glitches)
-*/
 // ------------------
 #include <Eigen/Dense>
 #include <string>
@@ -27,10 +27,11 @@
 #else
    #define omp_get_thread_num() 0
 #endif
-//#include "solver_mm.h"
 
+#include "version_solver.h"
 #include "data_solver.h"
 #include "string_handler.h"
+#include "interpol.h"
 #include "derivatives_handler.h"
 #include "interpol.h"
 #include "linfit.h"
@@ -39,6 +40,12 @@ using Eigen::MatrixXd;
 using Eigen::VectorXi;
 using Eigen::VectorXd;
 
+/* *
+ * @brief Removes duplicate values from a given EigenVectorXd.
+ * @param nu_m_all The input EigenVectorXd.
+ * @param tol The tolerance for considering two values as duplicates.
+ * @return The EigenVectorXd with unique values.
+ */
 Eigen::VectorXd removeDuplicates(const Eigen::VectorXd& nu_m_all, double tol) {
     Eigen::VectorXd uniqueVec;
     
@@ -61,18 +68,19 @@ Eigen::VectorXd removeDuplicates(const Eigen::VectorXd& nu_m_all, double tol) {
     return uniqueVec;
 }
 
-// Function that detects sign changes
-// If the sign went from + to - tag it with a -1
-// If the sign went from - to + tag it with a +1
-// If there is no change of sign tag it with a 0
-// 0 is dealt as a zone of change of sign as well. eg. if we pass from 0 to 2, then the result is +1
-// Inputs:
-//    - x: input vector for which we want to know sign changes
-//    - return_indices: if true (default), the function returns positions at which the sign changed
-//						if false, it returns a vector of size(x)-1 with the tags for the sign changes (or not)
+/* *
+ * @brief Function that detects sign changes in a given vector.
+ * If the sign went from + to -, tag it with a -1.
+ * If the sign went from - to +, tag it with a +1.
+ * If there is no change of sign, tag it with a 0.
+ * 0 is dealt as a zone of change of sign as well. eg. if we pass from 0 to 2, then the result is +1.
+ * @param x The input vector for which we want to know sign changes.
+ * @param return_indices If true (default), the function returns positions at which the sign changed.
+ *                       If false, it returns a vector of tags for the sign changes.
+ * @return The vector of sign changes or the positions at which the sign changed.
+ */
 VectorXi sign_change(const VectorXd& x, bool return_indices=true)
 {
-	//bool bool_tmp;
 	VectorXi s(x.size()-1), pos_s(x.size()-1);
 	s.setConstant(0); // Vector of tags for sign changes
 	pos_s.setConstant(-1); // Vector of indices
@@ -106,7 +114,12 @@ VectorXi sign_change(const VectorXd& x, bool return_indices=true)
 	}
 }
 
-
+/* *
+ * @brief Calculates the difference between each element of the input vector and a given value.
+ * @param nu The input vector.
+ * @param nu_p The value to subtract from each element of the vector.
+ * @return The resulting vector.
+ */
 VectorXd pnu_fct(const VectorXd& nu, const long double nu_p)
 {
 	if (nu.size() == 0){
@@ -121,12 +134,27 @@ VectorXd pnu_fct(const VectorXd& nu, const long double nu_p)
 	}
 }
 
+/* *
+ * @brief Calculates the difference between a single value and a given value.
+ * @param nu The input value.
+ * @param nu_p The value to subtract from the input value.
+ * @return The resulting value.
+ */
 long double pnu_fct(const long double nu, const long double nu_p)
 {
 	long double pnu=nu-nu_p;
 	return pnu;
 }
 
+/* *
+ * @brief Calculates the gnu function for each element of the input vector.
+ * @param nu The input vector.
+ * @param nu_g The value of nu_g.
+ * @param Dnu_p The value of Dnu_p.
+ * @param DPl The value of DPl.
+ * @param q The value of q.
+ * @return The resulting vector.
+ */
 VectorXd gnu_fct(const VectorXd& nu, const long double nu_g, const long double Dnu_p, const long double DPl, const long double q)
 {
 	const long double pi = 3.141592653589793238L;
@@ -139,6 +167,15 @@ VectorXd gnu_fct(const VectorXd& nu, const long double nu_g, const long double D
 	return gnu;
 }
 
+/* *
+ * @brief Calculates the gnu function for a single value.
+ * @param nu The input value.
+ * @param nu_g The value of nu_g.
+ * @param Dnu_p The value of Dnu_p.
+ * @param DPl The value of DPl.
+ * @param q The value of q.
+ * @return The resulting value.
+ */
 long double gnu_fct(const long double nu, const long double nu_g, const long double Dnu_p, const long double DPl, const long double q)
 {
 	const long double pi = 3.141592653589793238L;
@@ -149,27 +186,22 @@ long double gnu_fct(const long double nu, const long double nu_g, const long dou
 	return gnu;
 }
 
-/* A small function that generate a serie of p modes using the asymptotic relation
-# at the second order as per defined in Mosser et al. 2018, equation 22 (https://www.aanda.org/articles/aa/pdf/2018/10/aa32777-18.pdf)
-# delta0l and alpha and nmax must be set, a
-# Note that we have the following relationship between D0 and delta0l:
-#			delta0l=-l(l+1) D0 / Dnu_p
-# Such that delta0l=-l(l+1) gamma / 100, if gamma is in % of Dnu_p
-# r: Allows you to add an extra term to Dnu_o
-*/
+/* *
+ * @brief A small function that generates a series of p modes using the asymptotic relation at the second order.
+ * @param Dnu_p The value of Dnu_p.
+ * @param np The value of np.
+ * @param epsilon The value of epsilon.
+ * @param l The value of l.
+ * @param delta0l The value of delta0l.
+ * @param alpha The value of alpha.
+ * @param nmax The value of nmax.
+ * @param r The extra term to add to Dnu_p (default is 0).
+ * @return The resulting value of nu_p.
+ */
 long double asympt_nu_p(const long double Dnu_p, const int np, const long double epsilon, const int l, 
 	const long double delta0l, const long double alpha, const long double nmax, long double r=0)
 {
 
-/*
-	std::cout << " np=" << np << std::endl;
-	std::cout << " epsilon=" << epsilon << std::endl;
-	std::cout << " l=" << l << std::endl;
-	std::cout << " delta0l=" << delta0l << std::endl;
-	std::cout << " alpha=" << alpha << std::endl;
-	std::cout << " nmax=" << nmax << std::endl;
-	std::cout << " Dnu_p=" << Dnu_p << std::endl;
-*/	
 	long double nu_p=(np + epsilon + l/2. + delta0l + alpha*std::pow(np - nmax, 2) / 2)*Dnu_p;
 	if (nu_p < 0.0)
 	{
@@ -182,14 +214,17 @@ long double asympt_nu_p(const long double Dnu_p, const int np, const long double
 }
 
 
-/* A small function that generate a serie of p modes based on a shifting of a series of l=0 modes
-# and on the asymptotic relation. This effectively allow to account for 2nd order terms of p modes
-# delta0l : small spacing 
-# r: Allows you to add an extra term to Dnu_p
-# WARNING: COULD BE SOME PROBLEMS ON THE EDGES... IF PROBLEM ARE FOUND, WE MIGHT NEED REPLACE THIS ALGO BY 
-#          AN INTERPOLATION AT NP... BUT MORE COSTLY
-*/
-
+/* *
+ * @brief A small function that generates a series of p modes based on a shifting of a series of l=0 modes and on the asymptotic relation.
+ * @param nu_l0 The input vector of l=0 modes.
+ * @param Dnu_p The value of Dnu_p.
+ * @param np The value of np.
+ * @param epsilon The value of epsilon.
+ * @param l The value of l.
+ * @param delta0l The value of delta0l.
+ * @param r The extra term to add to Dnu_p (default is 0).
+ * @return The resulting value of nu_p.
+ */
 long double asympt_nu_p_from_l0(const VectorXd& nu_l0, const long double Dnu_p, const int np, const long double epsilon, const int l, 
 	const long double delta0l, long double r=0)
 {
@@ -213,6 +248,16 @@ long double asympt_nu_p_from_l0(const VectorXd& nu_l0, const long double Dnu_p, 
 	return nu_p_l+r;
 }
 
+/* *
+ * @brief A small function that generates a series of p modes based on a shifting of a series of l=0 modes and on the asymptotic relation.
+ * @param nu_l0 The input vector of l=0 modes.
+ * @param Dnu_p The value of Dnu_p.
+ * @param l The value of l.
+ * @param delta0l The value of delta0l.
+ * @param fmin The minimum frequency value (default is -1).
+ * @param fmax The maximum frequency value (default is -1).
+ * @return The resulting vector of nu_p.
+ */
 VectorXd asympt_nu_p_from_l0_Xd(const VectorXd& nu_l0, const long double Dnu_p, const int l, const long double delta0l, long double fmin=-1, long double fmax=-1)
 {
 	VectorXd nu_l0_long, nu_l1_long, nu_l1, tmp;
@@ -257,53 +302,44 @@ VectorXd asympt_nu_p_from_l0_Xd(const VectorXd& nu_l0, const long double Dnu_p, 
 	return nu_l1;
 }
 
-/* 
-	Compute the asymptotic relation for the g modes.
-	r: an optional parameter that can be added to the Period (e.g. a random quantity)	
-*/
+/* *
+ * @brief Compute the asymptotic relation for the g modes.
+ * @param DPl The value of DPl.
+ * @param ng The value of ng.
+ * @param alpha The value of alpha.
+ * @param r An optional parameter that can be added to the Period (e.g. a random quantity).
+ * @return The resulting value of nu_g.
+ */
 long double asympt_nu_g(const long double DPl, const int ng, const long double alpha, long double r=0)
 {
 	const long double Pl=(ng + alpha)*DPl;
 	return 1e6/(Pl+r);
 }
 
-/*
-This the main function that solves the mixed mode asymptotic relation
-which is of the type p(nu) = g(nu)
-This solver specifically solve the case:
-      nu - nu_p = Dnu*arctan(q tan(1/(nu DPl) - 1/(nu_g*DPl)))
-      It tries to find the intersect between p(nu) and g(nu)
-      using an interpolation and over a range of frequency such that nu is in [numin, numax]
-Parameters:
-	- Mandatory: 
-	     nu_p (double) : frequency of a given p-mode (in microHz)
-	     nu_g (double): frequency of a given g-mode (in microHz)
-	     Dnu_p (double): Large separation for p modes (in microHz)
-	     DP1 (double): Period spacing for g modes (in seconds)
-	     q (double): Coupling term (no unit, should be between 0 and 1)
-	- Optional:
-		numin (double): Minimum frequency considered for the solution (in microHz)
-		numax (double): Maximum frequency considered for the solution (in microHz)
-		resol (double): Base resolution for the interpolated base function. The interpolation may miss solutions 
-		       if this is set too low. Typically, the resolution parameter should be higher than the
-		       spectral resolution of your spectrum so that all resolved modes should be found.
-		       This is also used for creating the nu axis for visualisation (in microHz).
-		factor (double): Define how fine will be the new tiny grid used for performing the interpolation. This is important
-				to avoid extrapolation (which is forbiden and will result in crash of the code). Typically, the default
-				value factor=0.05 can compute mixed modes for frequency down to 80microHz. Going below requires a smaller factor
 
-		returns_axis: If True, returns nu, pnu and gnu (see optional reutrns below). Mainly for debug
-Returns a structure with:
-	nu_m: An array with all solutions that match p(nu) = g(nu)
-	nu (optional): The frequency axis used as reference for finding the intersection
-	pnu (optional): The curve for p(nu)
-	gnu (optional): The curve g(nu)
-*/
+/* *
+ * @brief Solve the mixed mode asymptotic relation between p modes and g modes.
+ * This the main function that solves the mixed mode asymptotic relation which is of the type p(nu) = g(nu)
+ *	This solver specifically solve the case:
+ *     nu - nu_p = Dnu*arctan(q tan(1/(nu DPl) - 1/(nu_g*DPl)))
+ *     It tries to find the intersect between p(nu) and g(nu)
+ *    using an interpolation and over a range of frequency such that nu is in [numin, numax]
+ * @param nu_p The frequency of a given p-mode (in microHz).
+ * @param nu_g The frequency of a given g-mode (in microHz).
+ * @param Dnu_p The large separation for p modes (in microHz).
+ * @param DPl The period spacing for g modes (in seconds).
+ * @param q The coupling term (no unit, should be between 0 and 1).
+ * @param numin The minimum frequency considered for the solution (in microHz).
+ * @param numax The maximum frequency considered for the solution (in microHz).
+ * @param resol The base resolution for the interpolated base function. The interpolation may miss solutions if this is set too low. Typically, the resolution parameter should be higher than the spectral resolution of your spectrum so that all resolved modes should be found.
+ * @param returns_axis If true, returns nu, pnu, and gnu.
+ * @param verbose If true, print additional information.
+ * @param factor Define how fine the new tiny grid used for performing the interpolation will be.  This is important to avoid extrapolation (which is forbiden and will result in crash of the code). Typically, the default value factor=0.05 can compute mixed modes for frequency down to 80microHz. Going below requires a smaller factor.
+ * @return A structure with the solutions that match p(nu) = g(nu).
+ */
 Data_coresolver solver_mm(const long double nu_p, const long double nu_g, const long double Dnu_p, const long double DPl, const long double q, 
 	const long double numin, const long double numax, const long double resol, const bool returns_axis=false, const bool verbose=false, const long double factor=0.05)
 {
-	//const int Nmmax=500; // Number of maximum mixed modes solutions that can be found 
-
 	int i, s_ok;
 	long double range_min, range_max, nu_m_proposed, ratio,  ysol_pnu, ysol_gnu;
 	Data_coresolver results;
@@ -410,6 +446,25 @@ Data_coresolver solver_mm(const long double nu_p, const long double nu_g, const 
 	}
 }
 
+/* *
+ * @brief Solve the mixed mode asymptotic relation between p modes and g modes.
+ * @param Dnu_p The large separation for p modes (in microHz).
+ * @param epsilon The value of epsilon.
+ * @param el The value of el.
+ * @param delta0l The value of delta0l.
+ * @param alpha_p The value of alpha_p.
+ * @param nmax The value of nmax.
+ * @param DPl The period spacing for g modes (in seconds).
+ * @param alpha The value of alpha.
+ * @param q The coupling term (no unit, should be between 0 and 1).
+ * @param sigma_p The value of sigma_p.
+ * @param fmin The minimum frequency considered for the solution (in microHz).
+ * @param fmax The maximum frequency considered for the solution (in microHz).
+ * @param resol The base resolution for the interpolated base function.
+ * @param returns_pg_freqs If true, returns nu_m, nu_p, nu_g, dnup, and dPg.
+ * @param verbose If true, print additional information.
+ * @return A structure with the solutions that match p(nu) = g(nu).
+ */
 Data_eigensols solve_mm_asymptotic_O2p(const long double Dnu_p, const long double epsilon, const int el, const long double delta0l, const long double alpha_p, 
 	const long double nmax, const long double DPl, const long double alpha, const long double q, const long double sigma_p, 
 	const long double fmin, const long double fmax, const long double resol, bool returns_pg_freqs, bool verbose)
@@ -532,22 +587,22 @@ Data_eigensols solve_mm_asymptotic_O2p(const long double Dnu_p, const long doubl
 
 
 
-// This function uses solver_mm to find solutions from a spectrum
-// of pure p modes and pure g modes following the asymptotic relations at the second order for p modes and the first order for g modes
-//
-//	nu_l0_in: Frequencies for the l=0 modes. Used to derive nu_l1_p and therefore Dnu and epsilon
-//	el: Degree of the mode
-//	delta0l: first order shift related to core structure (and to D0)
-//	alpha_p: Second order shift relate to the mode curvature
-//	nmax: radial order at numax
-//	DPl: average Period spacing of the g modes
-//	alpha: phase offset for the g modes
-//	q: coupling strength
-//	sigma_p: standard deviation controling the randomisation of individual p modes. Set it to 0 for no spread
-//	sigma_g: standard deviation controling the randomisation of individial g modes. Set it to 0 for no spread
-//  resol: Control the grid resolution. Might be set to the resolution of the spectrum
-//  returns_pg_freqs: If true, returns the values for calculated p and g modes
-//  verbose: If true, print the solution on screen 
+/* *
+ * @brief Solve the mixed mode asymptotic relation between p modes and g modes using l=0 frequencies as input.
+ * @param nu_l0_in Frequencies for the l=0 modes. Used to derive nu_l1_p and therefore Dnu and epsilon.
+ * @param el Degree of the mode.
+ * @param delta0l First order shift related to core structure (and to D0).
+ * @param DPl Average Period spacing of the g modes.
+ * @param alpha Phase offset for the g modes.
+ * @param q Coupling strength.
+ * @param sigma_p Standard deviation controlling the randomization of individual p modes. Set it to 0 for no spread.
+ * @param resol Control the grid resolution. Might be set to the resolution of the spectrum.
+ * @param returns_pg_freqs If true, returns the values for calculated p and g modes.
+ * @param verbose If true, print the solution on screen.
+ * @param freq_min The minimum frequency considered for the solution (in microHz).
+ * @param freq_max The maximum frequency considered for the solution (in microHz).
+ * @return A structure with the solutions that match p(nu) = g(nu).
+ */
 Data_eigensols solve_mm_asymptotic_O2from_l0(const VectorXd& nu_l0_in, const int el, const long double delta0l, 
     const long double DPl, const long double alpha, const long double q, const long double sigma_p, 
 	const long double resol, bool returns_pg_freqs, bool verbose, const long double freq_min, const long double freq_max)
@@ -660,27 +715,21 @@ Data_eigensols solve_mm_asymptotic_O2from_l0(const VectorXd& nu_l0_in, const int
 }
 
 
-// This function uses solver_mm to find solutions from a spectrum
-// of pure p modes and pure g modes following the asymptotic relations at the second order for p modes and the first order for g modes
-//
-// CONTRARY TO *froml0, this function takes nu(l) as in input directly. HOWEVER NOTE THAT 
-// IN THIS FORM, IT USES linfit() TO COMPUTE Dnu from nu(l). THIS IS NOT OPTIMAL AS Dnu(l=0) 
-// IS USUALLY SLIGHTLY DIFFERENT THAN Dnu(l)
-// ANOTHER DIFFERENCE IS THAT THIS FUNCTION SEARCH SOLUTION OVER +/- 1.75*Dnu_p_local 
-// WHILE THE OTHER SIMILAR FUNCTIONS (O2 of froml0) SEARCH OVER A CONSTANT WINDOW Dnu_p
-// BOTH ARE ACCEPTABLE BUT WILL LEAD TO SLIGHTLY DIFFERENT SET OF SOLUTIONS
-//	nu_p_all: Frequencies for the l modes.
-//	el: Degree of the mode
-//	alpha_p: Second order shift relate to the mode curvature
-//	nmax: radial order at numax
-//	DPl: average Period spacing of the g modes
-//	alpha: phase offset for the g modes
-//	q: coupling strength
-//	sigma_p: standard deviation controling the randomisation of individual p modes. Set it to 0 for no spread
-//	sigma_g: standard deviation controling the randomisation of individial g modes. Set it to 0 for no spread
-//  resol: Control the grid resolution. Might be set to the resolution of the spectrum
-//  returns_pg_freqs: If true, returns the values for calculated p and g modes
-//  verbose: If true, print the solution on screen 
+/* *
+ * @brief Solve the mixed mode asymptotic relation between p modes and g modes using l=0 frequencies as input.
+ * @param nu_p_all Frequencies for the l=0 modes. Used to derive nu_l1_p and therefore Dnu and epsilon.
+ * @param el Degree of the mode.
+ * @param DPl Average Period spacing of the g modes.
+ * @param alpha Phase offset for the g modes.
+ * @param q Coupling strength.
+ * @param sigma_p Standard deviation controlling the randomization of individual p modes. Set it to 0 for no spread.
+ * @param resol Control the grid resolution. Might be set to the resolution of the spectrum.
+ * @param returns_pg_freqs If true, returns the values for calculated p and g modes.
+ * @param verbose If true, print the solution on screen.
+ * @param freq_min The minimum frequency considered for the solution (in microHz).
+ * @param freq_max The maximum frequency considered for the solution (in microHz).
+ * @return A structure with the solutions that match p(nu) = g(nu).
+ */
 Data_eigensols solve_mm_asymptotic_O2from_nupl(const VectorXd& nu_p_all, const int el, //const long double delta0l, 
     const long double DPl, const long double alpha, const long double q, const long double sigma_p, 
 	const long double resol, bool returns_pg_freqs, bool verbose, const long double freq_min, const long double freq_max)

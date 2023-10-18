@@ -2,11 +2,23 @@
  * iterative_artificial_spectrum.cpp
  *
  * Header file that contains all kind of methods
- * used to generate models for the pulsation/noise
+ * used to generate iteratively artificial spectra
  * 
  *  Created on: 05 May 2016
  *      Author: obenomar
  */
+
+/**
+ * @file iterative_artificial_spectrum.cpp
+ * @brief Header file for the artificial spectra generation
+ *
+ * Header file for the functions used to generate iteratively artificial spectra
+ * 
+ *
+ * @date 05 May 2016
+ * @author obenomar
+ */
+
 #include <iostream>
 #include <iomanip>
 #include <fstream>
@@ -24,22 +36,111 @@
 #include "io_star_params.h"
 
 
+/**
+ * @brief Display the version information of the application.
+ *
+ * This function displays the version information of the application, including the application name, version number, and build date. It also displays information about the compiler used to build the application and the features supported by the platform.
+ */
 void showversion();
-int  options(int argc, char* argv[]);
 
+/**
+ * @brief Run iteratively the program artificial_spectrum to generate a series of models.
+ *
+ * This function runs the program artificial_spectrum iteratively in order to generate a series of models.
+ * It takes a directory path and a configuration file path as input parameters.
+ * The directory path specifies the location where the generated models will be saved.
+ * The configuration file path specifies the main configuration file that will be used for generating the models.
+ *
+ * @param dir_core The directory path where the generated models will be saved.
+ * @param cfg_file The path of the main configuration file.
+ */
 void iterative_artificial_spectrum(const std::string dir_core, const std::string cfg_file);
-//VectorXd order_input_params(VectorXd cte_params, VectorXd var_params, std::vector<std::string> cte_names, 
-//		std::vector<std::string> var_names, std::vector<std::string> param_names);
+
+/**
+* @brief Generate random models based on a configuration file.
+*
+* This function generates random models based on a given configuration file. It takes several input parameters including the configuration file, directory path, and file paths for output files. The function generates a series of random values for the parameters specified in the configuration file and uses them to generate the models. It also selects a template file containing height and width profiles for the models.
+*
+* @param cfg The configuration data.
+* @param param_names The names of the parameters.
+* @param dir_core The directory path where the generated models will be saved.
+* @param file_out_modes The file path for the output modes.
+* @param file_out_noise The file path for the output noise.
+* @param file_out_combi The file path for the output combinations.
+* @param N_model The number of models to generate.
+* @param file_cfg_mm The file path for the main configuration file.
+* @param external_path The external path.
+* @param templates_dir The directory path for the template files. 
+*/
 void generate_random(Config_Data cfg, std::vector<std::string> param_names, std::string dir_core, std::string file_out_modes, 
 		std::string file_out_noise, std::string file_out_combi, int N_model, std::string file_cfg_mm, std::string external_path,  std::string templates_dir);
+
+/**
+ * @brief Generate a grid of combinations based on a configuration file.
+ *
+ * This function generates a grid of combinations for the variables of the model, based on a given configuration file. It takes several input parameters including the configuration data, whether to use models, the models data, parameter names, directory paths, and file paths for output files. The function generates all possible combinations of values for the parameters specified in the configuration file and uses them to generate the grid. It also calls the model grid function to generate the models for each combination.
+ *
+ * @param cfg The configuration data.
+ * @param usemodels Whether to use models.
+ * @param models The models data.
+ * @param param_names The names of the parameters.
+ * @param dir_core The directory path where the generated models will be saved.
+ * @param dir_freqs The directory path for the frequency files.
+ * @param file_out_modes The file path for the output modes.
+ * @param file_out_noise The file path for the output noise.
+ * @param file_out_combi The file path for the output combinations.
+ * @param N_model The number of models.
+ */
 void generate_grid(Config_Data cfg, bool usemodels, Data_Nd models, std::vector<std::string> param_names, std::string dir_core, std::string dir_freqs, std::string file_out_modes, 
 		std::string file_out_noise, std::string file_out_combi, int N_model);
 
+/**
+ * @brief Call a model based on the given model name and input parameters.
+ *
+ * This function calls a specific model based on the given model name and input parameters. Compared to call_model_grid(), only the models compatible with variables generated randomly are listed. It also generates output files for the modes and noise. The function checks the model name and performs the corresponding actions for each model.
+ *
+ * @param model_name The name of the model to call.
+ * @param input_params The input parameters for the model.
+ * @param file_out_modes The file path for the output modes.
+ * @param file_out_noise The file path for the output noise.
+ * @param file_cfg_mm The file path for the main configuration file.
+ * @param dir_core The directory path where the generated models will be saved.
+ * @param id_str The ID string for the current combination.
+ * @param cfg The configuration data.
+ * @param external_path The external path.
+ * @param template_file The template file path.
+ * @return True if the model was called successfully, false otherwise.
+ */
 bool call_model_random(std::string model_name, VectorXd input_params, std::string file_out_modes, std::string file_out_noise, 
 		 std::string file_cfg_mm, std::string dir_core, std::string identifier, Config_Data cfg, std::string external_path, std::string template_file);
+
+/**
+ * @brief Call a model based on the given model name and input parameters.
+ *
+ * This function calls a specific model based on the given model name and input parameters. It also generates output files for the modes and noise. The function checks the model name and performs the corresponding actions for each model.
+ *
+ * @param model_name The name of the model to call.
+ * @param input_params The input parameters for the model.
+ * @param input_model The input model data.
+ * @param file_out_modes The file path for the output modes.
+ * @param file_out_noise The file path for the output noise.
+ * @param dir_core The directory path where the generated models will be saved.
+ * @param id_str The ID string for the current combination.
+ * @param cfg The configuration data.
+ * @return True if the model was called successfully, false otherwise.
+ */
 bool call_model_grid(std::string model_name, VectorXd input_params, Model_data input_model, std::string file_out_modes, std::string file_out_noise, 
 		std::string dir_core, std::string id_str, Config_Data cfg);
 
+/**
+ * @brief Retrieve a list of files within a specified path.
+ *
+ * This function retrieves a list of files within the specified path. The path should not contain any system-based filters such as '*.*'. These filters should be included in the extension string parameter.
+ *
+ * @param path The path from which to retrieve the list of files.
+ * @param extension The file extension to filter the list of files. Only files with this extension will be included in the list.
+ * @return A vector of strings containing the names of the files in the specified path.
+ */
 std::vector<std::string> list_dir(const std::string path, const std::string filter);
 
 
@@ -940,18 +1041,9 @@ bool call_model_random(std::string model_name, VectorXd input_params, std::strin
 			const char *command = str.c_str(); 
 			system(command);
 		}
-		/*
-		str="cp " + dir_core + "external/ARMM/star_params.range " + dir_core + "Data/Spectra_info/" + strtrim(id_str) + ".range";
-		const char *command2 = str.c_str(); 
-		system(command2);
-		str="cp " + dir_core + "external/ARMM/star_params.rot " + dir_core + "Data/Spectra_info/" + strtrim(id_str) + ".rot";
-		const char *command3 = str.c_str(); 
-		system(command3);
-		*/
 		passed=1;
 	}
 
-	//exit(EXIT_SUCCESS);
 	return passed;
 }
 
@@ -1092,7 +1184,15 @@ void showversion()
 }
 
 
-
+/**
+ * @brief The main entry point of the program.
+ *
+ * This function is the main entry point of the program. It takes command line arguments and performs the necessary operations based on the provided options.
+ *
+ * @param argc The number of command line arguments.
+ * @param argv An array of strings containing the command line arguments.
+ * @return An integer representing the exit status of the program.
+ */
 int main(int argc, char* argv[]){
 
 	boost::filesystem::path full_path( boost::filesystem::current_path() );

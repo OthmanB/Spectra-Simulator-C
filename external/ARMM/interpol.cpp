@@ -1,19 +1,24 @@
+/**
+ * @file interpol.cpp
+ * @brief A collection of functions for interpolation and resampling of arrays.
+ */
 #include <Eigen/Dense>
 #include <cmath>
 #include "interpol.h"
-# include <iostream>
-# include <iomanip>
+#include <iostream>
+#include <iomanip>
 
 using Eigen::VectorXd;
 
-const long double interp1( const long double x,  const VectorXd& a);
-long double parabola( const long double x, const long double f_1, const long double f0, const long double f1 );
-long double interp2( const long double x, const VectorXd& a);
-
+/**
+ * @brief Linearly interpolates a curve (x, y) at the position x_int.
+ * 
+ * @param x The x-coordinates of the curve.
+ * @param y The y-coordinates of the curve.
+ * @param x_int The x-coordinate at which to interpolate.
+ * @return double The interpolated y-coordinate.
+ */
 double lin_interpol(const VectorXd& x, const VectorXd& y, const double x_int){
-	/* Very simple function that linearly interpolate at the position x_int
-	   a curve (x,y). Here we assume that x.size() = y.size()
-	*/
 
 	long i=0, Nx=x.size();
 	double a=0,b=0; 
@@ -44,12 +49,15 @@ double lin_interpol(const VectorXd& x, const VectorXd& y, const double x_int){
 return a*x_int+b;
 }
 
-
+/**
+ * @brief Quadratically interpolates the array a and resamples it to size m.
+ * 
+ * @param a The array to be interpolated.
+ * @param m The desired size of the resampled array.
+ * @return VectorXd The resampled array.
+ */
 VectorXd quad_interpol( const VectorXd& a, const int m ){
-   /* Function that quadratically interpolate the array a. 
-    * The new size of the array is m, such that this 
-    * function actually resample the array
-   */
+
 
     long double step = double( a.size() - 1 ) / (m - 1);
     VectorXd b(m);
@@ -62,8 +70,14 @@ VectorXd quad_interpol( const VectorXd& a, const int m ){
 
 // -------------- Extra routines -------------------
 
-  // linear interpolate x in an array
-const long double interp1( const long double x,  const VectorXd& a)
+/**
+ * @brief Linearly interpolates a value x in an array a.
+ * 
+ * @param x The value to be interpolated.
+ * @param a The array to interpolate.
+ * @return long double The interpolated value.
+ */
+long double interp1( const long double x,  const VectorXd& a)
 {
     int n=a.size();
 
@@ -73,7 +87,13 @@ const long double interp1( const long double x,  const VectorXd& a)
     return a[j] + (x - j) * (a[j+1] - a[j]);
 }
 
-    // linear interpolate array a[] -> array b[]
+/**
+ * @brief Linearly interpolates an array a and resamples it to size m.
+ * 
+ * @param a The array to be interpolated.
+ * @param m The desired size of the resampled array.
+ * @return VectorXd The resampled array.
+ */
 VectorXd  inter1parray( const VectorXd& a, const int m )
 {
     long double step = double( a.size() - 1 ) / (m - 1);
@@ -84,7 +104,16 @@ VectorXd  inter1parray( const VectorXd& a, const int m )
     }
     return b;
 }
-    // parabola through 3 points, -1 < x < 1
+
+/**
+ * @brief Calculates the value of a parabola passing through three points.
+ * 
+ * @param x The x-coordinate at which to evaluate the parabola.
+ * @param f_1 The y-coordinate of the point with x-coordinate -1.
+ * @param f0 The y-coordinate of the point with x-coordinate 0.
+ * @param f1 The y-coordinate of the point with x-coordinate 1.
+ * @return long double The value of the parabola at x.
+ */
 long double parabola( const long double x, const long double f_1, const long double f0, const long double f1 ){
     if( x <= -1 )  return f_1; 
     if( x >= 1 )  return f1; 
@@ -93,7 +122,13 @@ long double parabola( const long double x, const long double f_1, const long dou
     return (l + r + x * (r - l)) / 2;
 }
 
-    // quadratic interpolate x in an array
+/**
+ * @brief Quadratically interpolates a value x in an array a.
+ * 
+ * @param x The value to be interpolated.
+ * @param a The array to interpolate.
+ * @return long double The interpolated value.
+ */
 long double interp2( const long double x, const VectorXd& a){
     if( x <= .5  ||  x >= a.size() - 1.5 )
         return interp1( x, a);

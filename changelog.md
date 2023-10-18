@@ -1,5 +1,9 @@
 # Version history #
 
+### v1.31 ##
+	* Adding a help for functions using Doxygen library
+	* Improved the algorithm for creating the combinations in combi.cpp
+	
 ### v1.3 ###
 	* Models asymptotic_mm_freeDp_numaxspread_curvepmodes_v2 and asymptotic_mm_freeDp_numaxspread_curvepmodes_v3 updated to work with the new parallelized ARMM solver. 
 	* Models asymptotic_mm_freeDp_numaxspread_curvepmodes_v2 and asymptotic_mm_freeDp_numaxspread_curvepmodes_v3 now handle ajl coefficients. Read instructions in the example main.cfg files associated to these models

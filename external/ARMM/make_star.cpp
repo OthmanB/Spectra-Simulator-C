@@ -1,3 +1,9 @@
+/**
+ * @file make_star.cpp
+ * @brief Program to generate a simulated star spectrum.
+ * 
+ * This program generates a simulated star spectrum based on the provided configuration file. It uses various modules and functions to perform the simulation.
+ */
 #include <Eigen/Dense>
 #include <string>
 #include <vector>
@@ -17,6 +23,13 @@
 #include "configure_make_star.h"
 
 namespace po = boost::program_options;
+/**
+ * @brief Main function to run the make_star program.
+ * 
+ * @param argc The number of command-line arguments.
+ * @param argv An array of command-line arguments.
+ * @return int The exit status of the program.
+ */
 int main(int argc, char* argv[]){
 	MatrixXd mode_params, noise_params(3,3);
 

@@ -1,12 +1,13 @@
-/*
- * write_star_params.cpp
- *
- * Contains all kind of methods
- * used to process and/or encapsulate data
+/**
+ * @file io_star_params.cpp
+ * @brief Methods to handle IO in the program.
  * 
- *  Created on: 22 Feb 2016
- *      Author: obenomar
- */
+ * Contains all kind of methods used to process and/or read and write files for configuration and output files
+ * 
+ * @date  22 Feb 2016
+ * @author obenomar
+ */ 
+
 # include <iostream>
 # include <iomanip>
 #include <fstream>
@@ -15,7 +16,6 @@
 #include <string>
 #include "io_star_params.h"
 #include "io_star_common.h"
-//#include "string_handler.h" // Replaced by ioproc.h on 17/06/2021
 #include "ioproc.h"
 #include "linfit.h"
 # include "ioproc.h"
@@ -26,38 +26,38 @@ using Eigen::VectorXi;
 using Eigen::MatrixXd;
 
 
-void write_star_params_Alm(VectorXd spec_params, MatrixXd mode_params, MatrixXd noise_params, std::string file_out, std::string identifier){
+void write_star_params_Alm(VectorXd& spec_params, MatrixXd& mode_params, MatrixXd& noise_params, std::string file_out, std::string identifier){
 	write_global_info(spec_params, file_out, identifier, false);
 	write_star_mode_params_Alm(mode_params, file_out, true);
 	write_star_noise_params(noise_params, file_out, true);
 }
 
-void write_star_params_aj(VectorXd spec_params, MatrixXd mode_params, MatrixXd noise_params, std::string file_out, std::string identifier){
+void write_star_params_aj(VectorXd& spec_params, MatrixXd& mode_params, MatrixXd& noise_params, std::string file_out, std::string identifier){
 	write_global_info(spec_params, file_out, identifier, false);
 	write_star_mode_params_aj(mode_params, file_out, true);
 	write_star_noise_params(noise_params, file_out, true);
 }
 
-void write_star_params_act_asym(VectorXd spec_params, MatrixXd mode_params, MatrixXd noise_params, std::string file_out, std::string identifier){
+void write_star_params_act_asym(VectorXd& spec_params, MatrixXd& mode_params, MatrixXd& noise_params, std::string file_out, std::string identifier){
 	write_global_info(spec_params, file_out, identifier, false);
 	write_star_mode_params_act_asym(mode_params, file_out, true);
 	write_star_noise_params(noise_params, file_out, true);
 }
 
-void write_star_params_a1a2a3asym(VectorXd spec_params, MatrixXd mode_params, MatrixXd noise_params, std::string file_out, std::string identifier){
+void write_star_params_a1a2a3asym(VectorXd& spec_params, MatrixXd& mode_params, MatrixXd& noise_params, std::string file_out, std::string identifier){
 	std::cout << "OBSELETE MODEL: Please use write_star_params_aj instead" << std::endl;
 	exit(EXIT_SUCCESS);
 }
 
 
-void write_star_mode_params_a1a2a3(MatrixXd mode_params, std::string file_out){
+void write_star_mode_params_a1a2a3(MatrixXd& mode_params, std::string file_out){
 	std::cout << "OBSELETE MODEL: Please use write_star_params_aj instead" << std::endl;
 	exit(EXIT_SUCCESS);
 }
 
 
 
-void write_star_mode_params_act_asym(MatrixXd mode_params, std::string file_out, bool append){
+void write_star_mode_params_act_asym(MatrixXd& mode_params, std::string file_out, bool append){
 
 	VectorXi Nchars(11), precision(11);
 
@@ -90,7 +90,7 @@ void write_star_mode_params_act_asym(MatrixXd mode_params, std::string file_out,
 	
 }
 
-void write_star_mode_params_Alm(MatrixXd mode_params, std::string file_out, bool append){
+void write_star_mode_params_Alm(MatrixXd& mode_params, std::string file_out, bool append){
 
 	VectorXi Nchars(12), precision(12);
 
@@ -119,7 +119,7 @@ void write_star_mode_params_Alm(MatrixXd mode_params, std::string file_out, bool
 	}
 }
 
-void write_star_mode_params_aj(MatrixXd mode_params, std::string file_out, bool append){
+void write_star_mode_params_aj(MatrixXd& mode_params, std::string file_out, bool append){
 
 	VectorXi Nchars(16), precision(16);
 
@@ -150,7 +150,7 @@ void write_star_mode_params_aj(MatrixXd mode_params, std::string file_out, bool 
 
 
 
-void write_star_noise_params(MatrixXd noise_params, std::string file_out, bool append){
+void write_star_noise_params(MatrixXd& noise_params, std::string file_out, bool append){
 
 	VectorXi Nchars(3), precision(3);
 
@@ -204,7 +204,7 @@ void write_range_modes(Cfg_synthetic_star cfg_star, Params_synthetic_star params
 // Procedure that write a MCMC file, suited for my CPP MCMC program
 // This MCMC file is on the Main-Sequence format (not suitable for my MCMC code for fitting evolved stars)
 // Here file_cfg_common_params is a file that contain a pre-formated text with the common parameters to be used 
-VectorXd write_star_model(const MatrixXd mode_params, const MatrixXd noise_params, const std::string file_out,
+VectorXd write_star_model(const MatrixXd& mode_params, const MatrixXd& noise_params, const std::string file_out,
 													const std::string identifier, const std::string modelname, const std::string common_template_dir){
 
 	// Calculates Dnu and C_l from the list of l=0 frequencies
@@ -350,17 +350,19 @@ VectorXd write_star_model(const MatrixXd mode_params, const MatrixXd noise_param
 }
 
 // To convert the .in files into .model files that can be handled with the CPP TAMCMC
+/*
 void convert_in_to_model(const std::string file_out, const std::string identifier){
 
 	std::cout << "NEED TO BE WRITTEN" << std::endl;
   
 }
+*/
 
-void write_spectrum(const VectorXd x, const VectorXd y, const VectorXd z, const std::string file_out, const bool write_inmodel){
+void write_spectrum(const VectorXd& x, const VectorXd& y, const VectorXd& z, const std::string file_out, const bool write_inmodel){
 	write_spectrum(x, y, z, file_out, write_inmodel, -1, -1);
 }
 
-void write_spectrum(const VectorXd x, const VectorXd y, const VectorXd z, const std::string file_out, const bool write_inmodel, const double fmin, const double fmax){
+void write_spectrum(const VectorXd& x, const VectorXd& y, const VectorXd& z, const std::string file_out, const bool write_inmodel, const double fmin, const double fmax){
 
 	int imin, imax;
 
@@ -408,7 +410,8 @@ void write_spectrum(const VectorXd x, const VectorXd y, const VectorXd z, const 
 
 }
 
-void write_spectrum(const VectorXd x, const VectorXd y, const VectorXd z, const double scoef1, double scoef2, const std::string file_out){
+
+void write_spectrum(const VectorXd& x, const VectorXd& y, const VectorXd& z, const double scoef1, double scoef2, const std::string file_out){
 /* 
  * Same as write_spectrum, but we add two columns with values for the smooth of the vector y using a boxcar
  * With a smooth coeficient scoef1 (column 2) or scoef2 (column 3).
@@ -419,18 +422,11 @@ void write_spectrum(const VectorXd x, const VectorXd y, const VectorXd z, const 
 
 	std::ofstream outfile;
 
-    //std::cout << " - write_spectrum_v2..." << std::endl;
-
 	Nchars << 20, 20, 20;
 	precision << 10, 10, 7;
 
-    //std::cout << " - scoef1:" << scoef1 << std::endl;
 	ys1=smooth(y, scoef1);
-    //if(scoef1 == scoef2){ scoef2=1.5*scoef1;}
-    //std::cout << " - scoef2:" << scoef2 << std::endl;
 	ys2=smooth(y, scoef2);
-
-    //std::cout << " - Writing spectrum info..." << std::endl;
 	outfile.open(file_out.c_str());
 	if(outfile.is_open()){
 
@@ -457,7 +453,8 @@ void write_spectrum(const VectorXd x, const VectorXd y, const VectorXd z, const 
 
 }
 
-VectorXd smooth(const VectorXd in, const double scoef){
+
+VectorXd smooth(const VectorXd& in, const double scoef){
 /* 
  * Return a boxcar smooth of a vector. The smooth coeficient
  * is in natural unit of the vector (ie, microHz not in bins)
@@ -467,37 +464,24 @@ VectorXd smooth(const VectorXd in, const double scoef){
   const double dx=std::abs(in[1]-in[0]);
   double Nbins_d=scoef/dx;
   int Nbins=floor(Nbins_d);
-  //Nbins_d=scoef/dx;
-  //Nbins=int(Nbins_d);
 
   if(Nbins >= in.size()/3){
       Nbins=in.size()/6;
   }
   if(Nbins > 1){
   	if(Nbins%2 != 0){Nbins=Nbins +1;} // ensure that the Nbins/2 is an integer
-      //std::cout << "[1] Nbins_d=" << Nbins_d << "    Nbins=" << Nbins << "    dx=" << dx << "     in.size()=" << out.size() << std::endl;
-
- 	 //std::cout << "Nbins_d=" << Nbins_d << std::endl;
-  	 //std::cout << "Nbins=" << Nbins << std::endl;
  	 for (int i=Nbins; i<in.size()-Nbins; i++){
 		out[i]=in.segment(i- Nbins/2, Nbins).sum()/Nbins; // Centered average
 	  }
-	  //std::cout << " - Passed loop 1" << std::endl;
 	  for (int i=0; i<Nbins; i++){
-          //std::cout << "i= " << i << "   i+Nbins/2 =" << i+Nbins/2;
 		  out[i]=in.segment(0, i+Nbins/2).sum()/(i+Nbins/2); // Right side average
-          //std::cout << "    passed " << std::endl;
 	  }
-	  //std::cout << " - Passed loop 2" << std::endl;
 	  for (int i=in.size()-1-Nbins; i<in.size(); i++){
 		out[i]=in.segment(i-Nbins/2, in.size()-1-i).sum()/(in.size()-1-i); // Left side average
-		//std::cout << "out[" << i << "]=" << out[i];
 	  }
-	  //std::cout << " - Passed loop 3" << std::endl;
   } else {
 	out=in;
   }
-
 return out;
 }
 
@@ -541,9 +525,7 @@ std::vector<std::string> read_allfile_vect(const std::string file){
 
  Cfg_synthetic_star read_theoretical_freqs(const std::string file){
 	std::ifstream file_in;
-	//std::vector<std::string> read_allfile_vect(file); // Each line in a vector
 	Cfg_synthetic_star cfg_star;
-	//VectorXi Nf_el(4); // How many modes of each degree
 	std::vector<int> pos_l, l_vec; // temporary vector
 	std::vector<double> nu_vec; // temporary vector
 	std::vector<std::string> tmp_vec_str;
@@ -599,17 +581,13 @@ std::vector<std::string> read_allfile_vect(const std::string file){
 		std::cout << "[5] cfg_star.alpha_g_star=" << cfg_star.alpha_g_star << std::endl;
 		//     The frequencies
 		std::getline(file_in, line0); // SKIP A COMMENT LINE 
-		//std::cout << "[5] " << line0 << std::endl;
 		cpt=0;
 		cptmax=1000;
 		std::cout << "[6] " << "Vectors ..." << std::endl;
 		while(!file_in.eof() && cpt < cptmax){
 			std::getline(file_in, line0); // Read the lines
 			if (line0 != ""){
-				//std::cout << "line0 =" << line0 << std::endl;
 				tmp_vec_str=strsplit(rem_comments(line0, "#"), " "); // we expect l and nu_nl
-				//std::cout << "  [" << cpt << "/" << cptmax << "]   tmp_vec_str[0] =" << tmp_vec_str[0] << std::endl;
-				//std::cout << "  [" << cpt << "/" << cptmax << "]   tmp_vec_str[1] =" << tmp_vec_str[1] << std::endl;
 				l_vec.push_back(str_to_int(tmp_vec_str[0]));
 				nu_vec.push_back(str_to_dbl(tmp_vec_str[1]));
 			}
@@ -621,12 +599,7 @@ std::vector<std::string> read_allfile_vect(const std::string file){
 		std::cout << "Configuration file: " << file << std::endl;
 		exit(EXIT_FAILURE);
 	}
-/*
-	for (int i=0; i<l_vec.size(); i++){
-		std::cout << l_vec[i] << "   " << nu_vec[i] << std::endl;
-	}
-	exit(EXIT_SUCCESS);
-*/
+
 	cfg_star.Nf_el.resize(4);
 	// [3] Organize the frequencies in cfg_star.nu_nl
 	for (int el=0; el<4; el++){
@@ -643,13 +616,10 @@ std::vector<std::string> read_allfile_vect(const std::string file){
 	for (int el=0; el<4; el++){
 		pos_l=where_int(l_vec, el);
 		for (int n=0; n<cfg_star.Nf_el[el];n++){
-			//std::cout << "[" << n << "]  " << nu_vec[pos_l[n]] << std::endl;
 			cfg_star.nu_nl(el, n)=nu_vec[pos_l[n]];
 		}
 	}
-	//std::cout << cfg_star.nu_nl << std::endl;
-	//std::cout << "All good" << std::endl;
-	//exit(EXIT_SUCCESS);
+
 	return cfg_star;
 }
 
@@ -968,6 +938,14 @@ std::string rem_comments(std::string str0, std::string terminator){
 	return str_out;
 }
 
+/**
+ * @brief Read the main configuration file
+ *
+ * This function reads the main configuration file and extracts the relevant data to populate a Config_Data object.
+ *
+ * @param cfg_file The path to the main configuration file
+ * @return The populated Config_Data object
+ */
 Config_Data read_main_cfg(std::string cfg_file){
 
 	int cpt, cptmax;
@@ -977,7 +955,6 @@ Config_Data read_main_cfg(std::string cfg_file){
 	std::vector<double> tmp;
 	Config_Data cfg;
 
-	
 	cptmax=100; //maximum number of header lines
     	file_in.open(cfg_file.c_str());
     	if (file_in.is_open()) {
@@ -1024,42 +1001,18 @@ Config_Data read_main_cfg(std::string cfg_file){
 
 			std::getline(file_in, line0);
 			cfg.template_files=strsplit(rem_comments(line0, "#"), " ");
-			//std::cout << "  line0      : " << line0 << std::endl;
-			//for (int kk=0;kk<cfg.labels.size();kk++){
-			//	std::cout << "  cfg.template_files: " << cfg.template_files[kk] << std::endl;
-			//}
-			//std::cout << "  ---- " << std::endl;
+
 			std::getline(file_in, line0);
 			cfg.labels=strsplit(rem_comments(line0, "#"), " ");
-			//std::cout << "  line0      : " << line0 << std::endl;
-			//for (int kk=0;kk<cfg.labels.size();kk++){
-			//	std::cout << "  cfg.labels: " << cfg.labels[kk] << std::endl;
-			//}
-			//std::cout << "  ---- " << std::endl;			
+		
 			std::getline(file_in, line0);
 			cfg.val_min=str_to_arrdbl(rem_comments(line0, "#"), " ");
-			//std::cout << "  line0      : " << line0 << std::endl;
-			//for (int kk=0;kk<cfg.labels.size();kk++){
-			//	std::cout << "  cfg.val_min: " << cfg.val_min[kk] << std::endl;
-			//}
-			//std::cout << "  ---- " << std::endl;
 			
 			std::getline(file_in, line0);
 			cfg.val_max=str_to_arrdbl(rem_comments(line0, "#"), " ");
-			//std::cout << "  line0      : " << line0 << std::endl;
-			//for (int kk=0;kk<cfg.labels.size();kk++){
-			//	std::cout << "  cfg.val_max: " << cfg.val_max[kk] << std::endl;
-			//}
-			//std::cout << "  ---- " << std::endl;
 
 			std::getline(file_in, line0);
 			cfg.step=str_to_arrdbl(rem_comments(line0, "#"), " ");
-			//std::cout << "  line0      : " << line0 << std::endl;
-			//for (int kk=0;kk<cfg.labels.size();kk++){
-			//	std::cout << "  cfg.step: " << cfg.step[kk] << std::endl;
-			//}
-			//std::cout << "  ---- " << std::endl;
-
 			std::getline(file_in, line0); // skip the labels of Tobs and Cadence
 
 			std::getline(file_in, line0);
@@ -1105,19 +1058,16 @@ Config_Data read_main_cfg(std::string cfg_file){
 		std::cout << "cfg.val_min.size()=" << cfg.val_min.size() << std::endl;
 		std::cout << "cfg.val_max.size()=" << cfg.val_max.size() << std::endl;
 		exit(EXIT_FAILURE);
-	}
-	
+	}	
 	// ------- Verbose setup ------
 	std::cout << "   cfg.model_name = ";
 	std::cout << cfg.model_name << std::endl;
-
 	std::cout << "   cfg.forest_type = " << cfg.forest_type << std::endl;
 	std::cout << "   cfg.forest_params = ";
 	for(int i=0; i<cfg.forest_params.size(); i++){
 		std::cout << cfg.forest_params[i] << "  ";
 	}
 	std::cout << std::endl;
-
 	std::cout << "   cfg.labels  = ";
 	for(int i=0; i<cfg.labels.size(); i++){
 		std::cout << std::setw(4) << cfg.labels[i] << "  ";
@@ -1138,12 +1088,10 @@ Config_Data read_main_cfg(std::string cfg_file){
 		std::cout << std::setw(4) << cfg.step[i] << "  ";
 	}
 	std::cout << std::endl;
-
 	std::cout << "   cfg.Tobs = " << cfg.Tobs << std::endl;
 	std::cout << "   cfg.Cadence = " << cfg.Cadence << std::endl;
 	std::cout << "   cfg.erase_old_files = " << cfg.erase_old_files << std::endl;
 	// -------------------
-
 	return cfg;
 }
 
@@ -1216,8 +1164,7 @@ MatrixXd bumpoutputs_2_MatrixXd(Params_synthetic_star params, double inc){
 	return mode_params;
 }
 
-
-void write_global_info(VectorXd spec_params, std::string file_out, std::string identifier, bool append){
+void write_global_info(VectorXd& spec_params, std::string file_out, std::string identifier, bool append){
 	VectorXi Nchars_spec(2),  precision_spec(2);
 	
 	std::ofstream outfile;
@@ -1240,6 +1187,7 @@ void write_global_info(VectorXd spec_params, std::string file_out, std::string i
 	}
 	outfile.close();
 }
+
 
 void file_read_error(std::string file_out){
 		std::cout << " Unable to open file " << file_out << std::endl;	

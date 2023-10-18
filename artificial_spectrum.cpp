@@ -1,20 +1,20 @@
-/*
- * artificial_spectrum.cpp
+/**
+ * @file artificial_spectrum.cpp
  *
  * Contains all kind of methods that is producing
  * a single artificial spectrum
  * 
- *  Created on: 05 May 2016
- *      Author: obenomar
+ * @date 05 May 2016
+ * @author obenomar
  */
 #include <iostream>
 #include <iomanip>
 #include <fstream>
 #include <string>
+#include "io_star_params.h"
 #include <Eigen/Dense>
 #include <boost/random.hpp>
 #include <boost/random/normal_distribution.hpp>
-//#include <mach/mach_time.h>
 #include "artificial_spectrum.h"
 #include "noise_models.h"
 #ifdef MACOS
