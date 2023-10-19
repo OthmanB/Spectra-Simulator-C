@@ -23,7 +23,7 @@ using Eigen::VectorXd;
  * @param r The r value
  * @return The calculated combination coefficient
  *
- * @dependencies This function requires the following dependencies:
+ * Dependencies: This function requires the following dependencies:
  * - factorial function
  */
 double combi(int n, int r);
@@ -39,7 +39,7 @@ double combi(int n, int r);
  * @param beta The stellar inclination in radians
  * @return The calculated dmm coefficient
  *
- * @dependencies This function requires the following dependencies:
+ * Dependencies: This function requires the following dependencies:
  * - math.h
  * - combi function
  * - factorial function
@@ -76,7 +76,7 @@ MatrixXd function_rot( int l, double beta);
  * @param beta The stellar inclination in degrees
  * @return A VectorXd of size 2*l+1 containing the visibilities of the m components
  *
- * @dependencies This function requires the following dependencies:
+ * Dependencies: This function requires the following dependencies:
  *   - math.h
  *   - Eigen library (version 3.1)
  */

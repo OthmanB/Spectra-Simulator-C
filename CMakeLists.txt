@@ -72,7 +72,7 @@ set(SOURCES_MAIN  #_COMMON
     models_database_grid.cpp
     format.cpp
     acoefs.cpp
-    external/integrate/activity.cpp
+    external/Alm/Alm_cpp/activity.cpp
     external/ARMM/bump_DP.cpp
     external/ARMM/solver_mm.cpp
     external/rescale/rescale_freqs.cpp
@@ -87,7 +87,7 @@ set(SOURCES_TEST_LORENTZIAN
     build_lorentzian.cpp
     linspace.cpp
     acoefs.cpp
-    external/integrate/activity.cpp
+    external/Alm/Alm_cpp/activity.cpp
     )
 
 

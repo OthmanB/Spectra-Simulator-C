@@ -105,7 +105,7 @@ void generate_grid(Config_Data cfg, bool usemodels, Data_Nd models, std::vector<
  * @param file_out_noise The file path for the output noise.
  * @param file_cfg_mm The file path for the main configuration file.
  * @param dir_core The directory path where the generated models will be saved.
- * @param id_str The ID string for the current combination.
+ * @param identifier The ID of the star for the current combination.
  * @param cfg The configuration data.
  * @param external_path The external path.
  * @param template_file The template file path.
@@ -138,7 +138,7 @@ bool call_model_grid(std::string model_name, VectorXd input_params, Model_data i
  * This function retrieves a list of files within the specified path. The path should not contain any system-based filters such as '*.*'. These filters should be included in the extension string parameter.
  *
  * @param path The path from which to retrieve the list of files.
- * @param extension The file extension to filter the list of files. Only files with this extension will be included in the list.
+ * @param filter Term allowing to return syntax-specific name, eg. kplr*
  * @return A vector of strings containing the names of the files in the specified path.
  */
 std::vector<std::string> list_dir(const std::string path, const std::string filter);
@@ -1180,7 +1180,6 @@ void showversion()
 		std::cout << " Unknown" << std::endl;
 #   endif
     std::cout << " Author: " << APP_COPYRIGHT << std::endl;
-
 }
 
 

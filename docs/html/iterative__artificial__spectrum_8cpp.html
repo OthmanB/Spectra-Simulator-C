@@ -91,7 +91,7 @@ $(function() {
 <code>#include &quot;<a class="el" href="version_8h_source.html">version.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="combi_8h_source.html">combi.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="stellar__models_8h_source.html">stellar_models.h</a>&quot;</code><br />
-<code>#include &quot;io_star_params.h&quot;</code><br />
+<code>#include &quot;<a class="el" href="io__star__params_8h_source.html">io_star_params.h</a>&quot;</code><br />
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
@@ -291,7 +291,7 @@ Functions</h2></td></tr>
     <tr><td class="paramname">file_out_noise</td><td>The file path for the output noise. </td></tr>
     <tr><td class="paramname">file_cfg_mm</td><td>The file path for the main configuration file. </td></tr>
     <tr><td class="paramname">dir_core</td><td>The directory path where the generated models will be saved. </td></tr>
-    <tr><td class="paramname">id_str</td><td>The ID string for the current combination. </td></tr>
+    <tr><td class="paramname">identifier</td><td>The ID of the star for the current combination. </td></tr>
     <tr><td class="paramname">cfg</td><td>The configuration data. </td></tr>
     <tr><td class="paramname">external_path</td><td>The external path. </td></tr>
     <tr><td class="paramname">template_file</td><td>The template file path. </td></tr>
@@ -559,7 +559,7 @@ Functions</h2></td></tr>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">path</td><td>The path from which to retrieve the list of files. </td></tr>
-    <tr><td class="paramname">extension</td><td>The file extension to filter the list of files. Only files with this extension will be included in the list. </td></tr>
+    <tr><td class="paramname">filter</td><td>Term allowing to return syntax-specific name, eg. kplr* </td></tr>
   </table>
   </dd>
 </dl>
@@ -622,7 +622,6 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Display the version information of the application. </p>
-<p>Function to show the version information.</p>
 <p>This function displays the version information of the application, including the application name, version number, and build date. It also displays information about the compiler used to build the application and the features supported by the platform. </p>
 
 </div>

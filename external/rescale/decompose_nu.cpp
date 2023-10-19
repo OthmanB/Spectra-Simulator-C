@@ -1,3 +1,13 @@
+/**
+ * @file decompose_nu.cpp
+ * @brief Functions of decompose_nu_nl.
+ *
+ * This file contains the function to decompose nu(n,l) into the asymptotic terms. 
+ *
+ * @date 24 Feb 2023
+ * @author obenomar
+ */
+
 #include <Eigen/Dense>
 #include <cmath>
 #include <iostream>

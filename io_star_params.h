@@ -45,27 +45,17 @@ std::string rem_comments(std::string str0, std::string terminator);
  */
 void write_global_info(VectorXd& spec_params, std::string file_out, std::string identifier, bool append=false); // Write Identifier, Cadence and observation duration
 
-/**
- * @brief Write the star parameters (mode parameters, noise parameters, and global info) to an output file in a specific format
- *
- * This function writes the star parameters (mode parameters, noise parameters, and global info) to an output file in a specific format. It allows appending the data to an existing file or creating a new file. The function includes a header indicating the purpose of the file and the format of the input parameters. The mode parameters matrix should contain degree, frequency, H, W, a1, a2, a3, a4, a5, a6, asymmetry, and inclination values. The noise parameters matrix should contain H0, tau_0, p0, H1, tau_1, p1, and N0 values. The spec_params vector should contain the global info of the star. The function uses the Nchars and precision vectors to specify the width and precision of each value in the output file.
- *
- * @param spec_params The global info vector
- * @param mode_params The mode parameters matrix
- * @param noise_params The noise parameters matrix
- * @param file_out The path to the output file
- * @param identifier The identifier of the star
- */
-void write_star_params_a1a2a3asym(VectorXd& spec_params, MatrixXd& mode_params, MatrixXd& noise_params, std::string file_out, std::string identifier);
 
 /**
  * @brief Write the mode parameters matrix to an output file in a specific format
  *
- * This function writes the mode parameters matrix to an output file in a specific format. It allows appending the data to an existing file or creating a new file. The function includes a header indicating the purpose of the file and the format of the input mode parameters. The mode parameters matrix should contain degree, frequency, H, W, a1, eta0, epsilon_Alm, theta0_Alm, delta_Alm, a3, asymmetry, and inclination values. The function uses the Nchars and precision vectors to specify the width and precision of each value in the output file.
+ * This function writes the mode parameters to an output file in a specific format. It allows appending the data to an existing file or creating a new file. The function includes a header indicating the purpose of the file and the format of the input mode parameters. The mode parameters matrix should contain degree, frequency, H, W, a1, eta0, epsilon_Alm, theta0_Alm, delta_Alm, a3, asymmetry, and inclination values. The function uses the Nchars and precision vectors to specify the width and precision of each value in the output file.
  *
+ * @param spec_params The spectrum parameters vector
  * @param mode_params The mode parameters matrix
+ * @param noise_params The noise parameters matrix
  * @param file_out The path to the output file
- * @param append Flag indicating whether to append the data to an existing file (default: false)
+ * @param identifier The identifier of the star
  */
 void write_star_params_act_asym(VectorXd& spec_params, MatrixXd& mode_params, MatrixXd& noise_params, std::string file_out, std::string identifier);
 
@@ -76,6 +66,7 @@ void write_star_params_act_asym(VectorXd& spec_params, MatrixXd& mode_params, Ma
  *
  * @param mode_params The mode parameters matrix
  * @param file_out The path to the output file
+ * @param append Flag indicating whether to append the data to an existing file (default: false)
  */
 void write_star_mode_params_a1a2a3(MatrixXd& mode_params, std::string file_out, bool append=false);
 
@@ -84,11 +75,9 @@ void write_star_mode_params_a1a2a3(MatrixXd& mode_params, std::string file_out, 
  *
  * This function writes the star parameters (mode parameters, noise parameters, and global info) to an output file in a specific format. It allows appending the data to an existing file or creating a new file. The function includes a header indicating the purpose of the file and the format of the input parameters. The mode parameters matrix should contain degree, frequency, H, W, a1, a2, a3, a4, a5, a6, asymmetry, and inclination values. The noise parameters matrix should contain H0, tau_0, p0, H1, tau_1, p1, and N0 values. The spec_params vector should contain the global info of the star. The function uses the Nchars and precision vectors to specify the width and precision of each value in the output file.
  *
- * @param spec_params The global info vector
  * @param mode_params The mode parameters matrix
- * @param noise_params The noise parameters matrix
  * @param file_out The path to the output file
- * @param identifier The identifier of the star
+ * @param append Flag indicating whether to append the data to an existing file (default: false)
  */
 void write_star_mode_params_act_asym(MatrixXd& mode_params, std::string file_out, bool append=false);
 

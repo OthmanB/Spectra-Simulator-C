@@ -44,16 +44,7 @@ void write_star_params_act_asym(VectorXd& spec_params, MatrixXd& mode_params, Ma
 	write_star_noise_params(noise_params, file_out, true);
 }
 
-void write_star_params_a1a2a3asym(VectorXd& spec_params, MatrixXd& mode_params, MatrixXd& noise_params, std::string file_out, std::string identifier){
-	std::cout << "OBSELETE MODEL: Please use write_star_params_aj instead" << std::endl;
-	exit(EXIT_SUCCESS);
-}
 
-
-void write_star_mode_params_a1a2a3(MatrixXd& mode_params, std::string file_out){
-	std::cout << "OBSELETE MODEL: Please use write_star_params_aj instead" << std::endl;
-	exit(EXIT_SUCCESS);
-}
 
 
 

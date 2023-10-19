@@ -1,5 +1,5 @@
 /**
- * @file acoeffs.cpp
+ * @file acoefs.h
  * @brief Functions that handle the acoefficients
  * @date 16 Nov 2021
  * @author Othman Benomar

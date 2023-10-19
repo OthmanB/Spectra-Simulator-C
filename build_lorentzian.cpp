@@ -12,7 +12,7 @@
 #include "build_lorentzian.h"
 #include <iostream>
 #include <iomanip>
-#include "external/integrate/activity.h"
+#include "external/Alm/Alm_cpp/activity.h"
 #include "acoefs.h"
 using Eigen::VectorXd;
 using Eigen::VectorXi;
@@ -361,26 +361,6 @@ VectorXd build_l_mode_a1etaa3_v2(const VectorXd& x_l, const VectorXd& H_lm, cons
 return result;
 }
 
-VectorXd build_l_mode_asym_act(const VectorXd& x_l, const double H_l, const double fc_l, const double f_s, const double eta, const double a3, const double b, const double alpha, const double asym, const double gamma_l, const int l, const VectorXd& V){
-/*
- * ---- OBSELETE FUNCTION ----
- * This model includes:
- *      - Asymetry of Lorentzian asym
- *      - splitting a1
- *      - centrifugal force effect eta.nu.a1^2 (rotation-induced oblateness)
- *      - latitudinal effect a3
- *      - effect of magnetic field of the form b.nu^alpha
- * ---------------------------
-*/
-    VectorXd result;
-
-    std::cout << "Obselete Function" << std::endl;
-    std::cout << "The program will exit now" << std::endl;
-    exit(EXIT_SUCCESS);
-
-//std::cout << "result=" << result.transpose() <<std::endl;
-return result;
-}
 
 VectorXd optimum_lorentzian_calc_a1l_etaa3(const VectorXd& x, const VectorXd& y, const double H_l, const double fc_l, const double f_s1, const double f_s2, const double eta0, const double a3, const double asym, const double gamma_l, const int l, const VectorXd& V, const double step, const double c){
     /*
@@ -558,23 +538,6 @@ VectorXd optimum_lorentzian_calc_a1etaa3_v2(const VectorXd& x, const VectorXd& y
 return y_out;
 }
 
-
-VectorXd optimum_lorentzian_calc_a1acta3(const VectorXd& x, const VectorXd& y, const double H_l, const double fc_l, const double f_s, const double eta, const double a3, 
-		const double b, const double alpha, const double asym, const double gamma_l, const int l, const VectorXd& V, const double step, const double c){
-/*
-	function that calculates the lorentzian on a optimized range of frequency. It returns a Vector of same size as the original vector x
-	that contains the lorentzian model.
-	BEWARE: USES build_l_mode_asym_act() ==> Include mode asymetry and effect of activity
-
-*/
-    VectorXd y_out;
-    
-    std::cout << "Obselete Function" << std::endl;
-    std::cout << "The program will exit now" << std::endl;
-    exit(EXIT_SUCCESS);
-
-return y_out;
-}
 
 VectorXd optimum_lorentzian_calc_a1l_etaa3_v2(const VectorXd& x, const VectorXd& y, const VectorXd& H_lm, const double fc_l, const double f_s1, const double f_s2, const double eta0, const double a3, const double asym, const double gamma_l, const int l, const double step, const double c){
     /*

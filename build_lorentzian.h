@@ -59,7 +59,7 @@ VectorXi set_imin_imax(const VectorXd& x, const int l, const double fc_l, const 
  * @param fc_l The central frequency of the mode.
  * @param f_s1 The splitting frequency for l=1.
  * @param f_s2 The splitting frequency for l=2.
- * @param eta0 The asphericity parameter.
+ * @param eta The asphericity parameter.
  * @param a3 The latitudinal effect for l=2.
  * @param asym The asymmetry parameter.
  * @param gamma_l The mode width.
@@ -108,7 +108,7 @@ VectorXd build_l_mode_a1l_a2a3(const VectorXd& x_l, const double H_l,  const dou
  * @param H_l The height of the mode.
  * @param fc_l The central frequency of the mode.
  * @param f_s The splitting frequency.
- * @param eta0 The asphericity parameter.
+ * @param eta The asphericity parameter.
  * @param a3 The a3 coefficient.
  * @param asym The asymmetry parameter.
  * @param gamma_l The mode width.
@@ -118,8 +118,6 @@ VectorXd build_l_mode_a1l_a2a3(const VectorXd& x_l, const double H_l,  const dou
  */
 VectorXd build_l_mode_a1etaa3(const VectorXd& x_l,  const double H_l,  const double fc_l,  const double f_s,  const double eta, const double a3,  const double asym,  const double gamma_l, const int l, const VectorXd& V);
 
-// OBSELETE FUNCTION
-VectorXd build_l_mode_a1acta3(const VectorXd& x_l,  const double H_l,  const double fc_l,  const double f_s,  const double eta, const double a3,  const double b,  const double alpha,  const double asym, double gamma_l, const int l,  const VectorXd& V);
 
 /**
  * @brief Build a Lorentzian mode with asymmetry and splitting (model a1etaa3_v2)
@@ -135,7 +133,7 @@ VectorXd build_l_mode_a1acta3(const VectorXd& x_l,  const double H_l,  const dou
  * @param H_lm The heights of the mode.
  * @param fc_l The central frequency of the mode.
  * @param f_s The splitting frequency.
- * @param eta0 The eta0 coefficient.
+ * @param eta The eta0 coefficient.
  * @param a3 The a3 coefficient.
  * @param asym The asymmetry parameter.
  * @param gamma_l The mode width.
@@ -160,7 +158,7 @@ VectorXd build_l_mode_a1etaa3_v2(const VectorXd& x_l, const VectorXd& H_lm,  con
  * @param fc_l The central frequency of the mode.
  * @param f_s1 The splitting frequency for l=1.
  * @param f_s2 The splitting frequency for l=2.
- * @param eta0 The eta0 coefficient.
+ * @param eta The eta0 coefficient.
  * @param a3 The a3 coefficient.
  * @param asym The asymmetry parameter.
  * @param gamma_l The mode width.
@@ -169,6 +167,27 @@ VectorXd build_l_mode_a1etaa3_v2(const VectorXd& x_l, const VectorXd& H_lm,  con
  */
 VectorXd build_l_mode_a1l_etaa3_v2(const VectorXd& x_l, const VectorXd& H_lm,  const double fc_l,  const double f_s1,  const double f_s2,  const double eta,  const double a3,  const double asym, double gamma_l, const int l);
 
+/**
+ * @brief Build the l-mode a1a2a3 vector.
+ *
+ * This function builds the l-mode a1a2a3 vector based on the given parameters.
+ * It includes asymmetry of Lorentzian, splitting a1, and latitudinal effect a3.
+ *
+ * @param x_l The input vector x_l.
+ * @param H_l The H_l value.
+ * @param fc_l The fc_l value.
+ * @param f_s The f_s value.
+ * @param a2 The a2 value.
+ * @param a3 The a3 value.
+ * @param asym The asymmetry value.
+ * @param gamma_l The gamma_l value.
+ * @param l The l value.
+ * @param V The input vector V.
+ * @return The built l-mode a1a2a3 vector.
+ *
+ * @note This function requires the following dependencies:
+ * - Pslm function from acoefs.cpp
+ */
 VectorXd build_l_mode_a1a2a3(const VectorXd& x_l, const double H_l, const double fc_l, const double f_s, const double a2, const double a3, const double asym, const double gamma_l, const int l, const VectorXd& V);
 
 /**
@@ -188,7 +207,7 @@ VectorXd build_l_mode_a1a2a3(const VectorXd& x_l, const double H_l, const double
  * @param fc_l The central frequency of the mode.
  * @param f_s1 The splitting frequency for l=1.
  * @param f_s2 The splitting frequency for l=2.
- * @param eta0 The eta0 coefficient.
+ * @param eta The eta0 coefficient.
  * @param a3 The a3 coefficient.
  * @param asym The asymmetry parameter.
  * @param gamma_l The mode width.
@@ -215,7 +234,7 @@ VectorXd optimum_lorentzian_calc_a1l_etaa3(const VectorXd& x, const VectorXd& y,
  * @param H_l The heights of the mode.
  * @param fc_l The central frequency of the mode.
  * @param f_s The splitting frequency.
- * @param eta0 The eta0 coefficient.
+ * @param eta The eta0 coefficient.
  * @param a3 The a3 coefficient.
  * @param asym The asymmetry parameter.
  * @param gamma_l The mode width.
@@ -227,9 +246,6 @@ VectorXd optimum_lorentzian_calc_a1l_etaa3(const VectorXd& x, const VectorXd& y,
  */
 VectorXd optimum_lorentzian_calc_a1etaa3(const VectorXd& x, const VectorXd& y,  const double H_l,  const double fc_l,  const double f_s,  const double eta,  const double a3,  const double asym,  const double gamma_l, const int l,  const VectorXd& V,  const double step, const double c);
 
-// OBSELETE FUNCTION
-VectorXd optimum_lorentzian_calc_a1acta3(const VectorXd& x, const VectorXd& y,  const double H_l,  const double fc_l,  const double f_s,  const double eta,  const double a3, 
-		 const double b,  const double alpha,  const double asym,  const double gamma_l, const int l,  const VectorXd& V,  const double step, const double c);
 
 /**
  * @brief Calculate the optimized Lorentzian model with asymmetry and splitting (model a1l_etaa3_v2)
@@ -246,7 +262,7 @@ VectorXd optimum_lorentzian_calc_a1acta3(const VectorXd& x, const VectorXd& y,  
  * @param fc_l The central frequency of the mode.
  * @param f_s1 The splitting frequency for l=1.
  * @param f_s2 The splitting frequency for l=2.
- * @param eta0 The eta0 coefficient.
+ * @param eta The eta0 coefficient.
  * @param a3 The a3 coefficient.
  * @param asym The asymmetry parameter.
  * @param gamma_l The mode width.
@@ -269,15 +285,14 @@ VectorXd optimum_lorentzian_calc_a1l_etaa3_v2(const VectorXd& x,  const VectorXd
  *
  * @param x The frequency range.
  * @param y The original vector.
- * @param H_l The heights of the mode.
+ * @param H_lm The heights of the mode.
  * @param fc_l The central frequency of the mode.
  * @param f_s The splitting frequency.
- * @param eta0 The eta0 coefficient.
+ * @param eta The eta0 coefficient.
  * @param a3 The a3 coefficient.
  * @param asym The asymmetry parameter.
  * @param gamma_l The mode width.
  * @param l The mode degree.
- * @param V The vector V.
  * @param step The step size.
  * @param c The truncation constant. It limits the range of the computation. Used to (1) accelerate the fitting and (2) measure the asymetry.
  * @return The optimized Lorentzian model.
@@ -311,6 +326,8 @@ VectorXd optimum_lorentzian_calc_a1etaa3_v2(const VectorXd& x,  const VectorXd& 
  * @return The optimized Lorentzian model.
  */
 VectorXd optimum_lorentzian_calc_a1l_a2a3(const VectorXd& x, const VectorXd& y, const double H_l, const double fc_l, const double f_s1, const double f_s2, const double a2, const double a3, const double asym, const double gamma_l, const int l, const VectorXd& V, const double step, const double c);
+
+
 
 /**
  * @brief Calculate the optimized Lorentzian model with asymmetry and splitting (model a1a2a3)
@@ -447,7 +464,7 @@ VectorXd build_l_mode_act_simu(const VectorXd& x_l, const double H_l, const doub
  * @param a4 The a4 coefficient.
  * @param a5 The a5 coefficient.
  * @param a6 The a6 coefficient.
- * @param eta0 The eta0 coefficient.
+ * @param eta The eta0 coefficient.
  * @param asym The asymmetry parameter.
  * @param gamma_l The mode width.
  * @param l The mode degree.

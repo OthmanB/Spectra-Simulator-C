@@ -934,6 +934,14 @@ std::vector<std::string> strsplit(const std::string str, const std::string delim
 return str_splitted;
 }
 
+/**
+ * @brief Converts an Eigen VectorXd to a std::vector<double>.
+ *
+ * This function takes an Eigen VectorXd as input and converts it to a std::vector<double>.
+ *
+ * @param vecXd_in The input Eigen VectorXd to be converted.
+ * @return The converted std::vector<double>.
+ */
 std::vector<double> vectXd_to_vec(const VectorXd& vecXd_in){
 
    std::vector<double> vec;

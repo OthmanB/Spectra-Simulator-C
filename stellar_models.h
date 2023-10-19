@@ -43,7 +43,7 @@ Model_data get_model_param(const Data_Nd table, const long table_index, const st
  *
  * This function reads the frequency file and returns the data in a Data_Nd structure.
  *
- * @param freq_file The name of the frequency file.
+ * @param file_in_name The name of the frequency file.
  * @param verbose_data Flag to control the verbosity of the data reading process.
  * @return A Data_Nd structure containing the data from the frequency file.
  */

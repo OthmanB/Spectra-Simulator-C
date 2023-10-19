@@ -1,3 +1,13 @@
+/**
+ * @file rescale_freqs.cpp
+ * @brief Functions related to rescaling frequencies.
+ *
+ * This file contains functions related to rescaling frequencies.
+ *
+ * @date 24 Feb 2023
+ * @author obenomar
+ */
+
 #include <Eigen/Dense>
 #include <cmath>
 #include <iostream>

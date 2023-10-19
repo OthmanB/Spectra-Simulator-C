@@ -78,22 +78,6 @@ std::vector<double> where(const std::vector<double> vec, const std::string condi
  *
  * The condition can be one of the following operators: "=", "!=", ">", "<", ">=", or "<=".
  *
- * @param vec The input Eigen vector
- * @param condition The condition to be checked
- * @param value The value to compare with
- * @return std::vector<double> The indexes or values that fulfill the condition
- */
-//std::vector<double> where(const VectorXd& vec, const std::string condition, const double value, const bool return_values);
-
-
-/**
- * @brief Gives the indexes or values of an array that fulfill a condition
- *
- * If return_values is 0, this function returns the indexes of values in the input vector that fulfill the condition.
- * If return_values is 1, this function returns the values in the input vector that fulfill the condition.
- *
- * The condition can be one of the following operators: "=", "!=", ">", "<", ">=", or "<=".
- *
  * @param vec The input vector
  * @param condition The condition to be checked
  * @param value The value to compare with
@@ -402,6 +386,14 @@ VectorXi arrstr_to_Xiarr(const std::vector<std::string> vals_strs);
  */
 std::vector<double> arrstr_to_arrdbl(const std::vector<std::string> vals_strs);
 
+/**
+ * @brief Converts an Eigen VectorXd to a std::vector<double>.
+ *
+ * This function takes an Eigen VectorXd as input and converts it to a std::vector<double>.
+ *
+ * @param vecXd_in The input Eigen VectorXd to be converted.
+ * @return The converted std::vector<double>.
+ */
 std::vector<double> vectXd_to_vec(const VectorXd& vecXd_in);
 
 /**

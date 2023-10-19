@@ -1,17 +1,11 @@
-/**
- * @brief Function to show the version information.
- *
- * This function displays the version information of the application.
- */
-void showversion();
 
 /**
  * @file version.h
  * @brief Header file that contains version information.
  */
 
-#ifndef __VERSION_H__
-#define __VERSION_H__
+#ifndef __VERSION_H__ 
+#define __VERSION_H__ /**< Version of the program*/
 
 #define APP_ID        "CPPSpecSim" /**< Application ID */
 #define APP_NAME      "CPPSpecSim" /**< Application Name */
@@ -26,4 +20,4 @@ void showversion();
 //#define APP_VER_BUILD  0
 //#define APP_VER_REV    0
 
-#endif /* __VERSION_H__ */
+#endif /* __VERSION_H__ */ 

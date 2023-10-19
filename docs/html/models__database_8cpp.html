@@ -93,7 +93,7 @@ $(function() {
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:ab068df557968694b50610d16a3375edc" id="r_ab068df557968694b50610d16a3375edc"><td class="memItemLeft" align="right" valign="top">double *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="models__database_8cpp.html#ab068df557968694b50610d16a3375edc">r8vec_normal_01</a> (int n, int *seed)</td></tr>
-<tr class="memdesc:ab068df557968694b50610d16a3375edc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Generate an array of random numbers from a standard normal distribution.  <br /></td></tr>
+<tr class="memdesc:ab068df557968694b50610d16a3375edc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Generate a unit pseudonormal R8VEC.  <br /></td></tr>
 <tr class="separator:ab068df557968694b50610d16a3375edc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a07a1c6a5fcb673e6b963cd73a2fe2493" id="r_a07a1c6a5fcb673e6b963cd73a2fe2493"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="models__database_8cpp.html#a07a1c6a5fcb673e6b963cd73a2fe2493">asymptotic_mm_v1</a> (VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string file_cfg_mm, std::string external_path, std::string template_file)</td></tr>
 <tr class="memdesc:a07a1c6a5fcb673e6b963cd73a2fe2493"><td class="mdescLeft">&#160;</td><td class="mdescRight">Generate a configuration file for a simulated star based on input parameters.  <br /></td></tr>
@@ -913,40 +913,7 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Generate an array of random numbers from a standard normal distribution. </p>
-<p>Generate a unit pseudonormal R8VEC.</p>
-<p>This function generates an array of random numbers from a standard normal distribution. The generated random numbers are stored in an array of type double.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">n</td><td>The number of random numbers to generate. </td></tr>
-    <tr><td class="paramname">seed</td><td>A pointer to the seed for the random number generator. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>A pointer to the array of generated random numbers.</dd></dl>
-<p>This function generates a unit pseudonormal R8VEC using the Box-Muller method. The standard normal probability distribution function (PDF) has mean 0 and standard deviation 1. The function can generate a vector of values on one call. It has the feature that it should provide the same results in the same order no matter how we break up the task. Before calling this function, the user may call RANDOM_SEED in order to set the seed of the random number generator.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">n</td><td>The number of values desired. If n is negative, then the code will flush its internal memory; in particular, if there is a saved value to be used on the next call, it is instead discarded. This is useful if the user has reset the random number seed, for instance. </td></tr>
-    <tr><td class="paramname">seed</td><td>A seed for the random number generator. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>A sample of the standard normal PDF.</dd></dl>
-<dl class="section note"><dt>Note</dt><dd>The Box-Muller method is used, which is efficient, but generates an even number of values each time. On any call to this function, an even number of new values are generated. Depending on the situation, one value may be left over. In that case, it is saved for the next call.</dd></dl>
-<dl class="section author"><dt>Author</dt><dd>John Burkardt </dd></dl>
-<dl class="section date"><dt>Date</dt><dd>18 October 2004</dd></dl>
-<dl class="section note"><dt>Note</dt><dd>This code is distributed under the GNU LGPL license.</dd>
-<dd>
-Local parameters:<ul>
-<li>Local, int MADE, records the number of values that have been computed. On input with negative n, this value overwrites the return value of n, so the user can get an accounting of how much work has been done.</li>
-<li>Local, real R(n+1), is used to store some uniform random values. Its dimension is n+1, but really it is only needed to be the smallest even number greater than or equal to n.</li>
-<li>Local, int SAVED, is 0 or 1 depending on whether there is a single saved value left over from the previous call.</li>
-<li>Local, int X_LO, X_HI, records the range of entries of x that we need to compute. This starts off as 1:n, but is adjusted if we have a saved value that can be immediately stored in x(1), and so on.</li>
-<li>Local, real Y, the value saved from the previous call, if saved is 1.</li>
-</ul>
-</dd></dl>
-<p>Generate an array of random numbers from a standard normal distribution.</p>
+<p>Generate a unit pseudonormal R8VEC. </p>
 <p>This function generates a unit pseudonormal R8VEC using the Box-Muller method. The standard normal probability distribution function (PDF) has mean 0 and standard deviation 1. The function can generate a vector of values on one call. It has the feature that it should provide the same results in the same order no matter how we break up the task. Before calling this function, the user may call RANDOM_SEED in order to set the seed of the random number generator.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">

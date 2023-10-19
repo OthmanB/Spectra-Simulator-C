@@ -14,8 +14,6 @@
 
 using namespace std;
 
-double *r8vec_normal_01 ( int n, int *seed );
-double *uniform_01 ( int n, int *seed );
 
 /** 
  * @brief Generate a unit pseudonormal R8VEC.
@@ -40,6 +38,10 @@ double *uniform_01 ( int n, int *seed );
  * - Local, int X_LO, X_HI, records the range of entries of x that we need to compute. This starts off as 1:n, but is adjusted if we have a saved value that can be immediately stored in x(1), and so on.
  * - Local, real Y, the value saved from the previous call, if saved is 1.
  */
+double *r8vec_normal_01 ( int n, int *seed );
+double *uniform_01 ( int n, int *seed );
+
+
 double *r8vec_normal_01 ( int n, int *seed )
 
 //****************************************************************************80

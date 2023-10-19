@@ -83,7 +83,7 @@ $(function() {
 <code>#include &lt;Eigen/Dense&gt;</code><br />
 <code>#include &lt;vector&gt;</code><br />
 <code>#include &lt;string&gt;</code><br />
-<code>#include &quot;io_star_params.h&quot;</code><br />
+<code>#include &quot;<a class="el" href="io__star__params_8h_source.html">io_star_params.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="io__star__common_8h_source.html">io_star_common.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="ioproc_8h_source.html">ioproc.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="linfit_8h_source.html">linfit.h</a>&quot;</code><br />
@@ -100,12 +100,6 @@ Functions</h2></td></tr>
 <tr class="memitem:af6414ac889856f643080312beeac7fa5" id="r_af6414ac889856f643080312beeac7fa5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="io__star__params_8cpp.html#af6414ac889856f643080312beeac7fa5">write_star_params_act_asym</a> (VectorXd &amp;spec_params, MatrixXd &amp;mode_params, MatrixXd &amp;noise_params, std::string file_out, std::string identifier)</td></tr>
 <tr class="memdesc:af6414ac889856f643080312beeac7fa5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write the mode parameters matrix to an output file in a specific format.  <br /></td></tr>
 <tr class="separator:af6414ac889856f643080312beeac7fa5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a28cc1e51983e4eee3138e02802ede276" id="r_a28cc1e51983e4eee3138e02802ede276"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="io__star__params_8cpp.html#a28cc1e51983e4eee3138e02802ede276">write_star_params_a1a2a3asym</a> (VectorXd &amp;spec_params, MatrixXd &amp;mode_params, MatrixXd &amp;noise_params, std::string file_out, std::string identifier)</td></tr>
-<tr class="memdesc:a28cc1e51983e4eee3138e02802ede276"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write the star parameters (mode parameters, noise parameters, and global info) to an output file in a specific format.  <br /></td></tr>
-<tr class="separator:a28cc1e51983e4eee3138e02802ede276"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a473ad173043f85e5a14b06e74094b8de" id="r_a473ad173043f85e5a14b06e74094b8de"><td class="memItemLeft" align="right" valign="top"><a id="a473ad173043f85e5a14b06e74094b8de" name="a473ad173043f85e5a14b06e74094b8de"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>write_star_mode_params_a1a2a3</b> (MatrixXd &amp;mode_params, std::string file_out)</td></tr>
-<tr class="separator:a473ad173043f85e5a14b06e74094b8de"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afcb0cb8d10ec983a7125c263278448f3" id="r_afcb0cb8d10ec983a7125c263278448f3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="io__star__params_8cpp.html#afcb0cb8d10ec983a7125c263278448f3">write_star_mode_params_act_asym</a> (MatrixXd &amp;mode_params, std::string file_out, bool append)</td></tr>
 <tr class="memdesc:afcb0cb8d10ec983a7125c263278448f3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write the star parameters (mode parameters, noise parameters, and global info) to an output file in a specific format.  <br /></td></tr>
 <tr class="separator:afcb0cb8d10ec983a7125c263278448f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -834,11 +828,9 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>write_star_mode_param
 <p>This function writes the star parameters (mode parameters, noise parameters, and global info) to an output file in a specific format. It allows appending the data to an existing file or creating a new file. The function includes a header indicating the purpose of the file and the format of the input parameters. The mode parameters matrix should contain degree, frequency, H, W, a1, a2, a3, a4, a5, a6, asymmetry, and inclination values. The noise parameters matrix should contain H0, tau_0, p0, H1, tau_1, p1, and N0 values. The spec_params vector should contain the global info of the star. The function uses the Nchars and precision vectors to specify the width and precision of each value in the output file.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">spec_params</td><td>The global info vector </td></tr>
     <tr><td class="paramname">mode_params</td><td>The mode parameters matrix </td></tr>
-    <tr><td class="paramname">noise_params</td><td>The noise parameters matrix </td></tr>
     <tr><td class="paramname">file_out</td><td>The path to the output file </td></tr>
-    <tr><td class="paramname">identifier</td><td>The identifier of the star </td></tr>
+    <tr><td class="paramname">append</td><td>Flag indicating whether to append the data to an existing file (default: false) </td></tr>
   </table>
   </dd>
 </dl>
@@ -1047,65 +1039,6 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>write_star_mode_param
 
 </div>
 </div>
-<a id="a28cc1e51983e4eee3138e02802ede276" name="a28cc1e51983e4eee3138e02802ede276"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a28cc1e51983e4eee3138e02802ede276">&#9670;&#160;</a></span>write_star_params_a1a2a3asym()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void write_star_params_a1a2a3asym </td>
-          <td>(</td>
-          <td class="paramtype">VectorXd &amp;&#160;</td>
-          <td class="paramname"><em>spec_params</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">MatrixXd &amp;&#160;</td>
-          <td class="paramname"><em>mode_params</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">MatrixXd &amp;&#160;</td>
-          <td class="paramname"><em>noise_params</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">std::string&#160;</td>
-          <td class="paramname"><em>file_out</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">std::string&#160;</td>
-          <td class="paramname"><em>identifier</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Write the star parameters (mode parameters, noise parameters, and global info) to an output file in a specific format. </p>
-<p>This function writes the star parameters (mode parameters, noise parameters, and global info) to an output file in a specific format. It allows appending the data to an existing file or creating a new file. The function includes a header indicating the purpose of the file and the format of the input parameters. The mode parameters matrix should contain degree, frequency, H, W, a1, a2, a3, a4, a5, a6, asymmetry, and inclination values. The noise parameters matrix should contain H0, tau_0, p0, H1, tau_1, p1, and N0 values. The spec_params vector should contain the global info of the star. The function uses the Nchars and precision vectors to specify the width and precision of each value in the output file.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">spec_params</td><td>The global info vector </td></tr>
-    <tr><td class="paramname">mode_params</td><td>The mode parameters matrix </td></tr>
-    <tr><td class="paramname">noise_params</td><td>The noise parameters matrix </td></tr>
-    <tr><td class="paramname">file_out</td><td>The path to the output file </td></tr>
-    <tr><td class="paramname">identifier</td><td>The identifier of the star </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
 <a id="af6414ac889856f643080312beeac7fa5" name="af6414ac889856f643080312beeac7fa5"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#af6414ac889856f643080312beeac7fa5">&#9670;&#160;</a></span>write_star_params_act_asym()</h2>
 
@@ -1151,12 +1084,14 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>write_star_mode_param
 </div><div class="memdoc">
 
 <p>Write the mode parameters matrix to an output file in a specific format. </p>
-<p>This function writes the mode parameters matrix to an output file in a specific format. It allows appending the data to an existing file or creating a new file. The function includes a header indicating the purpose of the file and the format of the input mode parameters. The mode parameters matrix should contain degree, frequency, H, W, a1, eta0, epsilon_Alm, theta0_Alm, delta_Alm, a3, asymmetry, and inclination values. The function uses the Nchars and precision vectors to specify the width and precision of each value in the output file.</p>
+<p>This function writes the mode parameters to an output file in a specific format. It allows appending the data to an existing file or creating a new file. The function includes a header indicating the purpose of the file and the format of the input mode parameters. The mode parameters matrix should contain degree, frequency, H, W, a1, eta0, epsilon_Alm, theta0_Alm, delta_Alm, a3, asymmetry, and inclination values. The function uses the Nchars and precision vectors to specify the width and precision of each value in the output file.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
+    <tr><td class="paramname">spec_params</td><td>The spectrum parameters vector </td></tr>
     <tr><td class="paramname">mode_params</td><td>The mode parameters matrix </td></tr>
+    <tr><td class="paramname">noise_params</td><td>The noise parameters matrix </td></tr>
     <tr><td class="paramname">file_out</td><td>The path to the output file </td></tr>
-    <tr><td class="paramname">append</td><td>Flag indicating whether to append the data to an existing file (default: false) </td></tr>
+    <tr><td class="paramname">identifier</td><td>The identifier of the star </td></tr>
   </table>
   </dd>
 </dl>

@@ -1,5 +1,5 @@
 /**
- * @file acoeffs.cpp
+ * @file acoefs.cpp
  * @brief Functions that handle the acoefficients
  *
  * This file contains functions that handle the acoefficients. It can create nu(n,l,m) from acoeffs for l<=3, j=1,2,3,4,5,6. It can also decompose into aj coefficients. 

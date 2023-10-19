@@ -26,16 +26,7 @@ using Eigen::VectorXd;
 using Eigen::VectorXi;
 using Eigen::MatrixXd;
 
-/**
- * @brief Generate an array of random numbers from a standard normal distribution.
- *
- * This function generates an array of random numbers from a standard normal distribution.
- * The generated random numbers are stored in an array of type double.
- *
- * @param n The number of random numbers to generate.
- * @param seed A pointer to the seed for the random number generator.
- * @return A pointer to the array of generated random numbers.
- */
+
 double *r8vec_normal_01 ( int n, int *seed );
 
 

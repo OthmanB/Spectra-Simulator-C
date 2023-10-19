@@ -179,8 +179,8 @@ Functions</h2></td></tr>
 <tr class="memitem:a10a6b295d3d03fc7493d41c4d60714d1" id="r_a10a6b295d3d03fc7493d41c4d60714d1"><td class="memItemLeft" align="right" valign="top">std::vector&lt; double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ioproc_8h.html#a10a6b295d3d03fc7493d41c4d60714d1">arrstr_to_arrdbl</a> (const std::vector&lt; std::string &gt; vals_strs)</td></tr>
 <tr class="memdesc:a10a6b295d3d03fc7493d41c4d60714d1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Converts an array of strings to an array of double values.  <br /></td></tr>
 <tr class="separator:a10a6b295d3d03fc7493d41c4d60714d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab7e01dcbc4051e11b134b681934e1fef" id="r_ab7e01dcbc4051e11b134b681934e1fef"><td class="memItemLeft" align="right" valign="top"><a id="ab7e01dcbc4051e11b134b681934e1fef" name="ab7e01dcbc4051e11b134b681934e1fef"></a>
-std::vector&lt; double &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>vectXd_to_vec</b> (const VectorXd &amp;vecXd_in)</td></tr>
+<tr class="memitem:ab7e01dcbc4051e11b134b681934e1fef" id="r_ab7e01dcbc4051e11b134b681934e1fef"><td class="memItemLeft" align="right" valign="top">std::vector&lt; double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ioproc_8h.html#ab7e01dcbc4051e11b134b681934e1fef">vectXd_to_vec</a> (const VectorXd &amp;vecXd_in)</td></tr>
+<tr class="memdesc:ab7e01dcbc4051e11b134b681934e1fef"><td class="mdescLeft">&#160;</td><td class="mdescRight">Converts an Eigen VectorXd to a std::vector&lt;double&gt;.  <br /></td></tr>
 <tr class="separator:ab7e01dcbc4051e11b134b681934e1fef"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a21c316078b61e50c3a0037a7aaa6b3bf" id="r_a21c316078b61e50c3a0037a7aaa6b3bf"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="ioproc_8h.html#a21c316078b61e50c3a0037a7aaa6b3bf">file_exists</a> (const std::string &amp;name)</td></tr>
 <tr class="memdesc:a21c316078b61e50c3a0037a7aaa6b3bf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks if a file exists.  <br /></td></tr>
@@ -993,6 +993,34 @@ std::vector&lt; double &gt;&#160;</td><td class="memItemRight" valign="bottom"><
 
 </div>
 </div>
+<a id="ab7e01dcbc4051e11b134b681934e1fef" name="ab7e01dcbc4051e11b134b681934e1fef"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab7e01dcbc4051e11b134b681934e1fef">&#9670;&#160;</a></span>vectXd_to_vec()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; double &gt; vectXd_to_vec </td>
+          <td>(</td>
+          <td class="paramtype">const VectorXd &amp;&#160;</td>
+          <td class="paramname"><em>vecXd_in</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Converts an Eigen VectorXd to a std::vector&lt;double&gt;. </p>
+<p>This function takes an Eigen VectorXd as input and converts it to a std::vector&lt;double&gt;.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">vecXd_in</td><td>The input Eigen VectorXd to be converted. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The converted std::vector&lt;double&gt;. </dd></dl>
+
+</div>
+</div>
 <a id="a64a6f2f2662b0be69d0b7c6c82e450e3" name="a64a6f2f2662b0be69d0b7c6c82e450e3"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a64a6f2f2662b0be69d0b7c6c82e450e3">&#9670;&#160;</a></span>where()</h2>
 
@@ -1338,18 +1366,6 @@ std::vector&lt; double &gt;&#160;</td><td class="memItemRight" valign="bottom"><
 </div><div class="memdoc">
 
 <p>Gives the indexes or values of an array that fulfill a condition. </p>
-<p>If return_values is 0, this function returns the indexes of values in the input vector that fulfill the condition. If return_values is 1, this function returns the values in the input vector that fulfill the condition.</p>
-<p>The condition can be one of the following operators: "=", "!=", "&gt;", "&lt;", "&gt;=", or "&lt;=".</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">vec</td><td>The input Eigen vector </td></tr>
-    <tr><td class="paramname">condition</td><td>The condition to be checked </td></tr>
-    <tr><td class="paramname">value</td><td>The value to compare with </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>std::vector&lt;double&gt; The indexes or values that fulfill the condition</dd></dl>
-<p>Gives the indexes or values of an array that fulfill a condition</p>
 <p>If return_values is 0, this function returns the indexes of values in the input vector that fulfill the condition. If return_values is 1, this function returns the values in the input vector that fulfill the condition.</p>
 <p>The condition can be one of the following operators: "=", "!=", "&gt;", "&lt;", "&gt;=", or "&lt;=".</p>
 <dl class="params"><dt>Parameters</dt><dd>
