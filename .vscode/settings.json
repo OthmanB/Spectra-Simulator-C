@@ -77,6 +77,8 @@
         "map": "cpp",
         "queue": "cpp",
         "set": "cpp",
-        "thread": "cpp"
+        "thread": "cpp",
+        "any": "cpp",
+        "condition_variable": "cpp"
     }
 }

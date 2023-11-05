@@ -1644,10 +1644,15 @@ void generate_cfg_from_synthese_file_Wscaled_Alm(VectorXd input_params, std::str
 */
 void generate_cfg_from_synthese_file_Wscaled_aj(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string extra){
 
+	std::random_device rd;
+	std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+	std::uniform_real_distribution<double> distrib(0 , 1);
+
 	int i;
 	double HNR, a1_ov_Gamma, a2, a3, a4, a5, a6, beta_asym, inc, 
 			HNRmaxref, Height_factor, Gamma_at_numax, a1, Gamma_coef, fl,rho, eta0,
 			Dnu, epsilon, delta0l_percent, numax_spread; 
+	double xmin, xmax;
 	VectorXi pos;
 	VectorXd tmp, xfit, rfit, d0l(3), f_rescaled_lin;
 	VectorXd HNRref, local_noise,h_star, gamma_star, s_a1_star, s_a2_star, s_a3_star, s_a4_star,s_a5_star,s_a6_star,
@@ -1679,6 +1684,12 @@ void generate_cfg_from_synthese_file_Wscaled_aj(VectorXd input_params, std::stri
 	a6=input_params[10];
 	beta_asym=input_params[11];
 	inc=input_params[12];
+	const double H_spread=input_params[13];
+	const double nu_spread=input_params[14];
+	//Vl1=input_params[15];
+	//Vl2=input_params[16];
+	//Vl3=input_params[17];
+	
 // ---------------------------------
 	// --- Perform rescaling of frequencies  ---
 	d0l << delta0l_percent*Dnu/100., delta0l_percent*Dnu/100., delta0l_percent*Dnu/100.; // small separation l=1,2,3
@@ -1724,18 +1735,43 @@ void generate_cfg_from_synthese_file_Wscaled_aj(VectorXd input_params, std::stri
 	for(int n=0; n<f_ref.fl0.size(); n++){
 		mode_params(n,0)=0;
 		f_rescaled_lin[n]=f_rescaled.fl0[n];
+		// Adding to f_rescaled_lin[n] a uniform random quantity that is bounded by xmin=f_rescaled_lin[n]*(1 - nu_spread) and xmax=f_rescaled_lin[n]*(1+nu_spread)
+		if (nu_spread > 0)
+		{
+				xmin=f_rescaled_lin[n]*(1. - nu_spread/100.);
+				xmax=f_rescaled_lin[n]*(1. + nu_spread/100.);
+				f_rescaled_lin[n]=xmin + (xmax-xmin)*distrib(gen);
+		}
 	}
 	for(int n=0; n<f_ref.fl1.size(); n++){
 		mode_params(n+f_ref.fl0.size(),0)=1;
 		f_rescaled_lin[n+f_ref.fl0.size()]=f_rescaled.fl1[n];
+		if (nu_spread > 0)
+		{
+				xmin=f_rescaled_lin[n+f_ref.fl0.size()]*(1. - nu_spread/100.);
+				xmax=f_rescaled_lin[n+f_ref.fl0.size()]*(1. + nu_spread/100.);
+				f_rescaled_lin[n+f_ref.fl0.size()]=xmin + (xmax-xmin)*distrib(gen);
+		}
 	}
 	for(int n=0; n<f_ref.fl2.size(); n++){
 		mode_params(n+f_ref.fl0.size()+f_ref.fl1.size(),0)=2;
 		f_rescaled_lin[n+f_ref.fl0.size()+f_ref.fl1.size()]=f_rescaled.fl2[n];
+		if (nu_spread > 0)
+		{
+				xmin=f_rescaled_lin[n+f_ref.fl0.size()+f_ref.fl1.size()]*(1. - nu_spread/100.);
+				xmax=f_rescaled_lin[n+f_ref.fl0.size()+f_ref.fl1.size()]*(1. + nu_spread/100.);
+				f_rescaled_lin[n+f_ref.fl0.size()+f_ref.fl1.size()]=xmin + (xmax-xmin)*distrib(gen);
+		}
 	}
 	for(int n=0; n<f_ref.fl3.size(); n++){
 		mode_params(n+f_ref.fl0.size()+f_ref.fl1.size()+f_ref.fl2.size(),0)=3;
 		f_rescaled_lin[n+f_ref.fl0.size()+f_ref.fl1.size()+f_ref.fl2.size()]=f_rescaled.fl3[n];
+		if (nu_spread > 0)
+		{
+				xmin=f_rescaled_lin[n+f_ref.fl0.size()+f_ref.fl1.size()+f_ref.fl2.size()]*(1. - nu_spread/100.);
+				xmax=f_rescaled_lin[n+f_ref.fl0.size()+f_ref.fl1.size()+f_ref.fl2.size()]*(1. + nu_spread/100.);
+				f_rescaled_lin[n+f_ref.fl0.size()+f_ref.fl1.size()+f_ref.fl2.size()]=xmin + (xmax-xmin)*distrib(gen);
+		}
 	}
 
 	// ---- Rescaling Height and Width profiles ----
@@ -1776,6 +1812,13 @@ void generate_cfg_from_synthese_file_Wscaled_aj(VectorXd input_params, std::stri
 		std::cout << "HNR of all modes (degree / freq_template  / freq_rescaled / HNR  /  Height /  local_noise):" << std::endl;
 		for(i =0; i<ref_star.mode_params.rows(); i++){
 			h_star[i]=Height_factor * HNRref[i] * local_noise[i];
+			// Adding a unifomly random value, with maximum range 2*H_spread
+			if (H_spread > 0)
+			{
+					xmin=h_star[i]*(1. - H_spread/100.);
+					xmax=h_star[i]*(1. + H_spread/100.);
+					h_star[i]=xmin + (xmax-xmin)*distrib(gen);
+			}
 			std::cout << "     " << ref_star.mode_params(i,0) << "  " << ref_star.mode_params(i,1)  << "  "  << f_rescaled_lin[i] << "  " << Height_factor * HNRref[i]  << "  " << h_star[i] << "  "  << local_noise[i] << std::endl;
 		}
 	} else{
@@ -1793,7 +1836,8 @@ void generate_cfg_from_synthese_file_Wscaled_aj(VectorXd input_params, std::stri
 		std::cout << "       Only positive values are valid" << std::endl;
 		exit(EXIT_FAILURE);
 	}
-	
+
+
 	// Filling the output Matrix. 
 	//   Note on assumptions here: We assume that the template has monotonically increasing frequency, for each l. 
 	//                             It is also assumed that block of l are in the strict order l=0,1,2,3
@@ -1835,10 +1879,15 @@ void generate_cfg_from_synthese_file_Wscaled_aj(VectorXd input_params, std::stri
 */
 void generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string extra){
 
+	std::random_device rd;
+	std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+	std::uniform_real_distribution<double> distrib(0 , 1);
+
 	int i;
 	double HNR, a1_ov_Gamma, a2, a3, a4, a5, a6, beta_asym, inc, 
 			HNRmaxref, Height_factor, Gamma_at_numax, a1, Gamma_coef, fl,rho, eta0,
 			Dnu, epsilon, delta0l_percent, numax_star, numax_spread; 
+	double xmin, xmax;
 	VectorXi pos;
 	VectorXd tmp, xfit, rfit, d0l(3), f_rescaled_lin;
 	VectorXd HNRref, local_noise,local_noise_new, h_star, gamma_star, s_a1_star, s_a2_star, s_a3_star, s_a4_star,s_a5_star,s_a6_star,
@@ -1862,6 +1911,8 @@ void generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled(VectorXd input_params
 	beta_asym=input_params[11];
 	inc=input_params[12];
 	numax_spread=input_params[21];
+	const double H_spread=input_params[22];
+	const double nu_spread=input_params[23];
 // ---------------------------------
 
 	ref_star=read_star_params(extra); 
@@ -1930,18 +1981,43 @@ void generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled(VectorXd input_params
 	for(int n=0; n<f_ref.fl0.size(); n++){
 		mode_params(n,0)=0;
 		f_rescaled_lin[n]=f_rescaled.fl0[n];
+		// Adding to f_rescaled_lin[n] a uniform random quantity that is bounded by xmin=f_rescaled_lin[n]*(1 - nu_spread) and xmax=f_rescaled_lin[n]*(1+nu_spread)
+		if (nu_spread > 0)
+		{
+				xmin=f_rescaled_lin[n]*(1. - nu_spread/100.);
+				xmax=f_rescaled_lin[n]*(1. + nu_spread/100.);
+				f_rescaled_lin[n]=xmin + (xmax-xmin)*distrib(gen);
+		}
 	}
 	for(int n=0; n<f_ref.fl1.size(); n++){
 		mode_params(n+f_ref.fl0.size(),0)=1;
 		f_rescaled_lin[n+f_ref.fl0.size()]=f_rescaled.fl1[n];
+		if (nu_spread > 0)
+		{
+				xmin=f_rescaled_lin[n+f_ref.fl0.size()]*(1. - nu_spread/100.);
+				xmax=f_rescaled_lin[n+f_ref.fl0.size()]*(1. + nu_spread/100.);
+				f_rescaled_lin[n+f_ref.fl0.size()]=xmin + (xmax-xmin)*distrib(gen);
+		}
 	}
 	for(int n=0; n<f_ref.fl2.size(); n++){
 		mode_params(n+f_ref.fl0.size()+f_ref.fl1.size(),0)=2;
 		f_rescaled_lin[n+f_ref.fl0.size()+f_ref.fl1.size()]=f_rescaled.fl2[n];
+		if (nu_spread > 0)
+		{
+				xmin=f_rescaled_lin[n+f_ref.fl0.size()+f_ref.fl1.size()]*(1. - nu_spread/100.);
+				xmax=f_rescaled_lin[n+f_ref.fl0.size()+f_ref.fl1.size()]*(1. + nu_spread/100.);
+				f_rescaled_lin[n+f_ref.fl0.size()+f_ref.fl1.size()]=xmin + (xmax-xmin)*distrib(gen);
+		}
 	}
 	for(int n=0; n<f_ref.fl3.size(); n++){
 		mode_params(n+f_ref.fl0.size()+f_ref.fl1.size()+f_ref.fl2.size(),0)=3;
 		f_rescaled_lin[n+f_ref.fl0.size()+f_ref.fl1.size()+f_ref.fl2.size()]=f_rescaled.fl3[n];
+		if (nu_spread > 0)
+		{
+				xmin=f_rescaled_lin[n+f_ref.fl0.size()+f_ref.fl1.size()+f_ref.fl2.size()]*(1. - nu_spread/100.);
+				xmax=f_rescaled_lin[n+f_ref.fl0.size()+f_ref.fl1.size()+f_ref.fl2.size()]*(1. + nu_spread/100.);
+				f_rescaled_lin[n+f_ref.fl0.size()+f_ref.fl1.size()+f_ref.fl2.size()]=xmin + (xmax-xmin)*distrib(gen);
+		}
 	}
 
 	// Compute the local noise for the new star
@@ -1987,6 +2063,13 @@ void generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled(VectorXd input_params
 		std::cout << "HNR of all modes (degree / freq_template  / freq_rescaled / HNR  /  Height /  local_noise(noise params)):" << std::endl;
 		for(i =0; i<ref_star.mode_params.rows(); i++){
 			h_star[i]=Height_factor * HNRref[i] * local_noise_new[i];
+			// Adding a unifomly random value, with maximum range 2*H_spread
+			if (H_spread > 0)
+			{
+					xmin=h_star[i]*(1. - H_spread/100.);
+					xmax=h_star[i]*(1. + H_spread/100.);
+					h_star[i]=xmin + (xmax-xmin)*distrib(gen);
+			}
 			std::cout << "     " << ref_star.mode_params(i,0) << "  " << ref_star.mode_params(i,1)  << "  "  << f_rescaled_lin[i] << "  " << Height_factor * HNRref[i]  << "  " << h_star[i] << "  "  << local_noise_new[i] << std::endl;
 		}
 	} else{
