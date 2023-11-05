@@ -1978,15 +1978,15 @@ void generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled(VectorXd input_params
 		exit(EXIT_FAILURE);
 	}
 	f_rescaled_lin.resize(f_ref.fl0.size()+ f_ref.fl1.size()+f_ref.fl2.size()+ f_ref.fl3.size());
+	xmin=-nu_spread;
+	xmax=nu_spread;
 	for(int n=0; n<f_ref.fl0.size(); n++){
 		mode_params(n,0)=0;
 		f_rescaled_lin[n]=f_rescaled.fl0[n];
-		// Adding to f_rescaled_lin[n] a uniform random quantity that is bounded by xmin=f_rescaled_lin[n]*(1 - nu_spread) and xmax=f_rescaled_lin[n]*(1+nu_spread)
+		// Adding to f_rescaled_lin[n] a uniform random quantity that is bounded by xmi and xmax
 		if (nu_spread > 0)
 		{
-				xmin=f_rescaled_lin[n]*(1. - nu_spread/100.);
-				xmax=f_rescaled_lin[n]*(1. + nu_spread/100.);
-				f_rescaled_lin[n]=xmin + (xmax-xmin)*distrib(gen);
+				f_rescaled_lin[n]=f_rescaled_lin[n] + (xmax-xmin)*distrib(gen);
 		}
 	}
 	for(int n=0; n<f_ref.fl1.size(); n++){
@@ -1994,9 +1994,7 @@ void generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled(VectorXd input_params
 		f_rescaled_lin[n+f_ref.fl0.size()]=f_rescaled.fl1[n];
 		if (nu_spread > 0)
 		{
-				xmin=f_rescaled_lin[n+f_ref.fl0.size()]*(1. - nu_spread/100.);
-				xmax=f_rescaled_lin[n+f_ref.fl0.size()]*(1. + nu_spread/100.);
-				f_rescaled_lin[n+f_ref.fl0.size()]=xmin + (xmax-xmin)*distrib(gen);
+				f_rescaled_lin[n+f_ref.fl0.size()]=f_rescaled_lin[n+f_ref.fl0.size()] + (xmax-xmin)*distrib(gen);
 		}
 	}
 	for(int n=0; n<f_ref.fl2.size(); n++){
@@ -2004,9 +2002,7 @@ void generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled(VectorXd input_params
 		f_rescaled_lin[n+f_ref.fl0.size()+f_ref.fl1.size()]=f_rescaled.fl2[n];
 		if (nu_spread > 0)
 		{
-				xmin=f_rescaled_lin[n+f_ref.fl0.size()+f_ref.fl1.size()]*(1. - nu_spread/100.);
-				xmax=f_rescaled_lin[n+f_ref.fl0.size()+f_ref.fl1.size()]*(1. + nu_spread/100.);
-				f_rescaled_lin[n+f_ref.fl0.size()+f_ref.fl1.size()]=xmin + (xmax-xmin)*distrib(gen);
+				f_rescaled_lin[n+f_ref.fl0.size()+f_ref.fl1.size()]=f_rescaled_lin[n+f_ref.fl0.size()+f_ref.fl1.size()] + (xmax-xmin)*distrib(gen);
 		}
 	}
 	for(int n=0; n<f_ref.fl3.size(); n++){
@@ -2014,9 +2010,7 @@ void generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled(VectorXd input_params
 		f_rescaled_lin[n+f_ref.fl0.size()+f_ref.fl1.size()+f_ref.fl2.size()]=f_rescaled.fl3[n];
 		if (nu_spread > 0)
 		{
-				xmin=f_rescaled_lin[n+f_ref.fl0.size()+f_ref.fl1.size()+f_ref.fl2.size()]*(1. - nu_spread/100.);
-				xmax=f_rescaled_lin[n+f_ref.fl0.size()+f_ref.fl1.size()+f_ref.fl2.size()]*(1. + nu_spread/100.);
-				f_rescaled_lin[n+f_ref.fl0.size()+f_ref.fl1.size()+f_ref.fl2.size()]=xmin + (xmax-xmin)*distrib(gen);
+				f_rescaled_lin[n+f_ref.fl0.size()+f_ref.fl1.size()+f_ref.fl2.size()]=f_rescaled_lin[n+f_ref.fl0.size()+f_ref.fl1.size()+f_ref.fl2.size()] + (xmax-xmin)*distrib(gen);
 		}
 	}
 
