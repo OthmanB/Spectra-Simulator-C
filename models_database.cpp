@@ -1686,10 +1686,8 @@ void generate_cfg_from_synthese_file_Wscaled_aj(VectorXd input_params, std::stri
 	inc=input_params[12];
 	const double H_spread=input_params[13];
 	const double nu_spread=input_params[14];
-	//Vl1=input_params[15];
-	//Vl2=input_params[16];
-	//Vl3=input_params[17];
-	
+	const double gamma_spread=input_params[15];
+
 // ---------------------------------
 	// --- Perform rescaling of frequencies  ---
 	d0l << delta0l_percent*Dnu/100., delta0l_percent*Dnu/100., delta0l_percent*Dnu/100.; // small separation l=1,2,3
@@ -1801,7 +1799,14 @@ void generate_cfg_from_synthese_file_Wscaled_aj(VectorXd input_params, std::stri
 
 	// Defining the final size for all of the outptus
 	gamma_star.resize(ref_star.mode_params.rows());
-	gamma_star=Gamma_coef*ref_star.mode_params.col(3); // In IDL, AN INTERPOLATION WAS DONE FOR l>0. HERE WE ASSUME THE .in file is whatever the true model should be (no interpolation)
+	gamma_star=Gamma_coef*ref_star.mode_params.col(3); 
+	if (gamma_spread > 0)
+	{
+		xmin=gamma_star[i]*(1. - gamma_spread/100.);
+		xmax=gamma_star[i]*(1. + gamma_spread/100.);
+		gamma_star[i]=xmin + (xmax-xmin)*distrib(gen);
+	}
+	
 	// Refactoring the heights
 	h_star.resize(ref_star.mode_params.rows());
 	//h_star=Height_factor * HNRref * N0; 

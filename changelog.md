@@ -1,5 +1,8 @@
 # Version history #
 
+### v1.41 ##
+	* Adding Gamma_spread parameter in generate_cfg_from_synthese_file_Wscaled_aj
+
 ### v1.4 ##
         * Adding H_spread and nu_spread parameters in generate_cfg_from_synthese_file_Wscaled_aj and generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled models. The idea is to perturbate the heights (H_spread) and frequencies (nu_spread) with a random quantity to avoid deterministic learning of these quantities by a ML method
 	* New parallelised Alm code (version 1.3)
