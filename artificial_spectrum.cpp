@@ -412,7 +412,7 @@ void artificial_spectrum_a1Alma3(const double Tobs, const double Cadence, const 
 
 void artificial_spectrum_aj(const double Tobs, const double Cadence, const double Nspectra, const long Nrealisation, 
 								 const std::string dir_core, const std::string identifier, const bool doplots, const bool write_inmodel,
-								 const bool domodelfiles, const bool limit_data_range, const std::string modelname){
+								 const bool domodelfiles, const bool limit_data_range, const std::string modelname, const std::string noise_modelname){
 
 	const bool verbose_data=0; // SET TO 1 IF YOU WANT MORE INFO ABOUT WHAT IS READ
 	const int common_case=0; // Case identifying this scenario
@@ -493,9 +493,19 @@ void artificial_spectrum_aj(const double Tobs, const double Cadence, const doubl
 	scoef2=10*scoef2;
 
 	// Build the noise background using the Harvey like profile...
-	std::cout << "    - Generating the model of noise..." << std::endl;
-	spec_noise=harvey_1985(data_noise.data, freq);
+	std::cout << "    - Generating the model of noise with noise_modelname = " << noise_modelname << "..." << std::endl;
+	if (noise_modelname =="harvey_like"){
+		spec_noise=harvey_like(data_noise.data, freq);
+	} else{
+		if (noise_modelname == "harvey_1985"){
+			spec_noise=harvey_1985(data_noise.data, freq);
+		} else{
+			std::cerr << "Error : noise_modelname does not have an explicit definition for the noise model" << std::endl;
+			std::cerr <<"         noise_modelname :" << noise_modelname << std::endl;
+			std::cerr <<"         Supported models: harvey_like   and harvey_1985" << std::endl;
+		}
 
+	}
 	// Final spectrum and saving functions
 	input_spec_model=spec_noise + spec_modes;
 

@@ -988,7 +988,7 @@ bool call_model_random(std::string model_name, VectorXd input_params, std::strin
 	if(model_name =="generate_cfg_from_synthese_file_Wscaled_aj"){
 		generate_cfg_from_synthese_file_Wscaled_aj(input_params, file_out_modes,  file_out_noise, cfg.extra_params); // extra_params must points towards a .in file
 		artificial_spectrum_aj(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, 
-									cfg.write_inmodel, cfg.do_modelfiles, cfg.limit_data_range, cfg.modefile_modelname);
+									cfg.write_inmodel, cfg.do_modelfiles, cfg.limit_data_range, cfg.modefile_modelname, "harvey_like");
 		passed=1;		
 	}
 	if(model_name =="generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled"){
@@ -1107,7 +1107,7 @@ bool call_model_grid(std::string model_name, VectorXd input_params, Model_data i
 	if(model_name =="generate_cfg_from_synthese_file_Wscaled_aj"){
 		generate_cfg_from_synthese_file_Wscaled_aj(input_params, file_out_modes,  file_out_noise, cfg.extra_params); // extra_params must points towards a .in file
 		artificial_spectrum_aj(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, 
-									cfg.write_inmodel, cfg.do_modelfiles, cfg.limit_data_range, cfg.modefile_modelname);
+									cfg.write_inmodel, cfg.do_modelfiles, cfg.limit_data_range, cfg.modefile_modelname, "harvey_like");
 		passed=1;		
 	}
 	if(model_name =="generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled"){

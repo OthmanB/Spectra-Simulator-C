@@ -89,7 +89,8 @@ void artificial_spectrum_a1Alma3(const double Tobs, const double Cadence, const 
  * @param domodelfiles Flag indicating whether to write .model files suitable for the TAMCMC code
  * @param limit_data_range Flag indicating wheter to truncate the spectrum by focusing in the region with modes. Save space if on. But not suitable for ML algorithms.
  * @param modelname If domodelfiles is true, use this to define the name of the model that has to be fitted.
+ * @param noise_modelname Defines the noise model that has to be used. By default, it is "harvey_1985"
  */
 void artificial_spectrum_aj(const double Tobs, const double Cadence, const double Nspectra, const long Nrealisation, 
 								 const std::string dir_core, const std::string identifier, const bool doplots, const bool write_inmodel,
-								 const bool domodelfiles, const bool limit_data_range, const std::string modelname);
+								 const bool domodelfiles, const bool limit_data_range, const std::string modelname, const std::string noise_modelname="harvey_1985");

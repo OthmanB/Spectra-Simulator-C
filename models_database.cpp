@@ -1669,7 +1669,6 @@ void generate_cfg_from_synthese_file_Wscaled_aj(VectorXd input_params, std::stri
 	tmp.resize(ref_star.mode_params.rows()); 	
 	tmp.setConstant(0);
 	local_noise=harvey_like(ref_star.noise_params, ref_star.mode_params.col(1), tmp); // Generate a list of local noise values for each frequencies
-
 // ---- Deploy the parameters -----
 	Dnu=input_params[0];
 	epsilon=input_params[1];

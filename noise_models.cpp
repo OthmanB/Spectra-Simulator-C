@@ -101,7 +101,7 @@ VectorXd harvey_like(const MatrixXd& noise_params, const VectorXd& x){
 				exit(EXIT_FAILURE);
 			}
 		} else {
-			if(H<=0 && (tau>0 || p>0)){
+			if(H<0 && (tau>0 || p>0)){
 				std::cout << "Problem with the definition of the Height parameter for the noise" << std::endl;
 				std::cout << " if tau or p positive, H cannot be negative" << std::endl;
 				std::cout << "The program will stop now" << std::endl;
