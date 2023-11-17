@@ -1686,6 +1686,7 @@ void generate_cfg_from_synthese_file_Wscaled_aj(VectorXd input_params, std::stri
 	const double H_spread=input_params[13];
 	const double nu_spread=input_params[14];
 	const double gamma_spread=input_params[15];
+	const double do_flat_noise=input_params[16]; // if <= 0 : Do not make flat noise. Any positive value will make noise. Flat noise may not be be fix
 
 // ---------------------------------
 	// --- Perform rescaling of frequencies  ---
@@ -1815,7 +1816,11 @@ void generate_cfg_from_synthese_file_Wscaled_aj(VectorXd input_params, std::stri
 		std::cout << "Using the Noise profile of the Reference star" << std::endl;
 		std::cout << "HNR of all modes (degree / freq_template  / freq_rescaled / HNR  /  Height /  local_noise):" << std::endl;
 		for(i =0; i<ref_star.mode_params.rows(); i++){
-			h_star[i]=Height_factor * HNRref[i] * local_noise[i];
+			if (do_flat_noise <=0){
+				h_star[i]=Height_factor * HNRref[i] * local_noise[i];
+			} else{
+				h_star[i]=Height_factor * HNRref[i] * do_flat_noise; // Here do_flat_noise will contain the wished N0 value
+			}
 			// Adding a unifomly random value, with maximum range 2*H_spread
 			if (H_spread > 0)
 			{
@@ -1863,7 +1868,18 @@ void generate_cfg_from_synthese_file_Wscaled_aj(VectorXd input_params, std::stri
 	// THIS MIGHT NEED TO BE WRITTEN IN ANOTHER FORMAT
 	write_star_mode_params_aj(mode_params, file_out_modes);
 	// A FUNCTION THAT WRITES THE Noise
-	write_star_noise_params(ref_star.noise_params, file_out_noise);
+	if (do_flat_noise <=0){
+		write_star_noise_params(ref_star.noise_params, file_out_noise);
+	} else{
+		MatrixXd noise_params(2,3);
+		noise_params(0,0)=0;
+		noise_params(0,1)=1;
+		noise_params(0,2)=1;
+		noise_params(1,0)=do_flat_noise;
+		noise_params(1,1)=-2;
+		noise_params(1,2)=-2;
+		write_star_noise_params(noise_params, file_out_noise);
+	}
 
 }
 

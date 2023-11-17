@@ -1,5 +1,11 @@
 # Version history #
 
+### v1.43 ##
+	* Adding do_flat_noise parameter in the aj model. If do_flat_noise<=0, the noise background will the one of the template (Harvey-like). Otherwise, the noise background will be flat and set at the value given by do_flat_noise (eg. if do_flat_noise = 0.7, then N0=0.7). do_flat_noise can be a variable and does not need to be a constant (ie, if one wants to train a ML with a variable flat noise background). But only >0 do_flat_noise will behave that way. <=0 will necessarily lead to fixed background: Be careful with the min and max value of the parameters and the fix/variable flag.
+ 
+### v1.42 ##
+	* Bug fixes in the noise background of aj model
+
 ### v1.41 ##
 	* Adding Gamma_spread parameter in generate_cfg_from_synthese_file_Wscaled_aj
 

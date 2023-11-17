@@ -244,7 +244,7 @@ void iterative_artificial_spectrum(const std::string dir_core, const std::string
 		passed=1;
 	}
 	if(cfg.model_name == "generate_cfg_from_synthese_file_Wscaled_aj"){
-		Nmodel=16;
+		Nmodel=17;
 		param_names.push_back("Dnu");
 		param_names.push_back("epsilon"); 
 		param_names.push_back("delta0l_percent"); 
@@ -261,6 +261,7 @@ void iterative_artificial_spectrum(const std::string dir_core, const std::string
 		param_names.push_back("H_spread");
 		param_names.push_back("nu_spread");
 		param_names.push_back("Gamma_spread");
+		param_names.push_back("do_flat_noise");
 		if(param_names.size() != Nmodel){
 			std::cout << "    Invalid number of parameters for model_name= 'generate_cfg_from_synthese_file_Wscaled_aj'" << std::endl;
 			std::cout << "    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size() << std::endl;

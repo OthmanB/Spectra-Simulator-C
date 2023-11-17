@@ -9,12 +9,12 @@
 #               - erase_old_file: If 1, then (1) the combination file is overwritten and (2) the model number (identifier) is reset to 0. 
 #                                 If 0, then (1) append the combination file and (2) model number = last model number + 1
 grid 10 # forest_type, followed by the forest_params. If forest_type=random, then forest_params is a single value that corresponds to the Number of samples
-generate_cfg_from_synthese_file_Wscaled_aj   /Users/obenomar/Work/dev/Spectra-Simulator-C/Configurations/infiles/8379927_1111kasoc_synthese.in      
+generate_cfg_from_synthese_file_Wscaled_aj   /Users/obenomar/Work/Spectra-Simulator-C/Configurations/infiles/8379927_1111kasoc_synthese.in      
 NONE		        # Used template(s) name(s). If several, randomly select one/iteration. If set to 'all', will use all *.template files in Configuration/templates 
-Dnu  epsilon    delta0l_percent     HNR     a1ovGamma  Gamma_at_numax     a2      a3         a4      a5    a6      beta_asym     i       	H_spread   nu_spread   Gamma_spread   #Variable names 
-70    0.5          1.               10        0.6         1.              0.1     -0.1       0.15    0.2   0.05      10          0.0    	5          0.2         5              #val_min
-70    0.5          1.               10        0.6         1.     	      0.1     -0.1       0.3     0.2   0.10     10           20         5          0.2         5              #val_max
-0      0           0                0.        0.0         0.     	      0       0.         0.15    0.    0.05     0            10         0          0           0              #If forest_type="random" ==> 1=Variable OR 0=Constant. If forest_type="grid" then must be the stepsize of the grid
+Dnu  epsilon    delta0l_percent     HNR     a1ovGamma  Gamma_at_numax     a2      a3         a4      a5    a6      beta_asym     i       	H_spread   nu_spread   Gamma_spread    do_flat_noise     #Variable names 
+70    0.5          1.               10        0.6         1.              0.1     -0.1       0.15    0.2   0.05      10          0.0    	5          0.2         5                    1            #val_min
+70    0.5          1.               10        0.6         1.     	      0.1     -0.1       0.3     0.2   0.10     10           20         5          0.2         5                    1            #val_max
+0      0           0                0.        0.0         0.     	      0       0.         0.15    0.    0.05     0            10         0          0           0                    0            #If forest_type="random" ==> 1=Variable OR 0=Constant. If forest_type="grid" then must be the stepsize of the grid
 Tobs   Cadence  Naverage    Nrealisation
 100    120       1            1
 1     # It is erase_old_files. If set to 1, will remove old Combination.txt and restart counting from 1. Otherwise append Combination.txt
