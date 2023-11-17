@@ -514,7 +514,7 @@ std::vector<std::string> read_allfile_vect(const std::string file){
     return out;
 }
 
- Cfg_synthetic_star read_theoretical_freqs(const std::string file){
+ Cfg_synthetic_star read_theoretical_freqs(const std::string file, const bool critical){
 	std::ifstream file_in;
 	Cfg_synthetic_star cfg_star;
 	std::vector<int> pos_l, l_vec; // temporary vector
@@ -588,7 +588,13 @@ std::vector<std::string> read_allfile_vect(const std::string file){
 	} else {
 		std::cout << "Could not open the configuration file!" << std::endl;
 		std::cout << "Configuration file: " << file << std::endl;
-		exit(EXIT_FAILURE);
+		if (critical == true){
+			exit(EXIT_FAILURE);
+		} else{
+			std::cout << "File marked as non-critical... pursuing" << std::endl;
+			cfg_star.use_nu_nl=false;
+			return cfg_star;
+		}
 	}
 
 	cfg_star.Nf_el.resize(4);

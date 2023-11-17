@@ -482,10 +482,25 @@ void artificial_spectrum_aj(const double Tobs, const double Cadence, const doubl
 		angle_l=data_modes.data(i,11);
 		ratios=amplitude_ratio(l, angle_l);
 		eta0=0;
+		/*
+		std::cout << " l=" << l << std::endl;
+		std::cout << " . fc_l = " << fc_l << std::endl;
+		std::cout << "     H_l =" << H_l << std::endl;
+		std::cout << "     W_l =" << gamma_l << std::endl;
+		std::cout << "     a1  =" << a1 << std::endl;
+		std::cout << "     a2  =" << a2 << std::endl;
+		std::cout << "     a3  =" << a3 << std::endl;
+		std::cout << "     a4 =" << a4 << std::endl;
+		std::cout << "     a5 =" << a5 << std::endl;
+		std::cout << "     a6 =" << a6 << std::endl;
+		std::cout << "     eta0 =" << eta0 << std::endl;
+		std::cout << "     beta_asym =" << beta_asym << std::endl;
+		*/
 		s_mode=build_l_mode_aj(freq,  H_l, fc_l, a1, a2, a3, a4, a5, a6, eta0, beta_asym, gamma_l, l, ratios);
 		spec_modes=spec_modes + s_mode;
 		scoef1=scoef1 + gamma_l;
 	}
+	//exit(EXIT_SUCCESS);
 	scoef1=scoef1/data_modes.data.cols(); // scoef1 is based on the average mode width
 	scoef2=scoef1; // scoef2 is based on the average mode width
 

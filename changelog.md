@@ -1,5 +1,8 @@
 # Version history #
 
+### v.1.44 ##
+	* For model "asymptotic_mm_freeDp_numaxspread_curvepmodes_v3", Fix the logic that controls how we can switch between using predefined frequencies in the configuration file "Configurations/MixedModes_models/star_params.theoretical" and the global main.cfg configuration files (in "Configurations/main.cfg*"). This avoids configuration mistakes that may not be obvious to the final user. In addition, I remived the "Configurations/MixedModes_models/star_params.theoretical" and kept only the "Configurations/MixedModes_models/star_params.theoretical.EXAMPLE". This again to avoid misconfigurations.
+
 ### v1.43 ##
 	* Adding do_flat_noise parameter in the aj model. If do_flat_noise<=0, the noise background will the one of the template (Harvey-like). Otherwise, the noise background will be flat and set at the value given by do_flat_noise (eg. if do_flat_noise = 0.7, then N0=0.7). do_flat_noise can be a variable and does not need to be a constant (ie, if one wants to train a ML with a variable flat noise background). But only >0 do_flat_noise will behave that way. <=0 will necessarily lead to fixed background: Be careful with the min and max value of the parameters and the fix/variable flag.
  

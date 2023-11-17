@@ -304,4 +304,4 @@ std::vector<std::string> read_allfile_vect(const std::string file);
  * @param file The path to the input file
  * @return The extracted theoretical frequencies in a Cfg_synthetic_star object
  */
-Cfg_synthetic_star read_theoretical_freqs(const std::string file);
+Cfg_synthetic_star read_theoretical_freqs(const std::string file, const bool critical=true);

@@ -924,16 +924,15 @@ void asymptotic_mm_freeDp_numaxspread_curvepmodes_v3(VectorXd input_params, std:
 	Params_synthetic_star params;
 	// ------------------------------------
 
-	try{ // Attempting to read file_cfg_mm, if exist. 
-		std::cout << "Trying to find and read the mixed modes configuration file" << file_cfg_mm << std::endl;
-		cfg_star=read_theoretical_freqs(file_cfg_mm);
-		if (cfg_star.use_nu_nl == true){
-			std::cout << "    " << file_cfg_mm << " read! and use_nu_nl = true" << std::endl;
-			std::cout << "    The frequencies of l=0,1,2,3 listed in the file will be used! " << std::endl;
-		}
-	} catch(...){
-		std::cout << "     " << file_cfg_mm << " not found. Pursuing assuming cfg_star.use_nu_nl=false" << std::endl;
-		cfg_star.use_nu_nl=false;
+	// Attempting to read file_cfg_mm, if exist. 
+	std::cout << "Trying to find and read the mixed modes configuration file" << file_cfg_mm << std::endl;
+	cfg_star=read_theoretical_freqs(file_cfg_mm, false); // try to read with critical = false
+	if (cfg_star.use_nu_nl == true){
+		std::cout << "    " << file_cfg_mm << " read! " << std::endl;
+		std::cout << "    Found use_nu_nl = true ==> " << std::endl;
+		std::cout << "    The frequencies of l=0,1,2,3 listed in the file will be used! " << std::endl;
+	} else{
+		std::cout << "     " << file_cfg_mm << " not found or cfg_star.use_nu_nl is set to false in the file. Pursuing..." << std::endl;
 	}
 	// ----------
 	if (cfg_star.use_nu_nl == false){ // we use the parameters defined in the main.cfg
@@ -1061,6 +1060,7 @@ void asymptotic_mm_freeDp_numaxspread_curvepmodes_v3(VectorXd input_params, std:
 
 	// A FUNCTION THAT WRITES THE Noise
 	write_star_noise_params(noise_params, file_out_noise);
+	//exit(EXIT_SUCCESS);
 }
 
 
