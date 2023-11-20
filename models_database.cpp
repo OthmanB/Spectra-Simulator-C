@@ -1798,14 +1798,17 @@ void generate_cfg_from_synthese_file_Wscaled_aj(VectorXd input_params, std::stri
 	a1=a1_ov_Gamma*Gamma_at_numax; // We can vary the Width and splitting. But we need to change the splitting in order to get the wished a1/Gamma0
 
 	// Defining the final size for all of the outptus
-	gamma_star.resize(ref_star.mode_params.rows());
-	gamma_star=Gamma_coef*ref_star.mode_params.col(3); 
+	VectorXd gamma_ref;
+	gamma_ref=ref_star.mode_params.col(3);
 	if (gamma_spread > 0)
 	{
-		xmin=gamma_star[i]*(1. - gamma_spread/100.);
-		xmax=gamma_star[i]*(1. + gamma_spread/100.);
-		gamma_star[i]=xmin + (xmax-xmin)*distrib(gen);
+		xmin=gamma_ref[i]*(1. - gamma_spread/100.);
+		xmax=gamma_ref[i]*(1. + gamma_spread/100.);
+		gamma_ref[i]=xmin + (xmax-xmin)*distrib(gen);
 	}
+	gamma_star.resize(ref_star.mode_params.rows());
+	gamma_star=Gamma_coef*gamma_ref; 
+
 	
 	// Refactoring the heights
 	h_star.resize(ref_star.mode_params.rows());

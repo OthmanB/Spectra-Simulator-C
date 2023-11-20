@@ -9,8 +9,8 @@
 
 #define APP_ID        "CPPSpecSim" /**< Application ID */
 #define APP_NAME      "CPPSpecSim" /**< Application Name */
-#define APP_DESC      "Spectrum Simulator for Asteroseismology" /**< Application Description */
-#define APP_VERSION   "1.44" /**< Application Version */
+#define APP_DESC      "Spectrum Simulator for Asteroseismology. THIS VERSION IS EXPERIMENTAL: IT DIFFERS FROM 1.44 BY THE FACT THAT Gamma_spread IS APPLIED ON THE GAMMA_REF INSTEAD OF GAMMA_STAR" /**< Application Description */
+#define APP_VERSION   "1.44_alt" /**< Application Version */
 #define APP_DOMAIN    "" /**< Application Domain */
 #define APP_SITE      "https://othmanbenomar.dev" /**< Application Site */
 #define APP_COPYRIGHT "Othman Benomar" /**< Application Copyright */
