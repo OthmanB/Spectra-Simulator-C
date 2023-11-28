@@ -965,20 +965,59 @@ void asymptotic_mm_freeDp_numaxspread_curvepmodes_v3(VectorXd input_params, std:
 	cfg_star.rot_core_input=input_params[1];
 	cfg_star.env_aspher.a2_l1=0; // SET TO 0 for l=1 modes. Ideally, would need a2_l1_core mixed with a2_l1_env
 	cfg_star.env_aspher.a2_l2=input_params[4];
+/*
+	0 : nurot_env  
+	1 : nurot_core  
+	2 : a2_l1_core    
+	3 : a2_l1_env    
+	4 : a2_l2_env   
+	5 : a2_l3_env   
+	6 : a3_l2_env    
+	7 : a3_l3_env     
+	8 : a4_l2_env    
+	9 : a4_l3_env    
+	10: a5_l3_env    
+	11: a6_l3_env     
+	12: Dnu    
+	13: epsilon    
+	14: delta0l_percent  
+	15: beta_p_star  
+	16: nmax_spread  
+	17: DP1    
+	18: alpha     
+	19: q       
+	20: SNR    
+	21: maxGamma   
+	22: numax_spread        
+	23: Vl1     
+	24: Vl2    
+	25: Vl3   
+	26: H0_spread      
+	27: A_Pgran   
+	28: B_Pgran  
+	29: C_Pgran    
+	30: A_taugran   
+	31: B_taugran    
+	32: C_taugran    
+	33: P      
+	34: N0    
+	35: Hfactor    
+	36: Wfactor
+*/
 	if(input_params[5] <= -9999){ // If the user want l2 and l3 having the same aj coefficient, they need to put l3 to -9999 or smaller
 		cfg_star.env_aspher.a2_l3=cfg_star.env_aspher.a2_l2;
 	} else{
 		cfg_star.env_aspher.a2_l3=input_params[5];
 	}	
 	cfg_star.env_aspher.a4_l2=input_params[8];
-	if(input_params[5] <= -9999){ // If the user want l2 and l3 having the same aj coefficient, they need to put l3 to -9999 or smaller
+	if(input_params[9] <= -9999){ // If the user want l2 and l3 having the same aj coefficient, they need to put l3 to -9999 or smaller
 		cfg_star.env_aspher.a4_l3=cfg_star.env_aspher.a4_l2;
 	} else{
 		cfg_star.env_aspher.a4_l3=input_params[9];
 	}
 	cfg_star.env_aspher.a6_l3=input_params[11];
 	cfg_star.env_lat_dif_rot.a3_l2=input_params[6];
-	if(input_params[5] <= -9999){ // If the user want l2 and l3 having the same aj coefficient, they need to put l3 to -9999 or smaller
+	if(input_params[7] <= -9999){ // If the user want l2 and l3 having the same aj coefficient, they need to put l3 to -9999 or smaller
 		cfg_star.env_lat_dif_rot.a3_l3=cfg_star.env_lat_dif_rot.a3_l2;
 	} else{
 		cfg_star.env_lat_dif_rot.a3_l3=input_params[7];
@@ -986,7 +1025,7 @@ void asymptotic_mm_freeDp_numaxspread_curvepmodes_v3(VectorXd input_params, std:
 	cfg_star.env_lat_dif_rot.a5_l3=input_params[10];
 
 	cfg_star.noise_params_harvey_like.resize(8);
-	cfg_star.noise_params_harvey_like <<  input_params[17], input_params[18] , input_params[19] , input_params[20] , input_params[21] , input_params[22] , input_params[23]  , input_params[24];    //[A_Pgran ,  B_Pgran , C_Pgran   ,  A_taugran ,  B_taugran  , C_taugran    , p      N0]
+	cfg_star.noise_params_harvey_like <<  input_params[27], input_params[28] , input_params[29] , input_params[30] , input_params[31] , input_params[32] , input_params[33]  , input_params[34];    //[A_Pgran ,  B_Pgran , C_Pgran   ,  A_taugran ,  B_taugran  , C_taugran    , p      N0]
 	cfg_star.numax_star=numax_from_stello2009(cfg_star.Dnu_star, numax_spread); // Second argument is the random spread on numax
 	cfg_star.fmin=cfg_star.numax_star -Nmax_pm*cfg_star.Dnu_star;
 	cfg_star.fmax=cfg_star.numax_star +(Nmax_pm+2)*cfg_star.Dnu_star;
@@ -1062,7 +1101,6 @@ void asymptotic_mm_freeDp_numaxspread_curvepmodes_v3(VectorXd input_params, std:
 	write_star_noise_params(noise_params, file_out_noise);
 	//exit(EXIT_SUCCESS);
 }
-
 
 
 
