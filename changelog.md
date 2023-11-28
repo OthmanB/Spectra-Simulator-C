@@ -1,8 +1,11 @@
 # Version history #
 
+### v1.45 and v1.45_alt ###
+	* Bug fix in model asymptotic_mm_freeDp_numaxspread_curvepmodes_v3: indexes for the noise parameters were pointing to the wrong parameters + indexes for a2_l3, a3_l3, a4_l3 when checking <=-9999 were wrong.
+
 ### v1.44_alt ##
         * Take the version 1.44 but change the way the Gamma_spread parameter acts.  THIS VERSION IS EXPERIMENTAL: Gamma_spread IS APPLIED ON THE GAMMA_REF INSTEAD OF GAMMA_STAR
-
+	
 ### v.1.44 ##
 	* For model "asymptotic_mm_freeDp_numaxspread_curvepmodes_v3", Fix the logic that controls how we can switch between using predefined frequencies in the configuration file "Configurations/MixedModes_models/star_params.theoretical" and the global main.cfg configuration files (in "Configurations/main.cfg*"). This avoids configuration mistakes that may not be obvious to the final user. In addition, I remived the "Configurations/MixedModes_models/star_params.theoretical" and kept only the "Configurations/MixedModes_models/star_params.theoretical.EXAMPLE". This again to avoid misconfigurations.
 
