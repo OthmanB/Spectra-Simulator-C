@@ -206,6 +206,20 @@ void generate_cfg_from_synthese_file_Wscaled_aj(VectorXd input_params, std::stri
  */
 void generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string extra);
 
+/**
+ * @brief Generate configuration file for an asymptotic star with modes determined from a reference template and with noise as per defined in Kallinger+2014.
+ *
+ * @param input_params The input parameters for the star model.
+ * @param file_out_modes The output file path for the mode parameters.
+ * @param file_out_noise The output file path for the noise parameters.
+ * @param extra The extra parameter for the star model.
+ * @date 6 Dec 2023
+ *
+ * This function uses a reference star as a template to generate frequencies and width, height profiles. It can be rescaled so that you can modify the HNR but keep the same height profile. Note that the user here provides a target a1/Width so that a1 is automatically adjusted to match the requested a1/Width. The code will not change the Width so that code is not adapted to test blending between adjacent l modes, such as the l=0 and l=2 mode blending.
+ *
+ * The function calculates various constants and deploys the input parameters. It then generates a list of frequencies, heights, widths, splitting, centrifugal terms, latitudinal terms, and stellar inclination. Finally, it writes the mode parameters and noise parameters to the output files.
+ */
+void generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled_Kallinger2014(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string extra);
 
 /**
  * @brief Compute the effect of centrifugal distortion on mode frequencies.

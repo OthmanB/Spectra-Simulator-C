@@ -703,13 +703,10 @@ std::string read_lastline_ascii(std::string filename){
 VectorXd order_input_params(const VectorXd& cte_params, const VectorXd& var_params, const std::vector<std::string> cte_names, 
 		const std::vector<std::string> var_names, const std::vector<std::string> param_names){
 
-
 	VectorXd input(cte_params.size() + var_params.size());
 	VectorXd input2(cte_params.size() + var_params.size());
 	std::vector<std::string> names;
 	VectorXi order(cte_params.size() + var_params.size()), ind;
-	
-	//std::cout << "  in order_input_params..." << std::endl;
 	input.segment(0, cte_params.size())=cte_params;
 	input.segment(cte_params.size(), var_params.size())=var_params;
 
@@ -719,12 +716,8 @@ VectorXd order_input_params(const VectorXd& cte_params, const VectorXd& var_para
 	for(int i=0; i<var_names.size(); i++){
 		names.push_back(var_names[i]);
 	}
-        //std::cout << "names.size()=" << names.size() << std::endl;
 	for(int i=0; i<names.size(); i++){
-		//std::cout << "param_names[i]=" << param_names[i] << std::endl;
-
 		ind=where_strXi(names, strtrim(param_names[i])); // Assumes that only one value matches the criteria
-		//std::cout << "ind =" << ind << std::endl;
 		if(ind.size() == 1){
 			order[i]=ind[0];
 			input2[i]=input[order[i]];

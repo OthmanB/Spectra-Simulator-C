@@ -1,5 +1,15 @@
 # Version history #
 
+### v1.50 ###
+	* New model: "generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled_Kallinger2014". This model allows to generate
+	noise following closely the Kallinger+2014 prescription and ensemble values derived from a sample of RGB + MS stars. 
+	Using MCMC, I have verified that this model is fairly accurate. Note that this model use the new structure of parameter
+	that is decomposed into two files: the main.cfg (see the example configuration main.cfg.aj_GRANscaledKallinger) and the
+	noise_Kallinger2014.cfg. The program accolate the configuration present in the two, to create a full model of noise + modes. This structure is prefered here due to (1) the high number of parameters in the Kallinger+2014 model (enhanced clarity with two shorter tables that fit on screen), (2) the necessity to define many Kallinger+2014 parameters as drawn from a Gaussian distribution instead of a Uniform distribution and, (3) the necessity to avoid confusion between the variables systematically drawn from a uniform distribution (unless fixed) defined the main.cfg files and the noise variables that very often drawn from the Gaussian distributions given in the Kallinger's paper. 
+	Incidentally, this has imposed an important restructuration of the way the random generation works.
+	* The adoption of v1.45_alt as the main branch, instead of v1.45.
+	* Bug fix: The maximum frequency of the spectrum was wrong by a factor 2. 
+	
 ### v1.45 and v1.45_alt ###
 	* Bug fix in model asymptotic_mm_freeDp_numaxspread_curvepmodes_v3: indexes for the noise parameters were pointing to the wrong parameters + indexes for a2_l3, a3_l3, a4_l3 when checking <=-9999 were wrong.
 

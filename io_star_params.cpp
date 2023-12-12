@@ -20,6 +20,7 @@
 #include "linfit.h"
 # include "ioproc.h"
 #include "linspace.h"
+#include <sstream>
 
 using Eigen::VectorXd;
 using Eigen::VectorXi;
@@ -621,11 +622,11 @@ std::vector<std::string> read_allfile_vect(const std::string file){
 }
 
 
-Star_params read_star_params(const std::string file_in_name){
+Star_params read_star_params(const std::string file_in_name, const bool verbose_data){
 
     const int data_Maxsize=1000; 
 
-	bool verbose_data=1, passed=0;
+	bool passed=0;
 	int Nrows, cpt;
 	long double tmp_val;
     std::ifstream file_in;
@@ -955,7 +956,7 @@ Config_Data read_main_cfg(std::string cfg_file){
 	cptmax=100; //maximum number of header lines
     	file_in.open(cfg_file.c_str());
     	if (file_in.is_open()) {
-		std::cout << "Data File opened... processing lines" << std::endl;
+		std::cout << "Main Configuration File opened... processing lines" << std::endl;
 
 		// [1] Ignore the header
 		cpt=0;
@@ -1089,8 +1090,124 @@ Config_Data read_main_cfg(std::string cfg_file){
 	std::cout << "   cfg.Cadence = " << cfg.Cadence << std::endl;
 	std::cout << "   cfg.erase_old_files = " << cfg.erase_old_files << std::endl;
 	// -------------------
+	// added on 6 December 2023
+	for(int i=0; i<cfg.labels.size();i++){
+		cfg.distrib.push_back("Uniform");
+	}
 	return cfg;
 }
+
+
+
+Config_Noise readNoiseConfigFile(const std::string& filename) {
+    Config_Noise noise_cfg;
+    std::ifstream file(filename);
+    if (!file.is_open()) {
+        std::cerr << "Error opening file: " << filename << std::endl;
+        exit(EXIT_FAILURE);
+    }
+	std::string line;
+    bool is_random = false;
+    bool is_grid = false;
+	std::cout << "Noise Configuration File opened... processing lines" << std::endl;
+    while (std::getline(file, line)) {
+        if (line[0] != '#') {
+			if (line.find("forest_type") != std::string::npos) {
+				if (line.find("random") != std::string::npos) {
+					is_random = true;
+					is_grid = false;
+					//std::cout << " RANDOM SET " << std::endl;
+					continue;
+				} else if (line.find("grid") != std::string::npos) {
+					is_random = false;
+					is_grid = true;
+					//std::cout << " GRID SET" << std::endl;
+					continue;
+				}
+			}
+			if (is_random) { 
+				if (noise_cfg.name_random.empty()) {
+					noise_cfg.name_random=strsplit(strtrim(line), " \t");
+				} else if (noise_cfg.distrib_random.empty()) {
+					noise_cfg.distrib_random=strsplit(strtrim(line), " \t");
+				} else if (noise_cfg.x1_random.empty()) {
+					noise_cfg.x1_random=str_to_dblarr(line, " \t");
+				} else if (noise_cfg.x2_random.empty()) {
+					noise_cfg.x2_random=str_to_dblarr(line, " \t");
+				} else if (noise_cfg.kerror_random.empty()) {
+					noise_cfg.kerror_random=str_to_dblarr(line, " \t");
+				}
+			} else if (is_grid) {
+				if (noise_cfg.name_grid.empty()) {
+					noise_cfg.name_grid=strsplit(strtrim(line), " \t");
+				} else if (noise_cfg.distrib_grid.empty()) {
+					noise_cfg.distrib_grid=strsplit(strtrim(line), " \t");
+				} else if (noise_cfg.x1_grid.empty()) {
+					noise_cfg.x1_grid=str_to_dblarr(line, " \t");
+				} else if (noise_cfg.x2_grid.empty()) {
+					noise_cfg.x2_grid=str_to_dblarr(line, " \t");
+				} else if (noise_cfg.kerror_grid.empty()) {
+					noise_cfg.kerror_grid=str_to_dblarr(line, " \t");
+				}
+			}
+		}
+	}
+	file.close();
+	std::cout << "      name_random= ";
+	for (int i=0; i<noise_cfg.name_random.size();i++){
+		std::cout << std::setw(12) << noise_cfg.name_random[i];
+	}
+	std::cout <<  std::endl;
+	std::cout << "   distrib_random= ";
+	for (int i=0; i<noise_cfg.distrib_random.size();i++){
+		std::cout << std::setw(12) <<noise_cfg.distrib_random[i];
+	}
+	std::cout <<  std::endl;
+	std::cout << "        x1_random= ";
+	for (int i=0; i<noise_cfg.x1_random.size();i++){
+		std::cout << std::setw(12) <<noise_cfg.x1_random[i];
+	}
+	std::cout <<  std::endl;
+	std::cout << "        x2_random= ";
+	for (int i=0; i<noise_cfg.x2_random.size();i++){
+		std::cout << std::setw(12) << noise_cfg.x2_random[i];
+	}
+	std::cout <<  std::endl;
+	std::cout << "    kerror_random= ";
+	for (int i=0; i<noise_cfg.kerror_random.size();i++){
+		std::cout << std::setw(12) << noise_cfg.kerror_random[i];
+	}
+	std::cout <<  std::endl;
+	std::cout << "          --- " << std::endl;
+	std::cout << "          name_grid= ";
+	for (int i=0; i<noise_cfg.name_grid.size();i++){
+		std::cout << std::setw(12) << noise_cfg.name_grid[i];
+	}
+	std::cout <<  std::endl;
+	std::cout << "       distrib_grid= ";
+	for (int i=0; i<noise_cfg.distrib_grid.size();i++){
+		std::cout << std::setw(12) <<noise_cfg.distrib_grid[i];
+	}
+	std::cout <<  std::endl;
+	std::cout << "            x1_grid= ";
+	for (int i=0; i<noise_cfg.x1_grid.size();i++){
+		std::cout << std::setw(12) <<noise_cfg.x1_grid[i];
+	}
+	std::cout <<  std::endl;
+	std::cout << "            x2_grid= ";
+	for (int i=0; i<noise_cfg.x2_grid.size();i++){
+		std::cout << std::setw(12) << noise_cfg.x2_grid[i];
+	}
+	std::cout <<  std::endl;
+	std::cout << "        kerror_grid= ";
+	for (int i=0; i<noise_cfg.kerror_grid.size();i++){
+		std::cout << std::setw(12) << noise_cfg.kerror_grid[i];
+	}
+	std::cout << std::endl;
+    return noise_cfg;
+}
+
+
 
 
 MatrixXd bumpoutputs_2_MatrixXd(Params_synthetic_star params, double inc){

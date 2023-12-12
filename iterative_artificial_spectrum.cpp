@@ -53,8 +53,66 @@ void showversion();
  *
  * @param dir_core The directory path where the generated models will be saved.
  * @param cfg_file The path of the main configuration file.
+ * @param cfg_noise_file The full path to a noise configuration file
+ * @date 6 December 2023 (Update)
  */
-void iterative_artificial_spectrum(const std::string dir_core, const std::string cfg_file);
+void iterative_artificial_spectrum(const std::string dir_core, const std::string cfg_file, const std::string cfg_noise_file);
+
+/**
+ * @brief Function to check validity of the configuration parameters
+ * 	
+ * 	The function check the validity of parameters in the cfg structure. If it is not as expected, it forces exit of the program
+ * 
+ * @param cfg Configuration structure of type Config_Data
+ * @param N_model Number of model parameters
+ * @date 6 December 2023
+ */
+void check_params(Config_Data cfg, const int N_model);
+
+/**
+ * @brief Aggregates the main configuration data with the noise configuration data.
+ * 
+ * @param cfg_main The main configuration data.
+ * @param cfg_noise The noise configuration data.
+ * @return The aggregated configuration data.
+ * 
+ * @details This function aggregates the main configuration data with the noise configuration data. It copies all the content of the cfg_main structure into the cfg structure using the update_cfg function with priority 1. Then, it updates the cfg structure by adding the cfg_noise at the end.
+ * 
+ * If the forest_type in cfg_main is "random", it iterates through the noise configuration data and adds the corresponding variables to the cfg structure. It also sets the step value based on the distribution type.
+ * 
+ * If the forest_type in cfg_main is "grid", it iterates through the noise configuration data and adds the corresponding variables to the cfg structure. It sets the step value to the kerror_grid value for the "Uniform" distribution type. If the distribution type is not "Uniform", it throws an error and exits.
+ * 
+ * If the forest_type in cfg_main is neither "random" nor "grid", it throws an error and exits.
+ * 
+ * The function returns the aggregated cfg structure.
+ * @date 6 December 2023
+ */
+Config_Data agregate_maincfg_noisecfg(Config_Data cfg_main, Config_Noise cfg_noise);
+
+/**
+ * @brief Updates the target configuration data with the source configuration data based on priority.
+ *
+ * @param cfg_target The target configuration data.
+ * @param cfg_source The source configuration data.
+ * @param priority4common The priority for common variables.
+ *                        -1: Check and enforce the equality of common variables between cfg_target and cfg_source.
+ *                         0: No priority. No action is taken.
+ *                         1: Priority on cfg_source. Common variables are updated from cfg_source.
+ *
+ * @return The updated configuration data.
+ *
+ * @details This function updates the target configuration data with the source configuration data based on priority.
+ *          If priority4common is -1, it checks and enforces the equality of common variables between cfg_target and cfg_source.
+ *          If any common variable is not equal, it exits with an error.
+ * 			If priority4common is 0, it uses the cfg_target values as they are and increase the length of the variables 
+ * 			"labels", "distrib", "val_min", "val_max", "step" using the information in cfg_source
+ *          If priority4common is 1, it overwrites the common variables in cfg_target with the values from cfg_source.
+ *          It also updates the "labels", "distrib", "val_min", "val_max", "step"  variables in cfg_target with the 
+ * 			corresponding values from cfg_source.
+ *          The function returns the updated cfg_target.
+ * @date 6 December 2023
+ */
+Config_Data update_cfg(Config_Data cfg_target, const Config_Data cfg_source, const int priority4common);
 
 /**
 * @brief Generate random models based on a configuration file.
@@ -93,6 +151,7 @@ void generate_random(Config_Data cfg, std::vector<std::string> param_names, std:
  */
 void generate_grid(Config_Data cfg, bool usemodels, Data_Nd models, std::vector<std::string> param_names, std::string dir_core, std::string dir_freqs, std::string file_out_modes, 
 		std::string file_out_noise, std::string file_out_combi, int N_model);
+
 
 /**
  * @brief Call a model based on the given model name and input parameters.
@@ -144,7 +203,7 @@ bool call_model_grid(std::string model_name, VectorXd input_params, Model_data i
 std::vector<std::string> list_dir(const std::string path, const std::string filter);
 
 
-void iterative_artificial_spectrum(const std::string dir_core, const std::string cfg_file){
+void iterative_artificial_spectrum(const std::string dir_core, const std::string cfg_file, const std::string cfg_noise_file){
 /*
  * Run iteratively the program artificial_spectrum in order to generate a
  * serie of model according to a main configuration file (/Configurations/main.cfg).
@@ -160,10 +219,10 @@ void iterative_artificial_spectrum(const std::string dir_core, const std::string
 	std::string model_file, file_out_modes, file_out_noise, file_cfg_mm, file_out_mm, file_out_mm2, file_out_combi;
 	std::string external_path, templates_dir;
 	Config_Data cfg;
+	Config_Noise cfg_noise;
 	Data_Nd models;
 	external_path=dir_core + "external/"; 
 	templates_dir=dir_core + "Configurations/templates/";
-	//cfg_file=dir_core + "Configurations/main.cfg";
 	model_file=dir_core + "external/MESA_grid/models.params"; // This is for models of MS stars from a grid
 	file_out_modes=dir_core + "Configurations/tmp/modes_tmp.cfg";
 	file_out_noise=dir_core + "Configurations/tmp/noise_tmp.cfg";
@@ -176,6 +235,7 @@ void iterative_artificial_spectrum(const std::string dir_core, const std::string
 	std::cout << "1. Read the configuration file..." << std::endl;
 
 	cfg=read_main_cfg(cfg_file);
+	cfg_noise=readNoiseConfigFile(cfg_noise_file); // Used to handle models with a separate noise, essentially the Kallinger+2014 noise 
 
 	std::cout << "---------------------------------------------------------------------------------------" << std::endl;
 	std::cout << "      ATTENTION: All model configuration should be contained into models_database.cpp  " << std::endl;
@@ -299,6 +359,52 @@ void iterative_artificial_spectrum(const std::string dir_core, const std::string
 		param_names.push_back("nu_spread");
 		if(param_names.size() != Nmodel){
 			std::cout << "    Invalid number of parameters for model_name= 'generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled'" << std::endl;
+			std::cout << "    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size() << std::endl;
+			std::cout << "    Check your main configuration file" << std::endl;
+			std::cout << "    The program will exit now" << std::endl;
+			exit(EXIT_FAILURE);
+		}
+		passed=1;
+	}
+	if(cfg.model_name == "generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled_Kallinger2014"){
+		// Warning: This model uses the file noise_Kallinger2014.cfg to set the noise parameters
+		const int Nmodel_modes=16;
+		const int Nmodel_noise=14; // 6 Dec 2023: Many of these parameters are in fact generated according to a Gaussian 
+		// Agregate the old configuration with the noise configuration
+		cfg=agregate_maincfg_noisecfg(cfg, cfg_noise);	
+		param_names.push_back("Dnu");
+		param_names.push_back("epsilon"); 
+		param_names.push_back("delta0l_percent"); 
+		param_names.push_back("HNR"); 
+		param_names.push_back("a1ovGamma"); 
+		param_names.push_back("Gamma_at_numax"); 
+		param_names.push_back("a2"); 
+		param_names.push_back("a3"); 
+		param_names.push_back("a4"); 
+		param_names.push_back("a5"); 
+		param_names.push_back("a6"); 
+		param_names.push_back("beta_asym");
+		param_names.push_back("i");
+		param_names.push_back("numax_spread"); // Add a spread to numax to avoid to have a noise that stricly follow the Karoff et al. 2010 relation
+		param_names.push_back("H_spread");
+		param_names.push_back("nu_spread");
+		//k_Agran         s_Agran         k_taugran       s_taugran       c0              ka              ks              k1              s1              c1              k2              s2              c2              N0
+		param_names.push_back("k_Agran");
+		param_names.push_back("s_Agran");
+		param_names.push_back("k_taugran");
+		param_names.push_back("s_taugran");
+		param_names.push_back("c0");
+		param_names.push_back("ka");
+		param_names.push_back("ks");
+		param_names.push_back("k1");
+		param_names.push_back("s1");
+		param_names.push_back("c1");
+		param_names.push_back("k2");
+		param_names.push_back("s2");
+		param_names.push_back("c2");
+		param_names.push_back("N0");
+		if(param_names.size() != Nmodel_modes+Nmodel_noise){
+			std::cout << "    Invalid number of parameters for model_name= 'generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled_Kallinger2014'" << std::endl;
 			std::cout << "    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size() << std::endl;
 			std::cout << "    Check your main configuration file" << std::endl;
 			std::cout << "    The program will exit now" << std::endl;
@@ -644,38 +750,181 @@ void iterative_artificial_spectrum(const std::string dir_core, const std::string
 
 }
 
-void generate_random(Config_Data cfg, std::vector<std::string> param_names, std::string dir_core, std::string file_out_modes, 
-		std::string file_out_noise, std::string file_out_combi, int N_model,  std::string file_cfg_mm, std::string external_path, std::string templates_dir){
-
-	bool neg=0, passed=0;
-	int i, ii;//, xmin_int_rgen, xmax_int_rgen;
-	long lastid, id0;
-	std::string id_str, str_tmp;
-	std::string template_file;
-	VectorXd cte_params, val_min, val_max, input_params;
-	MatrixXd currentcombi, allcombi;
-	std::vector<double> pos_zero, pos_one;	
-	std::vector<std::string> var_names, cte_names;
-	// We first check that the cfg file has a coherent setup
-	ii=0;
+void check_params(Config_Data cfg, const int N_model){
+	bool neg=0;
+	int ii=0;
 	while(neg == 0 && (ii < N_model)){
-		std::cout << "[" << ii << "] " << cfg.val_max[ii] - cfg.val_min[ii] << std::endl;
-	
-		if( (cfg.val_max[ii] - cfg.val_min[ii]) < 0){ 
+		if( (cfg.distrib[ii] == "Uniform") && (cfg.val_max[ii] - cfg.val_min[ii]) < 0){ 
 			neg=1;
+			std::cout << "List of the parameters and values :" << std::endl;
+			for (int i=0;i<cfg.labels.size();i++){
+				std::cout << "[" << i << "] " << std::setw(20) << cfg.labels[i] << std::setw(12)<< cfg.val_min[i] << std::setw(12) << cfg.val_max[i] << std::endl;
+			}
+			std::cout << " ------- " << std::endl;
 			std::cout << "       ii = " << ii << std::endl;
+			std::cout << "       name:    " << cfg.labels[ii] << std::endl;
 			std::cout << "       val_max =" << cfg.val_max[ii] << std::endl;
 			std::cout << "       val_min =" << cfg.val_min[ii] << std::endl;
 		}
 		ii=ii+1;
 	}
 	if(neg == 1){
-		std::cout << "     Warning: val_max < val_min for some of the parameters!" << std::endl;
+		std::cout << "     Warning: val_max < val_min for some of the parameters while a uniform distribution is requested!" << std::endl;
 		std::cout << "     This is not permitted" << std::endl;
 		std::cout << "     Check your main configuration file" << std::endl;
 		std::cout << "     The program will exit now" << std::endl;
 		exit(EXIT_FAILURE);
 	}
+}
+
+Config_Data update_cfg(Config_Data cfg_target, const Config_Data cfg_source, const int priority4common){
+	bool pass=false;
+	if (priority4common <-1 || priority4common >1){
+		std::cerr << "Error: Invalid pririty4common value. Set it to -1, 0 or 1." << std::endl;
+		exit(EXIT_FAILURE);		
+	}
+	// Case where there is no priority... then we check that common variables in cfg_target and cfg_source are the
+	// same. If it is not the case, we force the exit with error
+	if (priority4common == -1) {
+		// First check the single elements
+		if (cfg_target.erase_old_files != cfg_source.erase_old_files ||
+			cfg_target.doplots != cfg_source.doplots ||
+			cfg_target.write_inmodel != cfg_source.write_inmodel ||
+			cfg_target.limit_data_range != cfg_source.limit_data_range ||
+			cfg_target.do_modelfiles != cfg_source.do_modelfiles ||
+			cfg_target.modefile_modelname != cfg_source.modefile_modelname ||
+			cfg_target.model_name != cfg_source.model_name ||
+			cfg_target.extra_params != cfg_source.extra_params ||
+			cfg_target.Tobs != cfg_source.Tobs ||
+			cfg_target.Cadence != cfg_source.Cadence ||
+			cfg_target.Nspectra != cfg_source.Nspectra ||
+			cfg_target.Nrealisation != cfg_source.Nrealisation ||
+			cfg_target.forest_type != cfg_source.forest_type)
+			{
+				std::cerr << "Error: Common variables in cfg_target and cfg_source are not the same." << std::endl;
+				exit(EXIT_FAILURE);
+			}
+	    // Check each element of the template_files vector
+    	for (size_t i = 0; i < cfg_target.template_files.size(); i++) {
+			if (cfg_target.template_files[i] != cfg_source.template_files[i]) {
+				std::cerr << "Error: template_files in cfg_target and cfg_source are not the same." << std::endl;
+				exit(EXIT_FAILURE);
+			}
+		}
+		// Check each element of the forest_params vector
+    	for (size_t i = 0; i < cfg_target.forest_params.size(); i++) {
+			if (cfg_target.forest_params[i] != cfg_source.forest_params[i]) {
+				std::cerr << "Error: forest_params in cfg_target and cfg_source are not the same." << std::endl;
+				exit(EXIT_FAILURE);
+			}
+		}
+	}
+	// Case where the priority is on cfg_target. Then, common variables are just those of cfg_target
+	// --> nothing to do
+	// Case where the priority is on cfg_source. Then common variables are those from cfg_source
+	if (priority4common == 1){
+		cfg_target.erase_old_files=cfg_source.erase_old_files;
+		cfg_target.doplots=cfg_source.doplots;
+		cfg_target.write_inmodel=cfg_source.write_inmodel;
+		cfg_target.limit_data_range=cfg_source.limit_data_range;
+		cfg_target.do_modelfiles=cfg_source.do_modelfiles;
+		cfg_target.modefile_modelname=cfg_source.modefile_modelname;
+		cfg_target.model_name=cfg_source.model_name;
+		cfg_target.forest_type=cfg_source.forest_type;
+		cfg_target.extra_params=cfg_source.extra_params;
+		cfg_target.template_files=cfg_source.template_files;
+		cfg_target.Tobs=cfg_source.Tobs;
+		cfg_target.Cadence=cfg_source.Cadence;
+		cfg_target.Nspectra=cfg_source.Nspectra;
+		cfg_target.Nrealisation=cfg_source.Nrealisation;
+		cfg_target.forest_params=cfg_source.forest_params;
+		pass=true;
+	}
+	// Update the arrays of variables
+	for (size_t i = 0; i < cfg_source.labels.size(); i++) {
+		cfg_target.labels.push_back(cfg_source.labels[i]);
+		cfg_target.distrib.push_back(cfg_source.distrib[i]);
+		cfg_target.val_min.push_back(cfg_source.val_min[i]);
+		cfg_target.val_max.push_back(cfg_source.val_max[i]);
+		cfg_target.step.push_back(cfg_source.step[i]);
+	}
+	return cfg_target;
+}
+
+
+Config_Data agregate_maincfg_noisecfg(Config_Data cfg_main, Config_Noise cfg_noise){
+	bool pass=false;
+	Config_Data cfg;
+	// Copy all the content of the cfg_main structure into the cfg structure
+	cfg=update_cfg(cfg, cfg_main, 1); 
+	// Update the cfg structure by adding the cfg_noise at the end
+	if (cfg.forest_type == "random"){
+		for (int i=0; i<cfg_noise.name_random.size();i++){
+			cfg.labels.push_back(cfg_noise.name_random[i]);
+			cfg.distrib.push_back(cfg_noise.distrib_random[i]);
+			cfg.val_min.push_back(cfg_noise.x1_random[i]);
+			if (cfg_noise.distrib_random[i] == "Gaussian"){
+				cfg.val_max.push_back(cfg_noise.kerror_random[i]*cfg_noise.x2_random[i]);
+				cfg.step.push_back(1);
+			} else if (cfg_noise.distrib_random[i] == "Uniform"){
+				cfg.val_max.push_back(cfg_noise.x2_random[i]);
+				cfg.step.push_back(1);
+			} else if (cfg_noise.distrib_random[i] == "Fix"){
+				cfg.val_max.push_back(cfg_noise.x2_random[i]);
+				cfg.step.push_back(0);
+			} else{
+				std::cerr << "Error in iterative_artificial_spectrum::agregate_maincfg_noisecfg():" << std::endl;
+				std::cerr << "    In random mode and when agregation of a main.cfg with a noise.cfg is requested, only Gaussian, Fix and Uniform is a valid entry for the distribution parameter" << std::endl;
+				std::cerr << "    Check the content of the used noise configuration file." << std::endl;
+				std::cerr << "    The program will exit now" << std::endl;
+				exit(EXIT_FAILURE);
+			}
+		}
+		pass=true;
+	}
+	if (cfg.forest_type == "grid"){
+		for (int i=0; i<cfg_noise.name_random.size();i++){
+			cfg.labels.push_back(cfg_noise.name_grid[i]);
+			cfg.distrib.push_back(cfg_noise.distrib_grid[i]);
+			cfg.val_min.push_back(cfg_noise.x1_grid[i]);
+			cfg.val_max.push_back(cfg_noise.x2_grid[i]);
+			if (cfg_noise.distrib_grid[i] == "Fix"){
+				cfg.step.push_back(0);
+			} else if (cfg_noise.distrib_grid[i] != "Uniform"){
+					std::cerr << "Error in iterative_artificial_spectrum::agregate_maincfg_noisecfg():" << std::endl;
+					std::cerr << "    In grid mode and when agregation of a main.cfg with a noise.cfg is requested, only Fix and Uniform is a valid entry for the distribution parameter" << std::endl;
+					std::cerr << "    Check the content of the used noise configuration file." << std::endl;
+					std::cerr << "    The program will exit now" << std::endl;
+					exit(EXIT_FAILURE);
+			} else{ // In the uniform case, the kerror_grid is used to set the step
+				cfg.step.push_back(cfg_noise.kerror_grid[i]);
+				cfg.step.push_back(1);
+			}
+		}
+		pass=true;
+	}
+	if (pass == false){
+		std::cerr << "Error in iterative_artificial_spectrum::agregate_maincfg_noisecfg():" << std::endl;
+		std::cerr << "      Wrong argument found for forest_type while agregating noise and main cfg files" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	return cfg;
+}
+
+void generate_random(Config_Data cfg, std::vector<std::string> param_names, std::string dir_core, std::string file_out_modes, 
+		std::string file_out_noise, std::string file_out_combi, int N_model,  std::string file_cfg_mm, std::string external_path, std::string templates_dir){
+
+	bool neg=0, passed=0;
+	int i;
+	long lastid, id0;
+	std::string id_str, str_tmp;
+	std::string template_file;
+	VectorXd cte_params, val_min, val_max, input_params;
+	MatrixXd currentcombi, allcombi;
+	std::vector<double> pos_zero, pos_one;	
+	std::vector<std::string> var_names, cte_names, distrib;
+	// We first check that the cfg file has a coherent setup
+	check_params(cfg, N_model);
 
 	//  Define variables and constants
 	pos_one=where(cfg.step, "=", 1, 0); // All positions of cfg.step that are equal to 1. Return position (last parameter is 0)
@@ -683,12 +932,13 @@ void generate_random(Config_Data cfg, std::vector<std::string> param_names, std:
 
 	val_min.resize(pos_one.size());
 	val_max.resize(pos_one.size());
+	distrib.resize(pos_one.size()); // added on 6 Dec 2023
 	cte_params.resize(pos_zero.size());
 	for(int i=0; i<pos_one.size(); i++){
 		var_names.push_back(cfg.labels[pos_one[i]]);
 		val_min[i]=cfg.val_min[pos_one[i]];
 		val_max[i]=cfg.val_max[pos_one[i]];
-	
+		distrib[i]=cfg.distrib[pos_one[i]]; // added on 6 Dec 2023
 	}
 	for(int i=0; i<pos_zero.size(); i++){
 		cte_names.push_back(cfg.labels[pos_zero[i]]);
@@ -706,8 +956,10 @@ void generate_random(Config_Data cfg, std::vector<std::string> param_names, std:
 	// Initialize the random generators: Uniform over [0,1]. This is used for the random parameters
     boost::mt19937 generator(time(NULL));
     boost::uniform_01<boost::mt19937> dist_gr(generator);
- 	
-    // Generator of integers for selecting ramdomly a template file that contains a height and width profile
+ 	boost::normal_distribution<> dist_gr_gauss(1,1); // 6Dec2023: Gaussian random number of mean=1 and std=1 
+	boost::variate_generator<boost::mt19937&, boost::normal_distribution<>> gaussian(generator, dist_gr_gauss);
+
+	// Generator of integers for selecting ramdomly a template file that contains a height and width profile
     switch(cfg.template_files.size()){
     	case 0: // The string is somewhat empty
     		std::cout << "Error: The template_file cannot be empty. If not used, please set it to NONE" << std::endl;
@@ -725,20 +977,13 @@ void generate_random(Config_Data cfg, std::vector<std::string> param_names, std:
     			exit(EXIT_FAILURE);
     		}
  			boost::random::uniform_int_distribution<> dist(0, cfg.template_files.size()-1);
-//   			std::cout << "cfg.template_files =" << std::endl;
-//    		for (int ii=0; ii< cfg.template_files.size(); ii++){
-//    			std::cout << cfg.template_files[ii] << std::endl;
-//    		}
     		template_file=templates_dir + cfg.template_files[dist(generator)];
     }	
     std::cout << "Selected template file: " << template_file << std::endl;	
-//    exit(EXIT_SUCCESS);
-
  	std::cout << " -----------------------------------------------------" << std::endl;
 	std::cout << " List of all combinations written iteratively into " << std::endl;
 	std::cout << "       " <<  file_out_combi << std::endl; 
 	std::cout << " -----------------------------------------------------" << std::endl;
-
 
 	if(cfg.erase_old_files == 0){
 		if(file_exists(file_out_combi) == 1){
@@ -747,9 +992,6 @@ void generate_random(Config_Data cfg, std::vector<std::string> param_names, std:
 			std::cout << "                 Name of the found file: " << file_out_combi << std::endl;
 			std::cout << "                 Reading the combinatory file in order to determince the last value of the samples..." << std::endl;
 			lastid=read_id_allcombi(file_out_combi);
-
-			//exit(EXIT_SUCCESS);
-
 		} else{
 			lastid=0; // If no Combi file while erase_old_files is set to 1
 			std::cout << "                 erase_old_files=0..."<< std::endl;
@@ -768,9 +1010,14 @@ void generate_random(Config_Data cfg, std::vector<std::string> param_names, std:
 	currentcombi.resize(1, pos_one.size());
 	for(int c=0; c<cfg.forest_params[0]; c++){
 		for(int i=0; i<pos_one.size();i++){
-			//std::cout << dist_gr() << " " << std::endl;
-			currentcombi(0,i)=dist_gr() * (val_max[i] - val_min[i]) + val_min[i]; // HERE allcombi HAS JUST ONE LINE
-			//allcombi(c,i)=currentcombi(0,i);
+			if (distrib[i] == "Uniform"){
+				currentcombi(0,i)=dist_gr() * (val_max[i] - val_min[i]) + val_min[i]; // HERE allcombi HAS JUST ONE LINE
+			} else if (distrib[i] == "Gaussian"){
+				currentcombi(0,i)=gaussian()*val_max[i] + val_min[i]; // In this context, val_min == mean, val_max == stddev
+			} else{
+				std::cerr << "Error while attempting to generate random numbers in iterative_artifical_spectrum::generate_random()" << std::endl;
+				std::cerr << "     You are allowed to only have Uniform or Gaussian distributions. Found distribution: " << distrib[i] << std::endl;
+			}
 		}
 		id_str=write_allcombi(currentcombi, cte_params, cfg, file_out_combi, cfg.erase_old_files, c, id0, cte_names, var_names,  param_names); // update/write the combination file
 		std::cout << "Combination number: " << id_str << std::endl;
@@ -803,7 +1050,7 @@ void generate_random(Config_Data cfg, std::vector<std::string> param_names, std:
 void generate_grid(Config_Data cfg, bool usemodels, Data_Nd models, std::vector<std::string> param_names, std::string dir_core, std::string dir_freqs, std::string file_out_modes, 
 		std::string file_out_noise, std::string file_out_combi, int N_model){
 
-	bool neg=0, passed=0;
+	bool passed=0;
 	int i, ii, Nvar_params;
 	long lastid, id0, Ncombi;
 	std::string id_str, str_tmp;
@@ -817,22 +1064,7 @@ void generate_grid(Config_Data cfg, bool usemodels, Data_Nd models, std::vector<
 
 	// We first check that the cfg file has a coherent setup
 	delta.resize(N_model);
-	ii=0;
-	while(neg == 0 && (ii < N_model)){
-		//std::cout << "[" << ii << "] " << cfg.val_max[ii] - cfg.val_min[ii] << std::endl;
-		delta[ii]=cfg.val_max[ii] - cfg.val_min[ii];
-		if( delta[ii] < 0){ 
-			neg=1;
-		}
-		ii=ii+1;
-	}
-	if(neg == 1){
-		std::cout << "     Warning: val_max < val_min for some of the parameters!" << std::endl;
-		std::cout << "     This is not permitted" << std::endl;
-		std::cout << "     Check your main configuration file" << std::endl;
-		std::cout << "     The program will exit now" << std::endl;
-		exit(EXIT_FAILURE);
-	}
+	check_params(cfg, N_model);
 
 	//  Define variables and constants
 	pos_one=where(cfg.step, "!=", 0, 0); // All positions of cfg.step that are not equal to 0. Return position (last parameter is 0)
@@ -996,6 +1228,16 @@ bool call_model_random(std::string model_name, VectorXd input_params, std::strin
 		generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled(input_params, file_out_modes,  file_out_noise, cfg.extra_params); // extra_params must points towards a .in file
 		artificial_spectrum_aj(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, 
 									cfg.write_inmodel, cfg.do_modelfiles, cfg.limit_data_range, cfg.modefile_modelname);
+		passed=1;		
+	}
+	if(model_name =="generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled_Kallinger2014"){
+		size_t old_size=input_params.size();
+		input_params.conservativeResize(old_size+2);
+		input_params[old_size]=cfg.Tobs;
+		input_params[old_size+1]=cfg.Cadence;
+		generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled_Kallinger2014(input_params, file_out_modes,  file_out_noise, cfg.extra_params); // extra_params must points towards a .in file
+		artificial_spectrum_aj(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, 
+									cfg.write_inmodel, cfg.do_modelfiles, cfg.limit_data_range, cfg.modefile_modelname, "harvey_like");
 		passed=1;		
 	}
 	if(model_name == "asymptotic_mm_v1" || model_name == "asymptotic_mm_v2" || model_name == "asymptotic_mm_v3" ||
@@ -1208,6 +1450,7 @@ int main(int argc, char* argv[]){
         ("help,h", "produce help message")
 		("version,v", "show program version")
         ("main_file,f", boost::program_options::value<std::string>()->default_value("main.cfg"), "Filename for the main configuration file. If not set, use the default filename.")
+		("noise_file,n", boost::program_options::value<std::string>()->default_value("noise_Kallinger2014.cfg"), "Filename for the noise configuration file. If not set, use the default filename. Note that this is only for models with Kallinger+2014 noise at the moment.")
 		("main_dir, g", boost::program_options::value<std::string>()->default_value("Configurations/"), "Full path for the main configuration file. If not set, use the default sub-directory 'Configurations/.");
 	boost::program_options::variables_map vm;
 	try {
@@ -1227,14 +1470,17 @@ int main(int argc, char* argv[]){
     }
 	// -------------------------------
 
-	std::string cfg_file;
+	std::string cfg_file, cfg_noise_file;
 	std::string main_f = vm["main_file"].as<std::string>();
+	std::string noise_f = vm["noise_file"].as<std::string>();
 	std::string main_dir = vm["main_dir"].as<std::string>();
 	if(main_dir == "Configurations/"){
 		cfg_file=full_path.string() + "/" + main_dir + main_f;
+		cfg_noise_file=full_path.string() + "/" + main_dir + noise_f;
 	} else{
 		cfg_file=main_dir + main_f;
+		cfg_noise_file=main_dir + noise_f;
 	}
-	iterative_artificial_spectrum(full_path.string() + "/", cfg_file);
+	iterative_artificial_spectrum(full_path.string() + "/", cfg_file, cfg_noise_file);
 
 }

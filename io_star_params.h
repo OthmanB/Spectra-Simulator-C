@@ -231,6 +231,16 @@ MatrixXd bumpoutputs_2_MatrixXd(Params_synthetic_star params, double inc);
  */
 Config_Data read_main_cfg(std::string cfg_file);			
 
+
+/**
+ * @brief Read the noise configuration file used eg. by model with a Kallinger+2014 noise 
+ *
+* @param filename file name of the configuration file
+ * @return a NoiseConfig structure that contains all of the noise parameters
+ *
+ */
+Config_Noise readNoiseConfigFile(const std::string& filename);
+
 /**
  * @brief Read the data from an ASCII file with a specified number of columns
  *
@@ -249,9 +259,10 @@ Data_Nd read_data_ascii_Ncols(const std::string file_in_name, const std::string 
  * This function reads an input file and extracts the star parameters, including the identifier, observation duration, cadence, mode parameters, and noise parameters.
  *
  * @param file_in_name The path to the input file
+ * @param verbose_data (Optional) If true (default value), then show the read data. Otherwise, only show errors  
  * @return The extracted star parameters in a Star_params object
  */
-Star_params read_star_params(const std::string file_in_name);
+Star_params read_star_params(const std::string file_in_name, const bool verbose_data=true);
 
 /**
  * @brief Handle file read error
@@ -302,6 +313,7 @@ std::vector<std::string> read_allfile_vect(const std::string file);
  * This function reads an input file and extracts the theoretical frequencies for a synthetic star. It returns the frequencies organized in a Cfg_synthetic_star object.
  *
  * @param file The path to the input file
+ * @param critical (Optional) If set to true (default) any failure to read the file causes exit. Otherwise, it returns an empty structure
  * @return The extracted theoretical frequencies in a Cfg_synthetic_star object
  */
 Cfg_synthetic_star read_theoretical_freqs(const std::string file, const bool critical=true);

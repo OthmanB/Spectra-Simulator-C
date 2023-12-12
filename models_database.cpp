@@ -2176,6 +2176,321 @@ void generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled(VectorXd input_params
 	//exit(EXIT_SUCCESS);
 }
 
+
+/* 
+	This function use a reference star as a template to generate frequencies and Width, Height profiles
+	can be rescaled so that you can modify the HNR but keep the same height profile
+	Note that the user here provides a target a1/Width so that a1 is automatically adjusted to match the 
+	requested a1/Width. The code will not change the Width so that code is not adapted to test blending between adjacent l modes,
+	such as the l=0 and l=2 mode blending
+	It handles aj coeficient up to j=6 as well as free parameters and consider an activity term Alm ~ {a2, a4, a6, ...} following Gizon2002 idea.
+	a3 can be given as a polynomial of the frequency and you can add a random quantity (set in nHz) that will be added as a random 'error' ==> scatter ==> test robustness 
+	The noise background is scaled using numax, itself derived from the relation between Dnu and numax modulo a random term to add some dispersion.
+    It Implement closely the Kallinger+2014 noise model, composed of 3 Harvey-like profiles. See Table 2 of Kallinger et al. 2014 and its implementation in noise_models.cpp.
+*/
+void generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled_Kallinger2014(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string extra){
+
+	std::random_device rd;
+	std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+	std::uniform_real_distribution<double> distrib(0 , 1);
+
+	int i;
+	double HNR, a1_ov_Gamma, a2, a3, a4, a5, a6, beta_asym, inc, 
+			HNRmaxref, Height_factor, Gamma_at_numax, a1, Gamma_coef, fl,rho, eta0,
+			Dnu, epsilon, delta0l_percent, numax_star, numax_spread; 
+	double xmin, xmax;
+	VectorXi pos;
+	VectorXd tmp, xfit, rfit, d0l(3), f_rescaled_lin;
+	VectorXd HNRref, local_noise,local_noise_new, h_star, gamma_star, s_a1_star, s_a2_star, s_a3_star, s_a4_star,s_a5_star,s_a6_star,
+		s_eta0_star, s_epsilon_star, s_theta0_star, s_delta_star, s_asym_star, inc_star, noise_params_harvey1985(4);
+	Star_params ref_star;
+	Freq_modes f_rescaled, f_ref;
+	MatrixXd mode_params, noise_params(4,3);
+
+// ---- Deploy the mode parameters -----
+	Dnu=input_params[0];
+	epsilon=input_params[1];
+	delta0l_percent=input_params[2];
+	HNR=input_params[3];
+	a1_ov_Gamma=input_params[4];
+	Gamma_at_numax=input_params[5];
+	a2=input_params[6];
+	a3=input_params[7];
+	a4=input_params[8];
+	a5=input_params[9];
+	a6=input_params[10];
+	beta_asym=input_params[11];
+	inc=input_params[12];
+	numax_spread=input_params[13];
+	const double H_spread=input_params[14];
+	const double nu_spread=input_params[15];
+	
+	numax_star=numax_from_stello2009(Dnu, numax_spread); // Second argument is the random spread on numax
+	const double numax_star_nospread=numax_from_stello2009(Dnu, 0); // Used by Kallinger2014 relations
+	std::cout << "   - numax = " << numax_star << std::endl;
+// ---------------------------------
+// --- Deploy noise parameters ----
+	// Raw noise params start at index=16
+	//Raw noise params: k_Agran         s_Agran         k_taugran       s_taugran       c0              ka              ks              k1              s1              c1              k2              s2              c2              N0
+	//Need conversion to: k_Agran         s_Agran         k_taugran       s_taugran  c0        Na1      Na2     k1     s1    c1      k2    s2      c1
+	//a1,a2 but be derived first here....
+	const double ka=input_params[21];
+	const double ks=input_params[22];
+	const double Na1=ka*std::pow(numax_star, ks);
+	const double Na2=Na1;
+	VectorXd noise_params_Kallinger(14);
+	noise_params_Kallinger.segment(0,6)=input_params.segment(16,6);
+	noise_params_Kallinger[5]=Na1;
+	noise_params_Kallinger[6]=Na2;
+	noise_params_Kallinger.segment(7,7)=input_params.segment(16+6+2-1,7);
+	//std::cout << "ka = " << ka << std::endl;
+	//std::cout << "ks = " << ks << std::endl;
+	//for(int k=0;k<noise_params_Kallinger.size();k++){
+	//	std::cout << "noise_params_Kallinger[" << k << "] = " << noise_params_Kallinger[k] << std::endl;
+	//}
+	//std::cout << "Verify that all these affectation are correct... " << std::endl;
+	//exit(EXIT_SUCCESS);
+
+	ref_star=read_star_params(extra, false);  // no verbose here
+	mode_params.setZero(ref_star.mode_params.rows(), 16); // Final table of values that define a star
+
+	// Defining the noise profile parameters
+	// Note about the noise: -1 means that it is ignored. -2 mean that the value is irrelevant
+	tmp.resize(ref_star.mode_params.rows()); 	
+	tmp.setConstant(0);
+	if (ref_star.noise_model == "Harvey-like"){
+		local_noise=harvey_like(ref_star.noise_params, ref_star.mode_params.col(1), tmp); // Generate a list of local noise values for each frequencies
+	} else{
+		std::cerr << "Noise model not supported for the reference star. " << std::endl;
+		std::cerr << "Debug required in models_database.cpp...." << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	// Defining the new noise harvey parameters. These will be used to compute the 
+	// local noise of the new star once we have the rescaled frequencies
+	// The noise params here follows Kallinger et al. 2014
+	VectorXd x;
+	const double Tobs=input_params[30];
+	const double Cadence=input_params[31];
+	const double df=1e6/(Tobs * 86400.);
+	const double Delta=1e6/Cadence; // /2
+	const int Ndata=Delta/df;
+	//std::cout << "Tobs=input_params[30] = " << Tobs << std::endl;
+	//std::cout << "Cadence=input_params[31] = " << Cadence << std::endl;
+	//std::cout << "Delta = " << Delta << std::endl;
+	x.setLinSpaced(Ndata, 0, Delta);
+	const double mu_numax=0; // This parameter is redundant with numax_spread as this already introduce some jitter in the mode position. 
+	const VectorXd noise_params_harvey=Kallinger2014_to_harveylike(numax_star_nospread, mu_numax, noise_params_Kallinger, x);
+	//std::cout << noise_params_harvey.transpose() << std::endl;
+	//std::cout << "models_database.cpp: Check here that noise_params_harvey is with correct units..." << std::endl;
+	//exit(EXIT_SUCCESS);
+
+	// --- Perform rescaling of frequencies  ---
+	d0l << delta0l_percent*Dnu/100., delta0l_percent*Dnu/100., delta0l_percent*Dnu/100.; // small separation l=1,2,3
+	pos=where_dbl(ref_star.mode_params.col(0), 0, 1e-3); // pick l=0
+	if(pos[0] != -1){
+		f_ref.fl0.resize(pos.size());
+		for(int n=0; n<pos.size();n++){
+			f_ref.fl0[n]=ref_star.mode_params(pos[n],1);
+		}
+	} else{
+		std::cerr << "Error in generate_cfg_from_synthese_file_Wscaled_aj : You must have at least l=0 to perform a rescale" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	if(pos[0] != -1){
+		pos=where_dbl(ref_star.mode_params.col(0), 1, 1e-3); // pick l=1
+		f_ref.fl1.resize(pos.size());
+		for(int n=0; n<pos.size();n++){
+			f_ref.fl1[n]=ref_star.mode_params(pos[n],1);
+		}
+	}
+	pos=where_dbl(ref_star.mode_params.col(0), 2, 1e-3); // pick l=2
+	if(pos[0] != -1){
+		f_ref.fl2.resize(pos.size());
+		for(int n=0; n<pos.size();n++){
+			f_ref.fl2[n]=ref_star.mode_params(pos[n],1);
+		}
+	}
+	pos=where_dbl(ref_star.mode_params.col(0), 3, 1e-3); // pick l=3
+	if(pos[0] != -1){
+		f_ref.fl3.resize(pos.size());
+		for(int n=0; n<pos.size();n++){
+			f_ref.fl3[n]=ref_star.mode_params(pos[n],1);
+		}
+	}
+
+	f_rescaled=rescale_freqs(Dnu, epsilon, f_ref, d0l);
+	if (f_rescaled.error_status == true){
+		std::cerr << "Error while rescaling: There is likely an issue in frequency tagging." << std::endl;
+		std::cerr << "                       Debug in generate_cfg_from_synthese_file_Wscaled_aj required " << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	f_rescaled_lin.resize(f_ref.fl0.size()+ f_ref.fl1.size()+f_ref.fl2.size()+ f_ref.fl3.size());
+	xmin=-nu_spread;
+	xmax=nu_spread;
+	for(int n=0; n<f_ref.fl0.size(); n++){
+		mode_params(n,0)=0;
+		f_rescaled_lin[n]=f_rescaled.fl0[n];
+		// Adding to f_rescaled_lin[n] a uniform random quantity that is bounded by xmi and xmax
+		if (nu_spread > 0)
+		{
+				f_rescaled_lin[n]=f_rescaled_lin[n] + (xmax-xmin)*distrib(gen);
+		}
+	}
+	for(int n=0; n<f_ref.fl1.size(); n++){
+		mode_params(n+f_ref.fl0.size(),0)=1;
+		f_rescaled_lin[n+f_ref.fl0.size()]=f_rescaled.fl1[n];
+		if (nu_spread > 0)
+		{
+				f_rescaled_lin[n+f_ref.fl0.size()]=f_rescaled_lin[n+f_ref.fl0.size()] + (xmax-xmin)*distrib(gen);
+		}
+	}
+	for(int n=0; n<f_ref.fl2.size(); n++){
+		mode_params(n+f_ref.fl0.size()+f_ref.fl1.size(),0)=2;
+		f_rescaled_lin[n+f_ref.fl0.size()+f_ref.fl1.size()]=f_rescaled.fl2[n];
+		if (nu_spread > 0)
+		{
+				f_rescaled_lin[n+f_ref.fl0.size()+f_ref.fl1.size()]=f_rescaled_lin[n+f_ref.fl0.size()+f_ref.fl1.size()] + (xmax-xmin)*distrib(gen);
+		}
+	}
+	for(int n=0; n<f_ref.fl3.size(); n++){
+		mode_params(n+f_ref.fl0.size()+f_ref.fl1.size()+f_ref.fl2.size(),0)=3;
+		f_rescaled_lin[n+f_ref.fl0.size()+f_ref.fl1.size()+f_ref.fl2.size()]=f_rescaled.fl3[n];
+		if (nu_spread > 0)
+		{
+				f_rescaled_lin[n+f_ref.fl0.size()+f_ref.fl1.size()+f_ref.fl2.size()]=f_rescaled_lin[n+f_ref.fl0.size()+f_ref.fl1.size()+f_ref.fl2.size()] + (xmax-xmin)*distrib(gen);
+		}
+	}
+
+	// Compute the local noise for the new star
+	local_noise_new.resize(f_rescaled_lin.size());
+	local_noise_new.setZero();
+	local_noise_new=harvey_like(noise_params_harvey, f_rescaled_lin, local_noise_new, 3); // Iterate on Noise_l0 to update it by putting the noise profile with one harvey profile
+	/* --- This is to test with the equivalent function in Python that use directly a1,a2, etc... (and not the translation to a Harvey-like)
+	std::cout << "noise_params_harvey = " << noise_params_harvey.transpose() << std::endl;
+	for (int i=0;i<local_noise.size();i++){
+		std::cout << local_noise[i] << std::setw(20) << local_noise_new[i] << std::endl;
+	}
+	VectorXd y(x.size());
+	y.setZero();
+	y=harvey_like(noise_params_harvey, x, y, 3); // Iterate on Noise_l0 to update it by putting the noise profile with one harvey profile
+	std::ofstream debugFile("debug.txt");
+	// Check if the debug file was successfully opened
+	if (debugFile.is_open()) {
+		for (int i = 0; i < x.size(); i++) {
+			debugFile << x(i) << "\t" << y(i) << "\n";
+		}
+		debugFile.close();
+	} else {
+		std::cout << "Error: Unable to open the debug file." << std::endl;
+	}
+	std::cout << "Check that the local_noise_new makes sense when star_ref == star_sim" << std::endl;
+	std::cout << "noise_params_harvey    = " << noise_params_harvey.transpose() << std::endl;
+	std::cout << "noise_params_kallinger = " << noise_params_Kallinger.transpose() << std::endl;
+	std::cout << "   - numax = " << numax_star << std::endl;
+	exit(EXIT_SUCCESS);
+	*/
+	// ---- Rescaling Height and Width profiles ----
+	HNRref=ref_star.mode_params.col(2);
+	HNRref=HNRref.cwiseProduct(local_noise.cwiseInverse());
+	pos=where_dbl(ref_star.mode_params.col(0), 0, 1e-3);
+
+	HNRmaxref=0;
+	for (int n=0; n<pos.size();n++){
+		if (HNRmaxref < HNRref[pos[n]]){
+			HNRmaxref=HNRref[pos[n]];
+		}
+	}
+
+	Height_factor=HNR/HNRmaxref;  // compute the coeficient required to get the proper max(HNR)
+	pos=where_dbl(HNRref, HNRmaxref, 0.001);
+	if (pos[0] >= 0){
+		Gamma_coef=Gamma_at_numax/ref_star.mode_params(pos[0], 3); // Correction coeficient to apply on Gamma(nu) in order to ensure that we have Gamma(nu=numax) = Gamma_at_numax
+	} else{
+		std::cout << "Error! could not find the max position for the mode Widths profile" << std::endl;
+		std::cout << "Code debug required" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+
+	a1=a1_ov_Gamma*Gamma_at_numax; // We can vary the Width and splitting. But we need to change the splitting in order to get the wished a1/Gamma0
+
+	// Defining the final size for all of the outptus
+	gamma_star.resize(ref_star.mode_params.rows());
+	gamma_star=Gamma_coef*ref_star.mode_params.col(3); // In IDL, AN INTERPOLATION WAS DONE FOR l>0. HERE WE ASSUME THE .in file is whatever the true model should be (no interpolation)
+	// Refactoring the heights
+	h_star.resize(ref_star.mode_params.rows());
+	//h_star=Height_factor * HNRref * N0; 
+	if (local_noise_new.sum()!= 0){
+		//N0=1; // Imposing the the Noise background is 1
+		//std::cout <<  "Using N0=" << N0 << " (white noise)" << std::endl;
+		std::cout << "Using the Noise profile of the New star, using provided noise parameters and Karoff et al. 2010 prescription" << std::endl;
+		std::cout << "HNR of all modes:" << std::endl;
+		std::cout << "     "  << std::setw(15) << "degree" << std::setw(15) << "freq_template" << std::setw(15) <<  "freq_rescaled" << std::setw(15) << "HNR" << std::setw(15) <<  "Height" << std::setw(15) << "local_noise" << std::endl;
+		for(i =0; i<ref_star.mode_params.rows(); i++){
+			h_star[i]=Height_factor * HNRref[i] * local_noise_new[i];
+			// Adding a unifomly random value, with maximum range 2*H_spread
+			if (H_spread > 0)
+			{
+					xmin=h_star[i]*(1. - H_spread/100.);
+					xmax=h_star[i]*(1. + H_spread/100.);
+					h_star[i]=xmin + (xmax-xmin)*distrib(gen);
+			}
+			std::cout << "     " << std::setw(15) << ref_star.mode_params(i,0) << std::setw(15) << ref_star.mode_params(i,1)  << std::setw(15)  << f_rescaled_lin[i] << std::setw(15) << Height_factor * HNRref[i]  << std::setw(15) << h_star[i] << std::setw(15)  << local_noise_new[i] << std::endl;
+		}
+	} else{
+		std::cerr << "Error: local_noise_new has no valid value. Debug required." << std::endl;
+		std::cerr << "         The program will stop now" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	if (a1 < 0){
+		std::cout << "Error: The a1 provided by the user is negative" << std::endl;
+		std::cout << "       Only positive values are valid" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	if (inc < 0){ 
+		std::cout << "Error: The inclination provided by the user is negative" << std::endl;
+		std::cout << "       Only positive values are valid" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	
+	// Filling the output Matrix. 
+	//   Note on assumptions here: We assume that the template has monotonically increasing frequency, for each l. 
+	//                             It is also assumed that block of l are in the strict order l=0,1,2,3
+
+	//mode_params.col(0)=ref_star.mode_params.col(0); // List of els
+	//mode_params.col(1)=ref_star.mode_params.col(1); // List of frequencies
+	mode_params.col(1)=f_rescaled_lin; // Frequencies in a flat array
+	mode_params.col(2)=h_star;
+	mode_params.col(3)=gamma_star; 
+	mode_params.col(4).setConstant(a1);//=s_a1_star; 
+	mode_params.col(5).setConstant(a2);//=s_a2_star;
+	mode_params.col(6).setConstant(a3);//=s_a3_star;
+	mode_params.col(7).setConstant(a4);//=s_a4_star;
+	mode_params.col(8).setConstant(a5);//=s_a5_star;
+	mode_params.col(9).setConstant(a6);//=s_a6_star;
+	mode_params.col(10).setConstant(beta_asym);//=s_asym_star;
+	mode_params.col(11).setConstant(inc);//=inc_star;  
+	// A FUNCTION THAT WRITES THE PARAMETERS
+	// THIS MIGHT NEED TO BE WRITTEN IN ANOTHER FORMAT
+	write_star_mode_params_aj(mode_params, file_out_modes);
+
+	noise_params(0,0)=noise_params_harvey[0];
+	noise_params(0,1)=noise_params_harvey[1];
+	noise_params(0,2)=noise_params_harvey[2];
+	noise_params(1,0)=noise_params_harvey[3];
+	noise_params(1,1)=noise_params_harvey[4];
+	noise_params(1,2)=noise_params_harvey[5]; 
+	noise_params(2, 0)=noise_params_harvey[6];
+	noise_params(2, 1)=noise_params_harvey[7];
+	noise_params(2, 2)=noise_params_harvey[8];
+	noise_params(3, 0)=noise_params_harvey[9]; // White noise
+	noise_params(3, 1)=-2;
+	noise_params(3, 2)=-2;
+	// A FUNCTION THAT WRITES THE Noise
+	write_star_noise_params(noise_params, file_out_noise);
+	}
+
+
+
 // ------ Common ------
 
 // Compute the effect of centrifugal distorsion on mode frequencies

@@ -73,7 +73,7 @@ void artificial_spectrum_act_asym(const double Tobs, const double Cadence, const
 	data_noise=read_data_ascii_Ncols(file_in_noise, delimiter, verbose_data);
 
 	df=1e6/(Tobs * 86400.);
-	Delta=1e6/Cadence/2;
+	Delta=1e6/Cadence; // /2
 	Ndata=Delta/df;
 	freq.setLinSpaced(Ndata, 0, Delta);
 
@@ -482,25 +482,10 @@ void artificial_spectrum_aj(const double Tobs, const double Cadence, const doubl
 		angle_l=data_modes.data(i,11);
 		ratios=amplitude_ratio(l, angle_l);
 		eta0=0;
-		/*
-		std::cout << " l=" << l << std::endl;
-		std::cout << " . fc_l = " << fc_l << std::endl;
-		std::cout << "     H_l =" << H_l << std::endl;
-		std::cout << "     W_l =" << gamma_l << std::endl;
-		std::cout << "     a1  =" << a1 << std::endl;
-		std::cout << "     a2  =" << a2 << std::endl;
-		std::cout << "     a3  =" << a3 << std::endl;
-		std::cout << "     a4 =" << a4 << std::endl;
-		std::cout << "     a5 =" << a5 << std::endl;
-		std::cout << "     a6 =" << a6 << std::endl;
-		std::cout << "     eta0 =" << eta0 << std::endl;
-		std::cout << "     beta_asym =" << beta_asym << std::endl;
-		*/
 		s_mode=build_l_mode_aj(freq,  H_l, fc_l, a1, a2, a3, a4, a5, a6, eta0, beta_asym, gamma_l, l, ratios);
 		spec_modes=spec_modes + s_mode;
 		scoef1=scoef1 + gamma_l;
 	}
-	//exit(EXIT_SUCCESS);
 	scoef1=scoef1/data_modes.data.cols(); // scoef1 is based on the average mode width
 	scoef2=scoef1; // scoef2 is based on the average mode width
 
@@ -510,6 +495,8 @@ void artificial_spectrum_aj(const double Tobs, const double Cadence, const doubl
 	// Build the noise background using the Harvey like profile...
 	std::cout << "    - Generating the model of noise with noise_modelname = " << noise_modelname << "..." << std::endl;
 	if (noise_modelname =="harvey_like"){
+		std::cout << "data_noise.data :" << std::endl;
+		std::cout << data_noise.data << std::endl;
 		spec_noise=harvey_like(data_noise.data, freq);
 	} else{
 		if (noise_modelname == "harvey_1985"){
@@ -523,12 +510,14 @@ void artificial_spectrum_aj(const double Tobs, const double Cadence, const doubl
 	}
 	// Final spectrum and saving functions
 	input_spec_model=spec_noise + spec_modes;
+	// Compute and apply the Leakage effect as a sinc function (Eq 1 of Kallinger+2014)
+	const VectorXd eta_squared=eta_squared_Kallinger2014(freq);
+	input_spec_model.cwiseProduct(eta_squared);
 
 	// Making Nrealisation of noise
 	fileout_params=dir_core + "Data/Spectra_info/" + strtrim(identifier) + ".in";
     spec_reg.resize(Ndata);
     stmp.resize(Ndata);
-	//const int Nrealisation=2;
 	for (int nr=0; nr<Nrealisation; nr++){
 		fileout_spectrum=dir_core + "Data/Spectra_ascii/" + strtrim(identifier)  + "." + int_to_str(nr) + ".data";
 		fileout_plot=dir_core + "Data/Spectra_plot/" + strtrim(identifier) + "." + int_to_str(nr) + ".eps" ;

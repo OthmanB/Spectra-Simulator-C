@@ -67,6 +67,7 @@ struct Star_params {
     MatrixXd mode_params; ///< Mode parameters.
     MatrixXd noise_params; ///< Noise parameters.
     std::string identifier; ///< Identifier of the reference star.
+    std::string noise_model="Harvey-like"; ///< Type of noise model used in the star. Could be Harvey-like or Kallinger+2014
     double cadence; ///< Cadence of the observations.
     double Tobs; ///< Total observation time.
 };
@@ -93,10 +94,32 @@ struct Config_Data {
     double Nspectra; ///< Number of spectra.
     double Nrealisation; ///< Number of realizations.
     std::vector<std::string> labels; ///< Labels for the parameters.
+    std::vector<std::string> distrib; ///< Distribution for the variables. Either Uniform, Gaussian or Fix.
     std::vector<double> val_min; ///< Minimum values for the parameters.
     std::vector<double> val_max; ///< Maximum values for the parameters.
     std::vector<double> step; ///< Step values for the parameters.
     std::vector<double> forest_params; ///< Forest parameters.
+};
+
+/**
+ * @brief Noise configuration used for Kallinger+2014 noise models
+ * 
+ * This structure is to encapsulate the data read from a noise configuration file.
+ * It is used in models that involve a Kallinger+2014 noise parametrisation. This parametrisation has specificities (a large set of parameters, with Gaussian distribution) that does not make it easy to read if put directly in the main.cfg file. Furthermore, it avoids the user to make too much errors in setting the noise, as the values are data-driven and should not be modified
+ */
+struct Config_Noise {
+    // For the random case
+    std::vector<std::string> name_random; ///< Name of the variable in the random case.
+    std::vector<std::string> distrib_random; ///< Name of the distribution from which we draw random variables in the grid case.
+    std::vector<double> x1_random; ///< First value associated to the distribution (eg. the mean of a Gaussian).
+    std::vector<double> x2_random; ///< Second value associated to the distribution (eg. the standard deviation of a Gaussian).
+    std::vector<double> kerror_random; ///< Enlargement factor in the case of a Gaussian distribution.
+    // For the grid case
+    std::vector<std::string> name_grid; ///< Name of the variable in the grid case.
+    std::vector<std::string> distrib_grid; ///< Name of the distribution from which we draw random variables in the grid case.
+    std::vector<double> x1_grid; ///< First value associated to the distribution in the grid case (eg. the min of the range of a Uniform distribution).
+    std::vector<double> x2_grid; ///< Second value associated to the distribution in the grid case (eg. the max of the range of a Uniform distribution).
+    std::vector<double> kerror_grid; ///< Enlargement factor or any relevant value required to compute the distribution.
 };
 
 /**

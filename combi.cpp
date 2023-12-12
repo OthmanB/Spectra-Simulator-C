@@ -71,9 +71,9 @@ long read_id_allcombi(std::string file_combi){
 	vals_last=strsplit(strtrim(lastline), " ");
 
 	std::cout << "lastline=" << lastline << std::endl;
-	for(int i=0; i<vals_last.size(); i++){
-		std::cout << "vals_last[" << i << "]=" << vals_last[i] << std::endl;	
-	}
+	//for(int i=0; i<vals_last.size(); i++){
+	//	std::cout << "vals_last[" << i << "]=" << vals_last[i] << std::endl;	
+	//}
 	return str_to_lng(vals_last[0]);
 }
 
@@ -94,7 +94,6 @@ std::string write_allcombi(MatrixXd& allcombi, VectorXd& cte_params, Config_Data
 		outfile.open(fileout.c_str(), std::ios::app); // append
 	}
 	if(outfile.is_open()){
-		//std::cout << "File opened" << std::endl;
 		if(erase_old_file == 1 && iter == 0) { // Write Header only if we do not erase the old file AND this is the first execution of the function
 			outfile << "model_name= " << cfg.model_name << std::endl;
 			outfile << " --------------------------" << std::endl;
@@ -106,15 +105,11 @@ std::string write_allcombi(MatrixXd& allcombi, VectorXd& cte_params, Config_Data
 			}
 			outfile << std::endl;
 		} 
-
 		for(int i=0; i<allcombi.rows(); i++){
 			id_str=identifier2chain(i + id0); // The identifier corresponds to the index of the current process + the initial id0
-			outfile << std::setw(7) << id_str;
-			//std::cout << "id_str=" << id_str << std::endl;
-			
+			outfile << std::setw(7) << id_str;			
 			var_params=allcombi.row(i).transpose();
 			input_params=order_input_params(cte_params, var_params, cte_names, var_names, param_names);
-			//std::cout << "input_params=" << input_params << std::endl;
 			for(int j=0; j<input_params.size(); j++){			
 				outfile << std::setw(Nchars) << std::setprecision(precision) << input_params(j);	
 			}
