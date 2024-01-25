@@ -1,0 +1,28 @@
+# Configuration in order to generate an ensemble of spectra automatically using [val_min] and [val_max] as the limits of the parameter space
+# Seven inputs are required: 
+# 		- model_name : Name of the model, as defined in models_database.pro
+#		- The name of the parameters as defined in models_database.pro, for the subfunction [model_name]
+#		- val_min : vector listing the initial parameters of the model [model_name]. See models_database.pro for more information about those parameters
+# 		- val_max:  vector of same size as [val_min] with the final parameters of the model.
+#		- Tobs and Cadence: Observation duration (in days) and the Cadence of observation (in seconds)
+#		- forest_type: either grid or random. Currently, only random (uniform) is implemented.
+#               - erase_old_file: If 1, then (1) the combination file is overwritten and (2) the model number (identifier) is reset to 0. 
+#                                 If 0, then (1) append the combination file and (2) model number = last model number + 1
+# WARNING : DO NOT USE a2_core AND a2_l1_env ! Let it to 0. IT IS HERE FOR FUTURE UPGRADE OF THE FUNCTIONS 
+#           BUT IT IS NOT USED IN THE CURRENT VERSION OF THE CODE
+# NOTE ON a-coefficients:
+#         - If you want a2_l2_env = a2_l3_env, then SET A RANGE FOR a2_l2_env and FIX a2_l3_env to -9999
+#         - If you want a3_l2_env = a3_l3_env, then SET A RANGE FOR a3_l2_env and FIX a3_l3_env to -9999
+#         - If you want a4_l2_env = a4_l3_env, then SET A RANGE FOR a4_l2_env and FIX a4_l3_env to -9999
+random 1 # forest_type, followed by the forest_params. If forest_type=random, then forest_params is a single value that corresponds to the Number of samples
+asymptotic_mm_freeDp_numaxspread_curvepmodes_v3_GRANscaled_Kallinger2014	 		# Name of the model. asymptotic_mm_freeDp_curvepmodes_v1 is a model iterating on what was learnt from asymptotic_v1, v2, v3 to generate a star with mixed modes
+all		        # Used template(s) name(s). If several, randomly select one/iteration. If set to 'all', will use all *.template files in Configuration/templates
+nurot_env  nurot_core   a2_l1_core    a2_l1_env    a2_l2_env   a2_l3_env   a3_l2_env     a3_l3_env     a4_l2_env    a4_l3_env    a5_l3_env    a6_l3_env     Dnu    epsilon    delta0l_percent  beta_p_star  nmax_spread  DP1    alpha     q       SNR    maxGamma   numax_spread   Vl1     Vl2    Vl3   H0_spread      Hfactor    Wfactor
+0.1286       0.1286         0           0           -0.1        -0.1        -0.05         -0.05         -0.1         -0.1        -0.05       -0.05          20.       0.         -3               0.00         5           75     0.00     0.1     1000.     0.1        15           1      0.25   0.0   10          0.0     0.0    #val_min
+0.3858       3.858          0           0.          0.1          0.1         0.05          0.05          0.1          0.1         0.05        0.05          30.       1.         0.5             0.10         5           400    1.00     0.5     5000.     1.5        15           1.75   0.80   0.1   10           1.0     1.0   #val_max
+1.           1.             0           0           1            1           1             1             1            1           1.          1.            1.        1.         1.              1.           1.           1.     1.       1.      1        1          0.            1.     1.     1.    0            1       1 #If forest_type="random" ==> 1=Variable OR 0=Constant. If forest_type="grid" then must be the stepsize of the grid
+Tobs   Cadence  Naverage    Nrealisation
+100.    120       1            4
+1     # It is erase_old_files. If set to 1, will remove old Combination.txt and restart counting from 1. Otherwise append Combination.txt
+1     # Do you want plots ? 0 = No, 1 = Yes
+1     # Do you list values of the input model in the output ascii file?
