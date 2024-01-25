@@ -10,13 +10,13 @@
 #define APP_ID        "CPPSpecSim" /**< Application ID */
 #define APP_NAME      "CPPSpecSim" /**< Application Name */
 #define APP_DESC      "Spectrum Simulator for Asteroseismology" /**< Application Description */
-#define APP_VERSION   "1.50" /**< Application Version */
+#define APP_VERSION   "1.51" /**< Application Version */
 #define APP_DOMAIN    "" /**< Application Domain */
 #define APP_SITE      "https://othmanbenomar.dev" /**< Application Site */
 #define APP_COPYRIGHT "Othman Benomar" /**< Application Copyright */
 
 #define APP_VER_MAJOR  1 /**< Application Major Version */
-#define APP_VER_MINOR  50 /**< Application Minor Version */
+#define APP_VER_MINOR  51 /**< Application Minor Version */
 //#define APP_VER_BUILD  0
 //#define APP_VER_REV    0
 

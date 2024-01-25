@@ -59,7 +59,7 @@ int main(int argc, char* argv[]){
 
     cfg_star=configure_make_star(input_params);
     // ---- Make the star ----
-	params_out=make_synthetic_asymptotic_star(cfg_star);
+	params_out=make_synthetic_asymptotic_star(cfg_star, cfg_star.legacynoise);
     // Organize the paramaters 
 	mode_params=bumpoutputs_2_MatrixXd_with_aj(params_out, cfg_star.inclination); // get the output in a format that can be written with the writting function
 	copy_cfg(cfg_file, input_params["file_out_modes"]); // We include the full configuration without comments inside the output file

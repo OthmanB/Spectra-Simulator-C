@@ -848,7 +848,6 @@ void asymptotic_mm_freeDp_numaxspread_curvepmodes_v2(VectorXd input_params, std:
 
 }
 
-
 void asymptotic_mm_freeDp_numaxspread_curvepmodes_v3(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string file_cfg_mm, std::string external_path, std::string template_file){
 
 	int seed=(unsigned)time(NULL);
@@ -1100,6 +1099,246 @@ void asymptotic_mm_freeDp_numaxspread_curvepmodes_v3(VectorXd input_params, std:
 	// A FUNCTION THAT WRITES THE Noise
 	write_star_noise_params(noise_params, file_out_noise);
 	//exit(EXIT_SUCCESS);
+}
+
+
+void asymptotic_mm_freeDp_numaxspread_curvepmodes_v3_GRANscaled_Kallinger2014(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string file_cfg_mm, std::string external_path, std::string template_file){
+
+	int seed=(unsigned)time(NULL);
+	srand(seed);
+
+	std::random_device rd;
+	std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+	std::uniform_real_distribution<double> distrib(0 , 1);
+	
+	// ----- Constants ------
+	const double PI = 3.141592653589793238462643;
+	const double G=6.667e-8;
+	const double Teff_sun=5777;
+	const double Dnu_sun=135.1;
+	const double numax_sun=3150;
+	const double R_sun=6.96342e5;
+	const double M_sun=1.98855e30;
+	const double rho_sun=M_sun*1e3/(4*PI*pow(R_sun*1e5,3)/3);
+	// ----------------------
+	const std::string cpath=getcwd(NULL, 0);
+	
+	const std::string file_range=cpath + "/external/ARMM-solver/star_params.range";
+	const double lmax=3;
+	const double Nmax_pm=6; // Number of radial order to inject on each side of numax
+	// ------- Deploy the parameters ------
+	double nmax_spread=input_params[16];
+	double numax_spread=input_params[22]/100.;	
+
+	double inc_rad, inc_star, inc_y, inc_c;
+	double xmin, xmax, a1;
+	double H, tau, p, N0;
+	MatrixXd mode_params, noise_params(4,3);
+	
+	Cfg_synthetic_star cfg_star;
+	Params_synthetic_star params;
+	// ------------------------------------
+
+	// Attempting to read file_cfg_mm, if exist. 
+	std::cout << "Trying to find and read the mixed modes configuration file" << file_cfg_mm << std::endl;
+	cfg_star=read_theoretical_freqs(file_cfg_mm, false); // try to read with critical = false
+	if (cfg_star.use_nu_nl == true){
+		std::cout << "    " << file_cfg_mm << " read! " << std::endl;
+		std::cout << "    Found use_nu_nl = true ==> " << std::endl;
+		std::cout << "    The frequencies of l=0,1,2,3 listed in the file will be used! " << std::endl;
+	} else{
+		std::cout << "     " << file_cfg_mm << " not found or cfg_star.use_nu_nl is set to false in the file. Pursuing..." << std::endl;
+	}
+	// ----------
+	if (cfg_star.use_nu_nl == false){ // we use the parameters defined in the main.cfg
+		cfg_star.Dnu_star=input_params[12];
+		cfg_star.DPl_star=input_params[17];                
+		cfg_star.q_star=input_params[19];
+		cfg_star.alpha_g_star=input_params[18];
+		cfg_star.epsilon_star=input_params[13];
+	} else{
+		std::cout << "Using:" << std::endl;
+		std::cout << "    cfg_star.Dnu_star = " << cfg_star.Dnu_star << std::endl;
+		std::cout << "    cfg_star.DPl_star = " << cfg_star.DPl_star << std::endl;
+		std::cout << "    cfg_star.q_star   = " << cfg_star.q_star << std::endl;
+		std::cout << "    cfg_star.alpha_g_star   = " << cfg_star.alpha_g_star << std::endl;
+		std::cout << "    epsilon_p_star will be calculated using the provided list of frequencies and Dnu_star" << std::endl;
+		std::cout << "    Note that delta0l_percent_star is taken from the main.cfg configuration " << std::endl;
+	}
+	cfg_star.Teff_star=-1;
+	cfg_star.delta0l_percent_star=input_params[14];
+	cfg_star.beta_p_star=input_params[15];
+
+	cfg_star.maxHNR_l0=input_params[20];
+	cfg_star.H0_spread=input_params[26];
+	cfg_star.Gamma_max_l0=input_params[21];
+	cfg_star.Hfactor=input_params[41];
+	cfg_star.Wfactor=input_params[42];
+
+	cfg_star.rot_env_input=input_params[0];
+	cfg_star.rot_ratio_input=-1;
+	cfg_star.rot_core_input=input_params[1];
+	cfg_star.env_aspher.a2_l1=0; // SET TO 0 for l=1 modes. Ideally, would need a2_l1_core mixed with a2_l1_env
+	cfg_star.env_aspher.a2_l2=input_params[4];
+/*
+	0 : nurot_env  
+	1 : nurot_core  
+	2 : a2_l1_core    
+	3 : a2_l1_env    
+	4 : a2_l2_env   
+	5 : a2_l3_env   
+	6 : a3_l2_env    
+	7 : a3_l3_env     
+	8 : a4_l2_env    
+	9 : a4_l3_env    
+	10: a5_l3_env    
+	11: a6_l3_env     
+	12: Dnu    
+	13: epsilon    
+	14: delta0l_percent  
+	15: beta_p_star  
+	16: nmax_spread  
+	17: DP1    
+	18: alpha     
+	19: q       
+	20: SNR    
+	21: maxGamma   
+	22: numax_spread        
+	23: Vl1     
+	24: Vl2    
+	25: Vl3   
+	26: H0_spread      
+	---> 14 Noise parameters from Kallinger2014 follow after
+	41: Hfactor
+	42: Wfactor
+	43: Tobs
+	44: Cadence
+*/
+
+	if(input_params[5] <= -9999){ // If the user want l2 and l3 having the same aj coefficient, they need to put l3 to -9999 or smaller
+		cfg_star.env_aspher.a2_l3=cfg_star.env_aspher.a2_l2;
+	} else{
+		cfg_star.env_aspher.a2_l3=input_params[5];
+	}	
+	cfg_star.env_aspher.a4_l2=input_params[8];
+	if(input_params[9] <= -9999){ // If the user want l2 and l3 having the same aj coefficient, they need to put l3 to -9999 or smaller
+		cfg_star.env_aspher.a4_l3=cfg_star.env_aspher.a4_l2;
+	} else{
+		cfg_star.env_aspher.a4_l3=input_params[9];
+	}
+	cfg_star.env_aspher.a6_l3=input_params[11];
+	cfg_star.env_lat_dif_rot.a3_l2=input_params[6];
+	if(input_params[7] <= -9999){ // If the user want l2 and l3 having the same aj coefficient, they need to put l3 to -9999 or smaller
+		cfg_star.env_lat_dif_rot.a3_l3=cfg_star.env_lat_dif_rot.a3_l2;
+	} else{
+		cfg_star.env_lat_dif_rot.a3_l3=input_params[7];
+	}
+	cfg_star.env_lat_dif_rot.a5_l3=input_params[10];
+	// This must precede the noise definition
+	cfg_star.numax_star=numax_from_stello2009(cfg_star.Dnu_star, numax_spread); // Second argument is the random spread on numax
+	const double numax_star_nospread=numax_from_stello2009(cfg_star.Dnu_star, 0); // Used by Kallinger2014 relations
+	//
+	// --- Deploy noise parameters ----
+	// Raw noise params start at index=16
+	//Raw noise params: k_Agran         s_Agran         k_taugran       s_taugran       c0              ka              ks              k1              s1              c1              k2              s2              c2              N0
+	//Need conversion to: k_Agran         s_Agran         k_taugran       s_taugran  c0        Na1      Na2     k1     s1    c1      k2    s2      c1
+	//a1,a2 but be derived first here....
+	const double ka=input_params[32];
+	const double ks=input_params[33];
+	const double Na1=ka*std::pow(cfg_star.numax_star, ks);
+	const double Na2=Na1;
+	VectorXd noise_params_Kallinger(14);
+	noise_params_Kallinger.segment(0,6)=input_params.segment(27,6);
+	noise_params_Kallinger[5]=Na1;
+	noise_params_Kallinger[6]=Na2;
+	noise_params_Kallinger.segment(7,7)=input_params.segment(27+6+2-1,7);
+	//std::cout << "ka = " << ka << std::endl;
+	//std::cout << "ks = " << ks << std::endl;
+	//for(int k=0;k<noise_params_Kallinger.size();k++){
+	//	std::cout << "noise_params_Kallinger[" << k << "] = " << noise_params_Kallinger[k] << std::endl;
+	//}
+	//std::cout << "Verify that all these affectation are correct... " << std::endl;
+	//exit(EXIT_SUCCESS);
+	// Defining the new noise harvey parameters. These will be used to compute the 
+	// local noise of the new star once we have the rescaled frequencies
+	// The noise params here follows Kallinger et al. 2014
+	VectorXd x;
+	const double Tobs=input_params[43];
+	const double Cadence=input_params[44];
+	const double df=1e6/(Tobs * 86400.);
+	const double Delta=1e6/Cadence; // /2
+	const int Ndata=Delta/df;
+	//std::cout << "Tobs=input_params[41] = " << Tobs << std::endl;
+	//std::cout << "Cadence=input_params[42] = " << Cadence << std::endl;
+	//std::cout << "Delta = " << Delta << std::endl;
+	x.setLinSpaced(Ndata, 0, Delta);
+	const double mu_numax=0; // This parameter is redundant with numax_spread as this already introduce some jitter in the mode position. 
+	const VectorXd noise_params_harvey=Kallinger2014_to_harveylike(numax_star_nospread, mu_numax, noise_params_Kallinger, x);
+	cfg_star.noise_params_harvey_like=noise_params_harvey; 
+	// ------------
+	// ------------ 
+	cfg_star.fmin=cfg_star.numax_star -Nmax_pm*cfg_star.Dnu_star;
+	cfg_star.fmax=cfg_star.numax_star +(Nmax_pm+2)*cfg_star.Dnu_star;
+	cfg_star.output_file_rot=cpath + "/external/ARMM-solver/star_params.rot";
+	cfg_star.Vl.resize(3);
+	cfg_star.Vl << input_params[23], input_params[24], input_params[25];
+	cfg_star.filetemplate = template_file;
+	cfg_star.nmax_star=cfg_star.numax_star/cfg_star.Dnu_star - cfg_star.epsilon_star;
+	cfg_star.alpha_p_star=cfg_star.beta_p_star/cfg_star.nmax_star;
+	cfg_star.sigma_m=0;
+	cfg_star.sigma_p=0;
+
+	if (std::abs(nmax_spread) > 0)
+	{
+		try
+		{
+			xmin=cfg_star.nmax_star*(1. - std::abs(nmax_spread)/100.);
+			xmax=cfg_star.nmax_star*(1. + std::abs(nmax_spread)/100.);
+			cfg_star.nmax_star=xmin + (xmax-xmin)*distrib(gen);
+			
+		}
+		catch(...)
+		{
+			std::cout << "Error debug info:" << std::endl;
+			std::cout << "cfg_star.nmax: " << cfg_star.nmax_star << std::endl;
+			std::cout << "nmax_spread: " << nmax_spread << std::endl;
+			exit(EXIT_FAILURE);
+		}
+	}
+
+	// Determination of an isotropic inclination
+	inc_rad=distrib(gen)*PI/2;
+	inc_y=distrib(gen);
+	inc_c=std::cos(inc_rad);
+	while (inc_y <=inc_c){
+		inc_rad=distrib(gen)*PI/2;
+		inc_y=distrib(gen);
+		inc_c=std::cos(inc_rad);
+	}
+	inc_star=inc_rad*180./PI;
+	
+	// b. Generate the mode profiles and frequencies
+	params=make_synthetic_asymptotic_star(cfg_star);
+	mode_params=bumpoutputs_2_MatrixXd(params, inc_star); // get the output in a format that can be written with the writting function
+
+	write_star_mode_params_aj(mode_params, file_out_modes);
+	write_range_modes(cfg_star, params, file_range);
+
+	noise_params(0,0)=noise_params_harvey[0];
+	noise_params(0,1)=noise_params_harvey[1];
+	noise_params(0,2)=noise_params_harvey[2];
+	noise_params(1,0)=noise_params_harvey[3];
+	noise_params(1,1)=noise_params_harvey[4];
+	noise_params(1,2)=noise_params_harvey[5]; 
+	noise_params(2, 0)=noise_params_harvey[6];
+	noise_params(2, 1)=noise_params_harvey[7];
+	noise_params(2, 2)=noise_params_harvey[8];
+	noise_params(3, 0)=noise_params_harvey[9]; // White noise
+	noise_params(3, 1)=-2;
+	noise_params(3, 2)=-2;
+	// A FUNCTION THAT WRITES THE Noise
+	write_star_noise_params(noise_params, file_out_noise);
+
 }
 
 

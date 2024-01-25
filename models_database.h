@@ -101,6 +101,18 @@ void asymptotic_mm_freeDp_numaxspread_curvepmodes_v2(VectorXd input_params, std:
 void asymptotic_mm_freeDp_numaxspread_curvepmodes_v3(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string file_cfg_mm, std::string external_path, std::string template_file);
 
 /**
+ * @brief Generate synthetic mode parameters and noise for an asymptotic star.
+ *
+ * @param input_params The input parameters for the star model.
+ * @param file_out_modes The output file path for the mode parameters.
+ * @param file_out_noise The output file path for the noise parameters.
+ * @param file_cfg_mm The configuration file path for the star model.
+ * @param external_path The external path for the star model.
+ * @param template_file The template file path for the star model.
+ */
+void asymptotic_mm_freeDp_numaxspread_curvepmodes_v3_GRANscaled_Kallinger2014(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string file_cfg_mm, std::string external_path, std::string template_file);
+
+/**
  * @brief Generate configuration file for an asymptotic star with active asymmetry and Gaussian height profile.
  *
  * @param input_params The input parameters for the star model.

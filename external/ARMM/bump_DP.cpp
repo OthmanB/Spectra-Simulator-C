@@ -582,6 +582,7 @@ long double numax_from_stello2009(const long double Dnu_star, const long double 
  *                 - q_star: Coupling coefficient between p and g modes.
  *                 - fmin: Minimum frequency for the modes that should be included in the calculations.
  *                 - fmax: Maximum frequency for the modes that should be included in the calculations.
+ * @param legacynoise An optional boolean that is defining how the input noise is dealt with. If legacynoise = True (default), then the fit will use the old definition inspired from Kallinger2014 and will convert that into vectors suitable for the harvey_1985() function. Otherwise, it expects a set of Harvey-like parameters that it will use directly using the harvey_like() function. This latest solution is prefered as it can be jointly used with the pure derivation of these parameters from the Kallinger2014 relations. In that case, the conversion happens outside this function, which becomes "noise-agnostic"
  * @return A structure `params_out` that contains the mode parameters for simulating the evolved star.
  *         - nu_lx: Frequencies of the l=x modes, where x is between 0 and 3.
  *         - nu_p_l1: Base p mode frequencies used to build the frequencies for the l=1 mixed modes.
@@ -590,7 +591,7 @@ long double numax_from_stello2009(const long double Dnu_star, const long double 
  *         - height_lx: Heights of the l=x modes, where x is between 0 and 3.
  *         - aj_lx: The a-coefficients of order j for each mode of degree l=x.
  */
-Params_synthetic_star make_synthetic_asymptotic_star(Cfg_synthetic_star cfg_star)
+Params_synthetic_star make_synthetic_asymptotic_star(Cfg_synthetic_star cfg_star, const bool legacynoise)
 {
 	std::random_device rd;
 	std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
@@ -621,17 +622,16 @@ Params_synthetic_star make_synthetic_asymptotic_star(Cfg_synthetic_star cfg_star
 	// Allow to debug content of cfg_star
 	//displayCfgSyntheticStar(cfg_star); 
 	
-	//Defining what should be Hmax_l0 in order to get the desired HNR
-	//                   04           1         2           3            4           5          6       7
-	//noise_params_harvey_like=[A_Pgran ,  B_Pgran , C_Pgran   ,  A_taugran ,  B_taugran  , C_taugran    , p      N0] // 
-	noise_params_harvey1985[0] = cfg_star.noise_params_harvey_like[0] * std::pow(cfg_star.numax_star*1e-6,cfg_star.noise_params_harvey_like[1]) + cfg_star.noise_params_harvey_like[2]; // Granulation Amplitude
-	noise_params_harvey1985[1] = cfg_star.noise_params_harvey_like[3] * std::pow(cfg_star.numax_star*1e-6, cfg_star.noise_params_harvey_like[4]) + cfg_star.noise_params_harvey_like[5]; // Granulation timescale (in seconds)
-	noise_params_harvey1985[0] = noise_params_harvey1985[0]/noise_params_harvey1985[1];
-	noise_params_harvey1985[1]= noise_params_harvey1985[1]/1000.;
+	if(legacynoise == true){
+		//noise_params_harvey_like=[A_Pgran ,  B_Pgran , C_Pgran   ,  A_taugran ,  B_taugran  , C_taugran    , p      N0] // 
+		noise_params_harvey1985[0] = cfg_star.noise_params_harvey_like[0] * std::pow(cfg_star.numax_star*1e-6,cfg_star.noise_params_harvey_like[1]) + cfg_star.noise_params_harvey_like[2]; // Granulation Amplitude
+		noise_params_harvey1985[1] = cfg_star.noise_params_harvey_like[3] * std::pow(cfg_star.numax_star*1e-6, cfg_star.noise_params_harvey_like[4]) + cfg_star.noise_params_harvey_like[5]; // Granulation timescale (in seconds)
+		noise_params_harvey1985[0] = noise_params_harvey1985[0]/noise_params_harvey1985[1];
+		noise_params_harvey1985[1]= noise_params_harvey1985[1]/1000.;
 
-	noise_params_harvey1985[2]=cfg_star.noise_params_harvey_like[6];
-	noise_params_harvey1985[3]=cfg_star.noise_params_harvey_like[7];
-
+		noise_params_harvey1985[2]=cfg_star.noise_params_harvey_like[6];
+		noise_params_harvey1985[3]=cfg_star.noise_params_harvey_like[7];
+	}
 	// Fix the resolution to 4 years (converted into microHz)
 	resol=1e6/(4*365.*86400.);
 	// ----- l=0 modes -----
@@ -659,8 +659,13 @@ Params_synthetic_star make_synthetic_asymptotic_star(Cfg_synthetic_star cfg_star
 	height_l0=width_height_l0.vecXd2;
 	noise_l0.resize(nu_l0.size());
 	noise_l0.setZero();
-	noise_l0=harvey1985(noise_params_harvey1985, nu_l0, noise_l0, 1); // Iterate on Noise_l0 to update it by putting the noise profile with one harvey profile
-		
+	if(legacynoise == true){
+		noise_l0=harvey1985(noise_params_harvey1985, nu_l0, noise_l0, 1); // Iterate on Noise_l0 to update it by putting the noise profile with one harvey profile
+	} else{
+		int Nharvey=(cfg_star.noise_params_harvey_like.size() -1)/3; // Assumes that we have Nharvey + white noise
+		noise_l0=harvey_like(cfg_star.noise_params_harvey_like, nu_l0, noise_l0, Nharvey); 
+	}	
+	
 	c=1; // This is the ratio of HNR between the reference star and the target simulated star: maxHNR_l0/maxHNR_ref.
 	hmax_l0=cfg_star.maxHNR_l0*noise_l0*c;
 	height_l0=height_l0.cwiseProduct(hmax_l0); // height_l0 being normalised to 1 on width_height_load_rescale, getting the desired hmax_l0 requires just to multiply height_l0 by hmax_l0

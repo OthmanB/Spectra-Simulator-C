@@ -171,12 +171,21 @@ Cfg_synthetic_star configure_make_star(std::unordered_map<std::string, std::stri
         std::cout << " INSIDE " << std::endl;
     }
     // ------------------  Noise ------------------   
-	cfg_star.noise_params_harvey_like =  str_to_Xdarr(input_params["params_harvey_like"], " \t");    //[A_Pgran ,  B_Pgran , C_Pgran   ,  A_taugran ,  B_taugran  , C_taugran    , p      N0]
-    if(cfg_star.noise_params_harvey_like.size() != 8) {
+	cfg_star.legacynoise=str_to_bool(input_params["legacynoise"]);
+    cfg_star.noise_params_harvey_like =  str_to_Xdarr(input_params["params_harvey_like"], " \t");    //[A_Pgran ,  B_Pgran , C_Pgran   ,  A_taugran ,  B_taugran  , C_taugran    , p      N0]
+    if(cfg_star.noise_params_harvey_like.size() != 8 and cfg_star.legacynoise == true) {
         std::cerr << "Error while reading the harvey like parameters" << std::endl;
         std::cerr << "You must provide 8 parameters" << std::endl;
         exit(EXIT_FAILURE);
-    }    
+    }
+    if(!cfg_star.legacynoise){ // We only need to check that we have Nharvey + 1, with Nharvey a number modulo 3
+        double Nh=(cfg_star.legacynoise-1)/3;
+        if (Nh - static_cast<int>(Nh) !=0){
+            std::cerr << "Error while reading the harvey like parameters" << std::endl;
+            std::cerr << "When legacynoise=false, you must provide Nharvey + White noise parameters. e.g. 3 Harvey parameters + 1 White noise. or 6 Harvey parameters + 1 White noise. etc..." << std::endl;
+            exit(EXIT_FAILURE);
+        }
+    }
 
     if (input_params["inclination"] == "Auto"){
         // Determination of an isotropic inclination

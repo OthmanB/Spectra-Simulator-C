@@ -164,6 +164,7 @@ struct Cfg_synthetic_star{
 	MatrixXd nu_nl; ///< Frequencies of the modes, are here if provided by a template (e.g a theoretical model) and handled by the MCMC model
 	VectorXi Nf_el; ///< The numbers of modes 
 	bool use_nu_nl=false; ///< If set to true, use the nu_nl frequencies instead of computing them from the asymptotic. These must be set
+    bool legacynoise=true; ///< Defines if the noise is strictly speaking a sum of Harvey-like + white noise (legacynoise=false) or if it is a single Harvey + white noise scaling quantity with only numax (legacynoise=true)
 };
 
 

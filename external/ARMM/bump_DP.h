@@ -207,6 +207,7 @@ long double numax_from_stello2009(const long double Dnu_star, const long double 
  *                 - q_star: Coupling coefficient between p and g modes.
  *                 - fmin: Minimum frequency for the modes that should be included in the calculations.
  *                 - fmax: Maximum frequency for the modes that should be included in the calculations.
+ * @param legacynoise An optional boolean that is defining how the input noise is dealt with. If legacynoise = True (default), then the fit will use the old definition inspired from Kallinger2014 and will convert that into vectors suitable for the harvey_1985() function. Otherwise, it expects a set of Harvey-like parameters that it will use directly using the harvey_like() function. This latest solution is prefered as it can be jointly used with the pure derivation of these parameters from the Kallinger2014 relations. In that case, the conversion happens outside this function, which becomes "noise-agnostic"
  * @return A structure `params_out` that contains the mode parameters for simulating the evolved star.
  *         - nu_lx: Frequencies of the l=x modes, where x is between 0 and 3.
  *         - nu_p_l1: Base p mode frequencies used to build the frequencies for the l=1 mixed modes.
@@ -215,7 +216,7 @@ long double numax_from_stello2009(const long double Dnu_star, const long double 
  *         - height_lx: Heights of the l=x modes, where x is between 0 and 3.
  *         - aj_lx: The a-coefficients of order j for each mode of degree l=x.
  */
-Params_synthetic_star make_synthetic_asymptotic_star(Cfg_synthetic_star cfg_star);
+Params_synthetic_star make_synthetic_asymptotic_star(Cfg_synthetic_star cfg_star, const bool legacynoise=true);
 
 /**
  * @brief Displays the values of the parameters in the Cfg_synthetic_star structure.

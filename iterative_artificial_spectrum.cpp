@@ -678,6 +678,65 @@ void iterative_artificial_spectrum(const std::string dir_core, const std::string
 		passed=1;
 	}
 
+	if(cfg.model_name == "asymptotic_mm_freeDp_numaxspread_curvepmodes_v3_GRANscaled_Kallinger2014"){
+		// Warning: This model uses the file noise_Kallinger2014.cfg to set the noise parameters
+		const int Nmodel_modes=29;
+		const int Nmodel_noise=14; // 6 Dec 2023: Many of these parameters are in fact generated according to a Gaussian 
+		// Agregate the old configuration with the noise configuration
+		cfg=agregate_maincfg_noisecfg(cfg, cfg_noise);	
+		param_names.push_back("nurot_env"); 
+		param_names.push_back("nurot_core"); 
+		param_names.push_back("a2_l1_core"); 
+		param_names.push_back("a2_l1_env"); 
+		param_names.push_back("a2_l2_env"); 
+		param_names.push_back("a2_l3_env"); 
+		param_names.push_back("a3_l2_env"); 
+		param_names.push_back("a3_l3_env"); 
+		param_names.push_back("a4_l2_env"); 
+		param_names.push_back("a4_l3_env"); 
+		param_names.push_back("a5_l3_env"); 
+		param_names.push_back("a6_l3_env");
+		param_names.push_back("Dnu"); 
+		param_names.push_back("epsilon");
+		param_names.push_back("delta0l_percent"); 
+		param_names.push_back("beta_p_star"); 
+		param_names.push_back("nmax_spread"); 
+		param_names.push_back("DP1");  
+		param_names.push_back("alpha"); 
+		param_names.push_back("q");
+		param_names.push_back("SNR");
+		param_names.push_back("maxGamma");
+		param_names.push_back("numax_spread");	
+		param_names.push_back("Vl1");
+		param_names.push_back("Vl2");
+		param_names.push_back("Vl3");
+		param_names.push_back("H0_spread");	
+		//k_Agran         s_Agran         k_taugran       s_taugran       c0              ka              ks              k1              s1              c1              k2              s2              c2              N0
+		param_names.push_back("k_Agran");
+		param_names.push_back("s_Agran");
+		param_names.push_back("k_taugran");
+		param_names.push_back("s_taugran");
+		param_names.push_back("c0");
+		param_names.push_back("ka");
+		param_names.push_back("ks");
+		param_names.push_back("k1");
+		param_names.push_back("s1");
+		param_names.push_back("c1");
+		param_names.push_back("k2");
+		param_names.push_back("s2");
+		param_names.push_back("c2");
+		param_names.push_back("N0");
+		param_names.push_back("Hfactor");
+		param_names.push_back("Wfactor");	
+		if(param_names.size() != Nmodel_modes+Nmodel_noise){
+			std::cout << "    Invalid number of parameters for model_name= 'generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled_Kallinger2014'" << std::endl;
+			std::cout << "    Expecting " << Nmodel_modes + Nmodel_noise << " parameters, but found " << cfg.val_min.size() << std::endl;
+			std::cout << "    Check your main configuration file" << std::endl;
+			std::cout << "    The program will exit now" << std::endl;
+			exit(EXIT_FAILURE);
+		}
+		passed=1;
+	}
 	// -----------------------------------------------------------
 	// ----- Models available only with the grid approach -----
 	// -----------------------------------------------------------
@@ -1242,7 +1301,7 @@ bool call_model_random(std::string model_name, VectorXd input_params, std::strin
 	}
 	if(model_name == "asymptotic_mm_v1" || model_name == "asymptotic_mm_v2" || model_name == "asymptotic_mm_v3" ||
 		model_name == "asymptotic_mm_freeDp_numaxspread_curvepmodes_v1" || model_name == "asymptotic_mm_freeDp_numaxspread_curvepmodes_v2" ||
-		model_name == "asymptotic_mm_freeDp_numaxspread_curvepmodes_v3"){
+		model_name == "asymptotic_mm_freeDp_numaxspread_curvepmodes_v3" || model_name == "asymptotic_mm_freeDp_numaxspread_curvepmodes_v3_GRANscaled_Kallinger2014"){
 		if(model_name =="asymptotic_mm_v1"){
 			asymptotic_mm_v1(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path, template_file);
 			artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
@@ -1275,6 +1334,16 @@ bool call_model_random(std::string model_name, VectorXd input_params, std::strin
 			asymptotic_mm_freeDp_numaxspread_curvepmodes_v3(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path, template_file);
 			artificial_spectrum_aj(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, 
 									cfg.write_inmodel, cfg.do_modelfiles, cfg.limit_data_range, cfg.modefile_modelname);
+			subpassed=1;
+		}
+		if(model_name =="asymptotic_mm_freeDp_numaxspread_curvepmodes_v3_GRANscaled_Kallinger2014"){ 
+			size_t old_size=input_params.size();
+			input_params.conservativeResize(old_size+2);
+			input_params[old_size]=cfg.Tobs;
+			input_params[old_size+1]=cfg.Cadence;
+			asymptotic_mm_freeDp_numaxspread_curvepmodes_v3_GRANscaled_Kallinger2014(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path, template_file);
+			artificial_spectrum_aj(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, 
+									cfg.write_inmodel, cfg.do_modelfiles, cfg.limit_data_range, cfg.modefile_modelname, "harvey_like");
 			subpassed=1;
 		}
 		if(subpassed == 0){

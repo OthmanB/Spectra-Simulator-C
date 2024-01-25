@@ -1,3 +1,6 @@
+### 1.11 ##
+	Minor improvment:
+		- adding the possibility to directly provide a harvey_like set of parameters when running the make_star program
 ### 1.10 ##
 	Major changes:
 		- optimisation of linfit: gain of x2, see unit test

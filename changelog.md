@@ -1,5 +1,12 @@
 # Version history #
 
+### v1.51 ###
+	* New model "asymptotic_mm_freeDp_numaxspread_curvepmodes_v3_GRANscaled_Kallinger2014": This is the equivalent to 
+	 "generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled_Kallinger2014" but for Red Giants. The noise follows Kallinger2014
+	 which allows for a better training. Read carefully the notes on v1.50 to understand the new way of handling the noise.
+	 Eventually, these models will replace the old non-GRANscaled. 
+	* The new model requiring ARMM v1.11, this one is also updated in specsim v1.51
+	
 ### v1.50 ###
 	* New model: "generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled_Kallinger2014". This model allows to generate
 	noise following closely the Kallinger+2014 prescription and ensemble values derived from a sample of RGB + MS stars. 
