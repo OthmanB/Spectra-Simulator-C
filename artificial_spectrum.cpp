@@ -29,7 +29,7 @@ using Eigen::VectorXi;
 using Eigen::MatrixXd;
 
 
-void artificial_spectrum_act_asym(const double Tobs, const double Cadence, const double Nspectra, const long Nrealisation, const std::string dir_core, const std::string identifier, const bool doplots, const bool write_inmodel){
+void artificial_spectrum_act_asym(const double Tobs, const double Cadence, const double Nspectra, const long Nrealisation, const std::string dir_core, const std::string identifier, const bool doplots, const bool write_inmodel, const std::string data_path){
 
 	// General variables
 	Data_Nd data_modes, data_noise;
@@ -114,13 +114,13 @@ void artificial_spectrum_act_asym(const double Tobs, const double Cadence, const
 	input_spec_model=spec_noise + spec_modes;
 
 	// Making Nrealisation of noise
-	fileout_params=dir_core + "Data/Spectra_info/" + strtrim(identifier) + ".in";
+	fileout_params= data_path + "/Spectra_info/" + strtrim(identifier) + ".in";
     spec_reg.resize(Ndata);
     stmp.resize(Ndata);
 	//const int Nrealisation=2;
 	for (int nr=0; nr<Nrealisation; nr++){
-		fileout_spectrum=dir_core + "Data/Spectra_ascii/" + strtrim(identifier)  + "." + int_to_str(nr) + ".ascii";
-		fileout_plot=dir_core + "Data/Spectra_plot/" + strtrim(identifier) + "." + int_to_str(nr) + ".eps" ;
+		fileout_spectrum=data_path + "/Spectra_ascii/" + strtrim(identifier)  + "." + int_to_str(nr) + ".ascii";
+		fileout_plot= data_path + "Spectra_plot/" + strtrim(identifier) + "." + int_to_str(nr) + ".eps" ;
 
     	std::cout << "    ["<< nr+1 << "/" << Nrealisation << "]" << std::endl;
     	std::cout << "        - Simulating a stochastic noise with chi(2,2p) statistics (p=" << std::floor(Nspectra) << ")..." << std::endl;
@@ -152,7 +152,7 @@ void artificial_spectrum_act_asym(const double Tobs, const double Cadence, const
 }
 
 
-void artificial_spectrum_a1a2a3asym(const double Tobs, const double Cadence, const double Nspectra, const long Nrealisation, const std::string dir_core, const std::string identifier, const bool doplots, const bool write_inmodel){
+void artificial_spectrum_a1a2a3asym(const double Tobs, const double Cadence, const double Nspectra, const long Nrealisation, const std::string dir_core, const std::string identifier, const bool doplots, const bool write_inmodel, const std::string data_path){
 
 	// General variables
 	Data_Nd data_modes, data_noise;
@@ -236,13 +236,13 @@ void artificial_spectrum_a1a2a3asym(const double Tobs, const double Cadence, con
 	input_spec_model=spec_noise + spec_modes;
 
 	// Making Nrealisation of noise
-	fileout_params=dir_core + "Data/Spectra_info/" + strtrim(identifier) + ".in";
+	fileout_params=data_path + "/Spectra_info/" + strtrim(identifier) + ".in";
     spec_reg.resize(Ndata);
     stmp.resize(Ndata);
 	//const int Nrealisation=2;
 	for (int nr=0; nr<Nrealisation; nr++){
-		fileout_spectrum=dir_core + "Data/Spectra_ascii/" + strtrim(identifier)  + "." + int_to_str(nr) + ".ascii";
-		fileout_plot=dir_core + "Data/Spectra_plot/" + strtrim(identifier) + "." + int_to_str(nr) + ".eps" ;
+		fileout_spectrum=data_path + "/Spectra_ascii/" + strtrim(identifier)  + "." + int_to_str(nr) + ".ascii";
+		fileout_plot=data_path + "/Spectra_plot/" + strtrim(identifier) + "." + int_to_str(nr) + ".eps" ;
 
     	std::cout << "    ["<< nr+1 << "/" << Nrealisation << "]" << std::endl;
     	std::cout << "        - Simulating a stochastic noise with chi(2,2p) statistics (p=" << std::floor(Nspectra) << ")..." << std::endl;
@@ -276,7 +276,7 @@ void artificial_spectrum_a1a2a3asym(const double Tobs, const double Cadence, con
 
 void artificial_spectrum_a1Alma3(const double Tobs, const double Cadence, const double Nspectra, const long Nrealisation, const std::string dir_core,
 							    const std::string identifier, const bool doplots, const bool write_inmodel, const bool domodelfiles, 
-							    const bool limit_data_range, const std::string modelname){
+							    const bool limit_data_range, const std::string modelname, const std::string data_path){
 
 	const bool verbose_data=0; // SET TO 1 IF YOU WANT MORE INFO ABOUT WHAT IS READ
 	const int common_case=0; // Case identifying this scenario
@@ -363,14 +363,14 @@ void artificial_spectrum_a1Alma3(const double Tobs, const double Cadence, const 
 	input_spec_model=spec_noise + spec_modes;
 
 	// Making Nrealisation of noise
-	fileout_params=dir_core + "Data/Spectra_info/" + strtrim(identifier) + ".in";
+	fileout_params=data_path + "/Spectra_info/" + strtrim(identifier) + ".in";
     spec_reg.resize(Ndata);
     stmp.resize(Ndata);
 	//const int Nrealisation=2;
 	for (int nr=0; nr<Nrealisation; nr++){
-		fileout_spectrum=dir_core + "Data/Spectra_ascii/" + strtrim(identifier)  + "." + int_to_str(nr) + ".data";
-		fileout_plot=dir_core + "Data/Spectra_plot/" + strtrim(identifier) + "." + int_to_str(nr) + ".eps" ;
-		file_out_modelfile=dir_core + "Data/Spectra_modelfile/" + strtrim(identifier) + "." + int_to_str(nr) + ".model" ;
+		fileout_spectrum=data_path + "/Spectra_ascii/" + strtrim(identifier)  + "." + int_to_str(nr) + ".data";
+		fileout_plot=data_path + "/Spectra_plot/" + strtrim(identifier) + "." + int_to_str(nr) + ".eps" ;
+		file_out_modelfile=data_path + "/Spectra_modelfile/" + strtrim(identifier) + "." + int_to_str(nr) + ".model" ;
 
     	std::cout << "    ["<< nr+1 << "/" << Nrealisation << "]" << std::endl;
     	std::cout << "        - Simulating a stochastic noise with chi(2,2p) statistics (p=" << std::floor(Nspectra) << ")..." << std::endl;
@@ -412,7 +412,7 @@ void artificial_spectrum_a1Alma3(const double Tobs, const double Cadence, const 
 
 void artificial_spectrum_aj(const double Tobs, const double Cadence, const double Nspectra, const long Nrealisation, 
 								 const std::string dir_core, const std::string identifier, const bool doplots, const bool write_inmodel,
-								 const bool domodelfiles, const bool limit_data_range, const std::string modelname, const std::string noise_modelname){
+								 const bool domodelfiles, const bool limit_data_range, const std::string modelname, std::string data_path, const std::string noise_modelname){
 
 	const bool verbose_data=0; // SET TO 1 IF YOU WANT MORE INFO ABOUT WHAT IS READ
 	const int common_case=0; // Case identifying this scenario
@@ -515,13 +515,13 @@ void artificial_spectrum_aj(const double Tobs, const double Cadence, const doubl
 	input_spec_model.cwiseProduct(eta_squared);
 
 	// Making Nrealisation of noise
-	fileout_params=dir_core + "Data/Spectra_info/" + strtrim(identifier) + ".in";
+	fileout_params=data_path+ "/Spectra_info/" + strtrim(identifier) + ".in";
     spec_reg.resize(Ndata);
     stmp.resize(Ndata);
 	for (int nr=0; nr<Nrealisation; nr++){
-		fileout_spectrum=dir_core + "Data/Spectra_ascii/" + strtrim(identifier)  + "." + int_to_str(nr) + ".data";
-		fileout_plot=dir_core + "Data/Spectra_plot/" + strtrim(identifier) + "." + int_to_str(nr) + ".eps" ;
-		file_out_modelfile=dir_core + "Data/Spectra_modelfile/" + strtrim(identifier) + "." + int_to_str(nr) + ".model" ;
+		fileout_spectrum=data_path + "/Spectra_ascii/" + strtrim(identifier)  + "." + int_to_str(nr) + ".data";
+		fileout_plot=data_path + "/Spectra_plot/" + strtrim(identifier) + "." + int_to_str(nr) + ".eps" ;
+		file_out_modelfile=data_path + "/Spectra_modelfile/" + strtrim(identifier) + "." + int_to_str(nr) + ".model" ;
 
     	std::cout << "    ["<< nr+1 << "/" << Nrealisation << "]" << std::endl;
     	std::cout << "        - Simulating a stochastic noise with chi(2,2p) statistics (p=" << std::floor(Nspectra) << ")..." << std::endl;

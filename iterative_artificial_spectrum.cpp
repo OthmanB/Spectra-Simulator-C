@@ -35,6 +35,16 @@
 #include "stellar_models.h"
 #include "io_star_params.h"
 
+/**
+ * @brief Creates directories and subdirectories.
+ *
+ * This function creates the specified directories and subdirectories. It can either create the directories if they don't exist or check if they exist and return an error if they don't.
+ *
+ * @param output_dir The output directory path.
+ * @param force_mkdir Flag indicating whether to create the directories if they don't exist (true) or check if they exist (false).
+ * @return Returns true if the directories were created successfully or if they already exist, and false otherwise.
+ */
+bool createDirectories(const std::string& output_dir, bool force_mkdir);
 
 /**
  * @brief Display the version information of the application.
@@ -54,9 +64,10 @@ void showversion();
  * @param dir_core The directory path where the generated models will be saved.
  * @param cfg_file The path of the main configuration file.
  * @param cfg_noise_file The full path to a noise configuration file
- * @date 6 December 2023 (Update)
+ * @param data_path The root path on which the data are going to be written
+ * @date 29 January 2024 (Update)
  */
-void iterative_artificial_spectrum(const std::string dir_core, const std::string cfg_file, const std::string cfg_noise_file);
+void iterative_artificial_spectrum(const std::string dir_core, const std::string cfg_file, const std::string cfg_noise_file, const std::string data_path);
 
 /**
  * @brief Function to check validity of the configuration parameters
@@ -131,7 +142,7 @@ Config_Data update_cfg(Config_Data cfg_target, const Config_Data cfg_source, con
 * @param templates_dir The directory path for the template files. 
 */
 void generate_random(Config_Data cfg, std::vector<std::string> param_names, std::string dir_core, std::string file_out_modes, 
-		std::string file_out_noise, std::string file_out_combi, int N_model, std::string file_cfg_mm, std::string external_path,  std::string templates_dir);
+		std::string file_out_noise, std::string file_out_combi, int N_model, std::string file_cfg_mm, std::string external_path,  std::string templates_dir, std::string data_path);
 
 /**
  * @brief Generate a grid of combinations based on a configuration file.
@@ -150,7 +161,7 @@ void generate_random(Config_Data cfg, std::vector<std::string> param_names, std:
  * @param N_model The number of models.
  */
 void generate_grid(Config_Data cfg, bool usemodels, Data_Nd models, std::vector<std::string> param_names, std::string dir_core, std::string dir_freqs, std::string file_out_modes, 
-		std::string file_out_noise, std::string file_out_combi, int N_model);
+		std::string file_out_noise, std::string file_out_combi, int N_model, std::string data_path);
 
 
 /**
@@ -171,7 +182,7 @@ void generate_grid(Config_Data cfg, bool usemodels, Data_Nd models, std::vector<
  * @return True if the model was called successfully, false otherwise.
  */
 bool call_model_random(std::string model_name, VectorXd input_params, std::string file_out_modes, std::string file_out_noise, 
-		 std::string file_cfg_mm, std::string dir_core, std::string identifier, Config_Data cfg, std::string external_path, std::string template_file);
+		 std::string file_cfg_mm, std::string dir_core, std::string identifier, Config_Data cfg, std::string external_path, std::string template_file, std::string data_path);
 
 /**
  * @brief Call a model based on the given model name and input parameters.
@@ -189,7 +200,7 @@ bool call_model_random(std::string model_name, VectorXd input_params, std::strin
  * @return True if the model was called successfully, false otherwise.
  */
 bool call_model_grid(std::string model_name, VectorXd input_params, Model_data input_model, std::string file_out_modes, std::string file_out_noise, 
-		std::string dir_core, std::string id_str, Config_Data cfg);
+		std::string dir_core, std::string id_str, Config_Data cfg, std::string data_path);
 
 /**
  * @brief Retrieve a list of files within a specified path.
@@ -203,7 +214,7 @@ bool call_model_grid(std::string model_name, VectorXd input_params, Model_data i
 std::vector<std::string> list_dir(const std::string path, const std::string filter);
 
 
-void iterative_artificial_spectrum(const std::string dir_core, const std::string cfg_file, const std::string cfg_noise_file){
+void iterative_artificial_spectrum(const std::string dir_core, const std::string cfg_file, const std::string cfg_noise_file, const std::string data_out_path){
 /*
  * Run iteratively the program artificial_spectrum in order to generate a
  * serie of model according to a main configuration file (/Configurations/main.cfg).
@@ -217,7 +228,7 @@ void iterative_artificial_spectrum(const std::string dir_core, const std::string
 
 	std::string delimiter=" ";
 	std::string model_file, file_out_modes, file_out_noise, file_cfg_mm, file_out_mm, file_out_mm2, file_out_combi;
-	std::string external_path, templates_dir;
+	std::string data_path, external_path, templates_dir;
 	Config_Data cfg;
 	Config_Noise cfg_noise;
 	Data_Nd models;
@@ -228,7 +239,12 @@ void iterative_artificial_spectrum(const std::string dir_core, const std::string
 	file_out_noise=dir_core + "Configurations/tmp/noise_tmp.cfg";
 	file_cfg_mm=dir_core + "Configurations/MixedModes_models/star_params.theoretical"; // This is for models of Evolved stars. Used only when the user has already a set of frequencies and want to use them to compute a model
 	
-	file_out_combi=dir_core + "Data/Combinations.txt";
+	if(data_out_path == ""){
+		data_path=dir_core + "/Data/";
+	} else{
+		data_path=data_out_path;
+	}
+	file_out_combi=data_path + "Combinations.txt";
 
 	std::string dir_freqs=dir_core + "external/MESA_grid/frequencies/";
 
@@ -793,12 +809,12 @@ void iterative_artificial_spectrum(const std::string dir_core, const std::string
 	std::cout << "2. Generating the models using the subroutine " << cfg.model_name << " of model_database.cpp..." << std::endl;
 	if(cfg.forest_type == "random"){
 		std::cout << "   Values are randomly generated into a uniform range defined in the main configuration file" << std::endl;
-		generate_random(cfg, param_names, dir_core, file_out_modes, file_out_noise, file_out_combi, Nmodel, file_cfg_mm, external_path, templates_dir);
+		generate_random(cfg, param_names, dir_core, file_out_modes, file_out_noise, file_out_combi, Nmodel, file_cfg_mm, external_path, templates_dir, data_path);
 
 	}
 	if(cfg.forest_type == "grid"){
 		std::cout << "   Values are generated over a grid using all possible combinations according to inputs in the main configuration file" << std::endl;
-		generate_grid(cfg, usemodels, models, param_names, dir_core, dir_freqs, file_out_modes, file_out_noise, file_out_combi, Nmodel);
+		generate_grid(cfg, usemodels, models, param_names, dir_core, dir_freqs, file_out_modes, file_out_noise, file_out_combi, Nmodel,data_path);
 	}
 	if(cfg.forest_type != "random" && cfg.forest_type != "grid"){ 
 		std::cout << " Problem in the main configuration file. It is expected that the forest type parameters is either random OR grid" << std::endl;
@@ -971,7 +987,7 @@ Config_Data agregate_maincfg_noisecfg(Config_Data cfg_main, Config_Noise cfg_noi
 }
 
 void generate_random(Config_Data cfg, std::vector<std::string> param_names, std::string dir_core, std::string file_out_modes, 
-		std::string file_out_noise, std::string file_out_combi, int N_model,  std::string file_cfg_mm, std::string external_path, std::string templates_dir){
+		std::string file_out_noise, std::string file_out_combi, int N_model,  std::string file_cfg_mm, std::string external_path, std::string templates_dir, std::string data_path){
 
 	bool neg=0, passed=0;
 	int i;
@@ -1083,7 +1099,7 @@ void generate_random(Config_Data cfg, std::vector<std::string> param_names, std:
 
 		input_params=order_input_params(cte_params, currentcombi.row(0), cte_names, var_names, param_names);
 
-		passed=call_model_random(cfg.model_name, input_params, file_out_modes, file_out_noise,  file_cfg_mm, dir_core, id_str, cfg, external_path, template_file);
+		passed=call_model_random(cfg.model_name, input_params, file_out_modes, file_out_noise,  file_cfg_mm, dir_core, id_str, cfg, external_path, template_file, data_path);
 		if(passed == 0){
 			std::cout << "Warning: The function call_model did not generate any configuration file!" << std::endl;
 			std::cout << "         It is very likely that you tried to start a model in 'random mode' while this model is not available for the random approach" << std::endl;
@@ -1107,7 +1123,7 @@ void generate_random(Config_Data cfg, std::vector<std::string> param_names, std:
 }
 
 void generate_grid(Config_Data cfg, bool usemodels, Data_Nd models, std::vector<std::string> param_names, std::string dir_core, std::string dir_freqs, std::string file_out_modes, 
-		std::string file_out_noise, std::string file_out_combi, int N_model){
+		std::string file_out_noise, std::string file_out_combi, int N_model, std::string data_path){
 
 	bool passed=0;
 	int i, ii, Nvar_params;
@@ -1223,7 +1239,7 @@ void generate_grid(Config_Data cfg, bool usemodels, Data_Nd models, std::vector<
 				exit(EXIT_SUCCESS);
 			}
 		}
-		passed=call_model_grid(cfg.model_name, input_params, input_model, file_out_modes, file_out_noise, dir_core, id_str, cfg);
+		passed=call_model_grid(cfg.model_name, input_params, input_model, file_out_modes, file_out_noise, dir_core, id_str, cfg, data_path);
 		if(passed == 0){
 			std::cout << "Warning: The function call_model_grid did not generate any configuration file!" << std::endl;
 			std::cout << "         It is very likely that you tried to start a model in 'grid mode' while this model is not available for the grid approach" << std::endl;
@@ -1250,7 +1266,8 @@ void generate_grid(Config_Data cfg, bool usemodels, Data_Nd models, std::vector<
 
 // This is the routine that calls models that are valid on the random approach
 bool call_model_random(std::string model_name, VectorXd input_params, std::string file_out_modes, std::string file_out_noise, 
-		std::string file_cfg_mm, std::string dir_core, std::string id_str, Config_Data cfg, std::string external_path, std::string template_file){
+		std::string file_cfg_mm, std::string dir_core, std::string id_str, Config_Data cfg, std::string external_path, 
+		std::string template_file, std::string data_path){
 
 	std::string str;
 	bool passed=0, subpassed=0;
@@ -1258,35 +1275,35 @@ bool call_model_random(std::string model_name, VectorXd input_params, std::strin
 
 	if(model_name == "generate_cfg_asymptotic_act_asym_Hgauss"){
 		generate_cfg_asymptotic_act_asym_Hgauss(input_params, file_out_modes, file_out_noise);
-		artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
+		artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel, data_path);
 		passed=1;
 	}
 	if(model_name =="generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma"){
 		generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma(input_params, file_out_modes,  file_out_noise, cfg.extra_params); // extra_params must points towards a .in file
-		artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
+		artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel, data_path);
 		passed=1;		
 	}
 	if(model_name =="generate_cfg_from_synthese_file_Wscaled_a1a2a3asymovGamma"){
 		generate_cfg_from_synthese_file_Wscaled_a1a2a3asymovGamma(input_params, file_out_modes,  file_out_noise, cfg.extra_params); // extra_params must points towards a .in file
-		artificial_spectrum_a1a2a3asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
+		artificial_spectrum_a1a2a3asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel, data_path);
 		passed=1;		
 	}
 	if(model_name =="generate_cfg_from_synthese_file_Wscaled_Alm"){
 		generate_cfg_from_synthese_file_Wscaled_Alm(input_params, file_out_modes,  file_out_noise, cfg.extra_params); // extra_params must points towards a .in file
 		artificial_spectrum_a1Alma3(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, 
-									cfg.write_inmodel, cfg.do_modelfiles, cfg.limit_data_range, cfg.modefile_modelname);
+									cfg.write_inmodel, cfg.do_modelfiles, cfg.limit_data_range, cfg.modefile_modelname, data_path);
 		passed=1;		
 	}
 	if(model_name =="generate_cfg_from_synthese_file_Wscaled_aj"){
 		generate_cfg_from_synthese_file_Wscaled_aj(input_params, file_out_modes,  file_out_noise, cfg.extra_params); // extra_params must points towards a .in file
 		artificial_spectrum_aj(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, 
-									cfg.write_inmodel, cfg.do_modelfiles, cfg.limit_data_range, cfg.modefile_modelname, "harvey_like");
+									cfg.write_inmodel, cfg.do_modelfiles, cfg.limit_data_range, cfg.modefile_modelname, data_path, "harvey_like");
 		passed=1;		
 	}
 	if(model_name =="generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled"){
 		generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled(input_params, file_out_modes,  file_out_noise, cfg.extra_params); // extra_params must points towards a .in file
 		artificial_spectrum_aj(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, 
-									cfg.write_inmodel, cfg.do_modelfiles, cfg.limit_data_range, cfg.modefile_modelname);
+									cfg.write_inmodel, cfg.do_modelfiles, cfg.limit_data_range, cfg.modefile_modelname, data_path);
 		passed=1;		
 	}
 	if(model_name =="generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled_Kallinger2014"){
@@ -1296,7 +1313,7 @@ bool call_model_random(std::string model_name, VectorXd input_params, std::strin
 		input_params[old_size+1]=cfg.Cadence;
 		generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled_Kallinger2014(input_params, file_out_modes,  file_out_noise, cfg.extra_params); // extra_params must points towards a .in file
 		artificial_spectrum_aj(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, 
-									cfg.write_inmodel, cfg.do_modelfiles, cfg.limit_data_range, cfg.modefile_modelname, "harvey_like");
+									cfg.write_inmodel, cfg.do_modelfiles, cfg.limit_data_range, cfg.modefile_modelname, data_path, "harvey_like");
 		passed=1;		
 	}
 	if(model_name == "asymptotic_mm_v1" || model_name == "asymptotic_mm_v2" || model_name == "asymptotic_mm_v3" ||
@@ -1304,36 +1321,36 @@ bool call_model_random(std::string model_name, VectorXd input_params, std::strin
 		model_name == "asymptotic_mm_freeDp_numaxspread_curvepmodes_v3" || model_name == "asymptotic_mm_freeDp_numaxspread_curvepmodes_v3_GRANscaled_Kallinger2014"){
 		if(model_name =="asymptotic_mm_v1"){
 			asymptotic_mm_v1(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path, template_file);
-			artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
+			artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel, data_path);
 			subpassed=1;
 		}
 		if(model_name =="asymptotic_mm_v2"){
 			asymptotic_mm_v2(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path, template_file);
-			artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
+			artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel, data_path);
 			subpassed=1;
 		}
 		if(model_name =="asymptotic_mm_v3"){
 			asymptotic_mm_v3(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path, template_file);
-			artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
+			artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel, data_path);
 			subpassed=1;
 		}
 		if(model_name =="asymptotic_mm_freeDp_numaxspread_curvepmodes_v1"){ 
 			file_cfg_mm=""; // By-pass the definition to avoid issues
 			asymptotic_mm_freeDp_numaxspread_curvepmodes_v1(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path, template_file);
-			artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
+			artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel, data_path);
 			subpassed=1;
 		}
 		if(model_name =="asymptotic_mm_freeDp_numaxspread_curvepmodes_v2"){ 
 			file_cfg_mm=""; // By-pass the definiton to avoid issues
 			asymptotic_mm_freeDp_numaxspread_curvepmodes_v2(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path, template_file);
 			artificial_spectrum_aj(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, 
-									cfg.write_inmodel, cfg.do_modelfiles, cfg.limit_data_range, cfg.modefile_modelname);
+									cfg.write_inmodel, cfg.do_modelfiles, cfg.limit_data_range, cfg.modefile_modelname, data_path);
 			subpassed=1;
 		}
 		if(model_name =="asymptotic_mm_freeDp_numaxspread_curvepmodes_v3"){ 
 			asymptotic_mm_freeDp_numaxspread_curvepmodes_v3(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path, template_file);
 			artificial_spectrum_aj(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, 
-									cfg.write_inmodel, cfg.do_modelfiles, cfg.limit_data_range, cfg.modefile_modelname);
+									cfg.write_inmodel, cfg.do_modelfiles, cfg.limit_data_range, cfg.modefile_modelname, data_path);
 			subpassed=1;
 		}
 		if(model_name =="asymptotic_mm_freeDp_numaxspread_curvepmodes_v3_GRANscaled_Kallinger2014"){ 
@@ -1343,7 +1360,7 @@ bool call_model_random(std::string model_name, VectorXd input_params, std::strin
 			input_params[old_size+1]=cfg.Cadence;
 			asymptotic_mm_freeDp_numaxspread_curvepmodes_v3_GRANscaled_Kallinger2014(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path, template_file);
 			artificial_spectrum_aj(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, 
-									cfg.write_inmodel, cfg.do_modelfiles, cfg.limit_data_range, cfg.modefile_modelname, "harvey_like");
+									cfg.write_inmodel, cfg.do_modelfiles, cfg.limit_data_range, cfg.modefile_modelname, data_path, "harvey_like");
 			subpassed=1;
 		}
 		if(subpassed == 0){
@@ -1354,7 +1371,7 @@ bool call_model_random(std::string model_name, VectorXd input_params, std::strin
 		}
 		
 		if(file_cfg_mm != ""){
-			str="cp " + file_cfg_mm + " " + dir_core + "Data/Spectra_info/" + strtrim(id_str) + ".global";
+			str="cp " + file_cfg_mm + " " + data_path + "/Spectra_info/" + strtrim(id_str) + ".global";
 			const char *command = str.c_str(); 
 			system(command);
 		}
@@ -1367,7 +1384,7 @@ bool call_model_random(std::string model_name, VectorXd input_params, std::strin
 
 // This is the routine that calls models that are valid on the grid approach
 bool call_model_grid(std::string model_name, VectorXd input_params, Model_data input_model, std::string file_out_modes, std::string file_out_noise, 
-		std::string dir_core, std::string id_str, Config_Data cfg){
+		std::string dir_core, std::string id_str, Config_Data cfg, std::string data_path){
 
 	bool passed=0;
 	std::string file_ref_star, modelID_str;
@@ -1377,7 +1394,7 @@ bool call_model_grid(std::string model_name, VectorXd input_params, Model_data i
 		generate_cfg_asymptotic_act_asym_Hgauss(input_params, file_out_modes, file_out_noise);
 		//id_str=identifier2chain(identifier);
 		modelID_str="NONE";
-		artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
+		artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel, data_path);
 		//artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, dir_core, id_str, modelID_str, cfg.doplots, cfg.write_inmodel);
 		passed=1;
 	}
@@ -1386,7 +1403,7 @@ bool call_model_grid(std::string model_name, VectorXd input_params, Model_data i
 		generate_cfg_from_refstar_HWscaled(input_params, input_model, file_ref_star, file_out_modes, file_out_noise);
 		strs << input_model.params[0];
 		modelID_str=format_freqname(strs.str());
-		artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
+		artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel, data_path);
 		//artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, dir_core, id_str, modelID_str, cfg.doplots, cfg.write_inmodel);
 		passed=1;
 	}
@@ -1395,37 +1412,37 @@ bool call_model_grid(std::string model_name, VectorXd input_params, Model_data i
 		generate_cfg_from_refstar_HWscaled_GRANscaled(input_params, input_model, file_ref_star, file_out_modes, file_out_noise);
 		strs << input_model.params[0];
 		modelID_str=format_freqname(strs.str());
-		artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
+		artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel, data_path);
 		//artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, dir_core, id_str, modelID_str, cfg.doplots, cfg.write_inmodel);
 		passed=1;
 	}
 
 	if(model_name =="generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma"){
 		generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma(input_params, file_out_modes,  file_out_noise, cfg.extra_params); // extra_params must points towards a .in file
-		artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
+		artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel, data_path);
 		passed=1;		
 	}
 	if(model_name =="generate_cfg_from_synthese_file_Wscaled_a1a2a3asymovGamma"){
 		generate_cfg_from_synthese_file_Wscaled_a1a2a3asymovGamma(input_params, file_out_modes,  file_out_noise, cfg.extra_params); // extra_params must points towards a .in file
-		artificial_spectrum_a1a2a3asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel);
+		artificial_spectrum_a1a2a3asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel, data_path);
 		passed=1;		
 	}
 	if(model_name =="generate_cfg_from_synthese_file_Wscaled_Alm"){
 		generate_cfg_from_synthese_file_Wscaled_Alm(input_params, file_out_modes,  file_out_noise, cfg.extra_params); // extra_params must points towards a .in file
 		artificial_spectrum_a1Alma3(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, 
-									cfg.write_inmodel, cfg.do_modelfiles, cfg.limit_data_range, cfg.modefile_modelname);
+									cfg.write_inmodel, cfg.do_modelfiles, cfg.limit_data_range, cfg.modefile_modelname, data_path);
 		passed=1;		
 	}
 	if(model_name =="generate_cfg_from_synthese_file_Wscaled_aj"){
 		generate_cfg_from_synthese_file_Wscaled_aj(input_params, file_out_modes,  file_out_noise, cfg.extra_params); // extra_params must points towards a .in file
 		artificial_spectrum_aj(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, 
-									cfg.write_inmodel, cfg.do_modelfiles, cfg.limit_data_range, cfg.modefile_modelname, "harvey_like");
+									cfg.write_inmodel, cfg.do_modelfiles, cfg.limit_data_range, cfg.modefile_modelname, data_path);
 		passed=1;		
 	}
 	if(model_name =="generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled"){
 		generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled(input_params, file_out_modes,  file_out_noise, cfg.extra_params); // extra_params must points towards a .in file
 		artificial_spectrum_aj(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, 
-									cfg.write_inmodel, cfg.do_modelfiles, cfg.limit_data_range, cfg.modefile_modelname);
+									cfg.write_inmodel, cfg.do_modelfiles, cfg.limit_data_range, cfg.modefile_modelname, data_path);
 		passed=1;		
 	}
 	return passed;
@@ -1500,6 +1517,42 @@ void showversion()
 }
 
 
+bool createDirectories(const std::string& output_dir, bool force_mkdir) {
+    boost::filesystem::path out_dir(output_dir);
+    if (force_mkdir == true) {
+        try {
+            boost::filesystem::create_directory(out_dir);
+        } catch (const std::exception& e) {
+            std::cerr << "Error creating directory: " << e.what() << std::endl;
+            return false;
+        }
+    } else {
+        if (!boost::filesystem::exists(out_dir)) {
+            std::cerr << "Error: Output directory does not exist." << std::endl;
+            return false;
+        }
+    }
+    std::vector<std::string> subdirectories = {"Spectra_ascii", "Spectra_info", "Spectra_modelfile", "Spectra_plot"};
+    for (const auto& subdirectory : subdirectories) {
+        boost::filesystem::path subdirectory_path = out_dir / subdirectory;
+        if (force_mkdir) {
+            try {
+                boost::filesystem::create_directory(subdirectory_path);
+            } catch (const std::exception& e) {
+                std::cerr << "Error creating subdirectory: " << e.what() << std::endl;
+                return false;
+            }
+        } else {
+            if (!boost::filesystem::exists(subdirectory_path)) {
+                std::cerr << "Error: Subdirectory '" << subdirectory << "' does not exist." << std::endl;
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+
 /**
  * @brief The main entry point of the program.
  *
@@ -1520,7 +1573,9 @@ int main(int argc, char* argv[]){
 		("version,v", "show program version")
         ("main_file,f", boost::program_options::value<std::string>()->default_value("main.cfg"), "Filename for the main configuration file. If not set, use the default filename.")
 		("noise_file,n", boost::program_options::value<std::string>()->default_value("noise_Kallinger2014.cfg"), "Filename for the noise configuration file. If not set, use the default filename. Note that this is only for models with Kallinger+2014 noise at the moment.")
-		("main_dir, g", boost::program_options::value<std::string>()->default_value("Configurations/"), "Full path for the main configuration file. If not set, use the default sub-directory 'Configurations/.");
+		("main_dir,g", boost::program_options::value<std::string>()->default_value("Configurations/"), "Full path for the main configuration file. If not set, use the default sub-directory 'Configurations/.")
+		("out_dir,o", boost::program_options::value<boost::filesystem::path>()->default_value("Data/"), "Full path for the main configuration file. If not set, use the default sub-directory 'Data/.")
+		("force-create-output-dir", boost::program_options::value<bool>()->default_value(0), "If set to 1=true, it will create the output directory defined by output_dir and all the required subdirectory. If set to 0=false (default), it will not create the directories, but only check if they exist and stop the program if they do not");	
 	boost::program_options::variables_map vm;
 	try {
         boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
@@ -1543,6 +1598,8 @@ int main(int argc, char* argv[]){
 	std::string main_f = vm["main_file"].as<std::string>();
 	std::string noise_f = vm["noise_file"].as<std::string>();
 	std::string main_dir = vm["main_dir"].as<std::string>();
+	boost::filesystem::path out_dir = vm["out_dir"].as<boost::filesystem::path>();
+	bool force_mkdir = vm["force-create-output-dir"].as<bool>();
 	if(main_dir == "Configurations/"){
 		cfg_file=full_path.string() + "/" + main_dir + main_f;
 		cfg_noise_file=full_path.string() + "/" + main_dir + noise_f;
@@ -1550,6 +1607,25 @@ int main(int argc, char* argv[]){
 		cfg_file=main_dir + main_f;
 		cfg_noise_file=main_dir + noise_f;
 	}
-	iterative_artificial_spectrum(full_path.string() + "/", cfg_file, cfg_noise_file);
+    if (out_dir.is_relative()) {
+        boost::filesystem::path current_path = boost::filesystem::current_path();
+        boost::filesystem::path full_path = current_path / out_dir;
+        out_dir = full_path;
+    }
+    if (force_mkdir == true){
+		std::cout << "           --force-create-output-dir = 1, Create the directories at the destination whenever possible: " << std::endl;
+		std::cout << "          " << out_dir.string() << "..." << std::endl;
+		std::cout << std::endl;
+	} else{
+		std::cout << "            --force-create-output-dir = 0, Checking if the directories at " << out_dir.string() << "  do already exist. The process will fail they don't... " << std::endl;
+		std::cout << std::endl;
+	}
+	if (createDirectories(out_dir.string(), force_mkdir)) {
+		std::cout << "Directories created successfully." << std::endl;
+	} else {
+		std::cerr << "Error creating directories." << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	iterative_artificial_spectrum(full_path.string() + "/", cfg_file, cfg_noise_file, out_dir.string());
 
 }

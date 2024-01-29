@@ -1,5 +1,9 @@
 # Version history #
 
+### v1.52 ###
+	* Adding the possibility to modify the output Data directory. After compilation, type ./specsim --help for further details.
+	* Adding an option to create automatically the Data directory and its subdirectories if they don't exist. 
+
 ### v1.51 ###
 	* New model "asymptotic_mm_freeDp_numaxspread_curvepmodes_v3_GRANscaled_Kallinger2014": This is the equivalent to 
 	 "generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled_Kallinger2014" but for Red Giants. The noise follows Kallinger2014
