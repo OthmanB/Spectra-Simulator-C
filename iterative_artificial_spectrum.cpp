@@ -1574,7 +1574,7 @@ int main(int argc, char* argv[]){
         ("main_file,f", boost::program_options::value<std::string>()->default_value("main.cfg"), "Filename for the main configuration file. If not set, use the default filename.")
 		("noise_file,n", boost::program_options::value<std::string>()->default_value("noise_Kallinger2014.cfg"), "Filename for the noise configuration file. If not set, use the default filename. Note that this is only for models with Kallinger+2014 noise at the moment.")
 		("main_dir,g", boost::program_options::value<std::string>()->default_value("Configurations/"), "Full path for the main configuration file. If not set, use the default sub-directory 'Configurations/.")
-		("out_dir,o", boost::program_options::value<boost::filesystem::path>()->default_value("Data/"), "Full path for the main configuration file. If not set, use the default sub-directory 'Data/.")
+		("out_dir,o", boost::program_options::value<boost::filesystem::path>()->default_value("Data/"), "Full path or relative path for the outputs. If not set, use the default sub-directory 'Data/.")
 		("force-create-output-dir", boost::program_options::value<bool>()->default_value(0), "If set to 1=true, it will create the output directory defined by output_dir and all the required subdirectory. If set to 0=false (default), it will not create the directories, but only check if they exist and stop the program if they do not");	
 	boost::program_options::variables_map vm;
 	try {
