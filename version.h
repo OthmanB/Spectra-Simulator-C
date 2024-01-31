@@ -16,7 +16,7 @@
 #define APP_COPYRIGHT "Othman Benomar" /**< Application Copyright */
 
 #define APP_VER_MAJOR  1 /**< Application Major Version */
-#define APP_VER_MINOR  52 /**< Application Minor Version */
+#define APP_VER_MINOR  53 /**< Application Minor Version */
 //#define APP_VER_BUILD  0
 //#define APP_VER_REV    0
 

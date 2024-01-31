@@ -556,7 +556,6 @@ Data_eigensols solve_mm_asymptotic_O2p(const long double Dnu_p, const long doubl
 			}
 		}
 	}
-	
 	std::sort(filteredVec.begin(), filteredVec.end());
 	filteredVec.erase(std::unique(filteredVec.begin(), filteredVec.end(), [tol](double a, double b) {
 		return std::abs(a - b) <= tol;
@@ -565,10 +564,6 @@ Data_eigensols solve_mm_asymptotic_O2p(const long double Dnu_p, const long doubl
 	nu_m_all.resize(filteredVec.size());
 	std::copy(filteredVec.begin(), filteredVec.end(), nu_m_all.data());
 	nu_m_all.resize(filteredVec.size());
-	//#pragma omp parallel for
-	//for (int i = 0; i < filteredVec.size(); i++) {
-	//	nu_m_all[i] = filteredVec[i];
-	//}
 
 	if (returns_pg_freqs == true)
 	{

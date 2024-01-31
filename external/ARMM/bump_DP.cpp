@@ -621,7 +621,6 @@ Params_synthetic_star make_synthetic_asymptotic_star(Cfg_synthetic_star cfg_star
 
 	// Allow to debug content of cfg_star
 	//displayCfgSyntheticStar(cfg_star); 
-	
 	if(legacynoise == true){
 		//noise_params_harvey_like=[A_Pgran ,  B_Pgran , C_Pgran   ,  A_taugran ,  B_taugran  , C_taugran    , p      N0] // 
 		noise_params_harvey1985[0] = cfg_star.noise_params_harvey_like[0] * std::pow(cfg_star.numax_star*1e-6,cfg_star.noise_params_harvey_like[1]) + cfg_star.noise_params_harvey_like[2]; // Granulation Amplitude
@@ -632,6 +631,7 @@ Params_synthetic_star make_synthetic_asymptotic_star(Cfg_synthetic_star cfg_star
 		noise_params_harvey1985[2]=cfg_star.noise_params_harvey_like[6];
 		noise_params_harvey1985[3]=cfg_star.noise_params_harvey_like[7];
 	}
+	
 	// Fix the resolution to 4 years (converted into microHz)
 	resol=1e6/(4*365.*86400.);
 	// ----- l=0 modes -----
@@ -669,7 +669,7 @@ Params_synthetic_star make_synthetic_asymptotic_star(Cfg_synthetic_star cfg_star
 	c=1; // This is the ratio of HNR between the reference star and the target simulated star: maxHNR_l0/maxHNR_ref.
 	hmax_l0=cfg_star.maxHNR_l0*noise_l0*c;
 	height_l0=height_l0.cwiseProduct(hmax_l0); // height_l0 being normalised to 1 on width_height_load_rescale, getting the desired hmax_l0 requires just to multiply height_l0 by hmax_l0
-
+	
 	if (std::abs(cfg_star.H0_spread) > 0)
 	{
 		try
@@ -698,6 +698,47 @@ Params_synthetic_star make_synthetic_asymptotic_star(Cfg_synthetic_star cfg_star
 	delta0l_star=-el*(el + 1) * cfg_star.delta0l_percent_star / 100.;	
 	freqs=solve_mm_asymptotic_O2p(cfg_star.Dnu_star, cfg_star.epsilon_star, el, delta0l_star, cfg_star.alpha_p_star, cfg_star.nmax_star, cfg_star.DPl_star, 
 								  cfg_star.alpha_g_star, cfg_star.q_star, cfg_star.sigma_p, cfg_star.fmin, cfg_star.fmax, resol, true, false);
+	const u_int8_t neverfail = 1;
+	// Case where we return p modes only to avoid any crash further in the code... 
+	// But this is a MS star, so we Show a Warning about this
+	if (freqs.nu_m.size() == 0){ 
+		std::cout << " ---------------------------------------------------------" << std::endl;
+		std::cout << "    WARNING:  THE COMPUTED STAR IS NOT A RGB OR A SUBGIANT" << std::endl;
+		std::cout << "    This is because Dnu and DP1 are both high leading to no mixed modes around numax" << std::endl;
+		std::cout << "    The input parameters are:" << std::endl;
+		std::cout << "        - cfg_star.Dnu_star     = " << cfg_star.Dnu_star << std::endl;
+		std::cout << "        - cfg_star.epsilon_star = " << cfg_star.epsilon_star << std::endl;
+		std::cout << "        - delta0l_star          = " << delta0l_star << std::endl;
+		std::cout << "        - cfg_star.alpha_p_star = " << cfg_star.alpha_p_star << std::endl;
+		std::cout << "        - cfg_star.nmax_star    = " << cfg_star.nmax_star << std::endl;
+		std::cout << "        - cfg_star.DPl_star     = " << cfg_star.DPl_star << std::endl;
+		std::cout << "        - cfg_star.alpha_g_star = " << cfg_star.alpha_g_star << std::endl;
+		std::cout << "        - cfg_star.q_star       = " << cfg_star.q_star << std::endl;
+		std::cout << "        - cfg_star.sigma_p      = " <<  cfg_star.sigma_p << std::endl;
+		std::cout << "        - cfg_star.fmin         = " <<  cfg_star.fmin << std::endl;
+		std::cout << "        - cfg_star.fmax         = " <<  cfg_star.fmax << std::endl;
+		std::cout << "        - resol                 = " <<  resol << std::endl;
+		std::cout << "     With resulting p and g mode frequencies:" << std::endl;
+		std::cout << "        - nu_p : " << freqs.nu_p.transpose() << std::endl;
+		std::cout << "        - nu_g : " << freqs.nu_g << std::endl;
+		if (neverfail == 0){ // Case where we exit when facing this edge case
+		    std::cerr << "     To avoid this, provide smaller Dnu or DP1 so that the density of g modes around" <<std::endl;
+			std::cerr << "     the p modes expected to be visible (within [fmin,fmax]) is sufficient to ensure accurate computation" << std::endl;
+			std::cerr << "     EXITING..." << std::endl;
+			exit(EXIT_FAILURE);
+		}
+		if (neverfail == 1){ // Case where we go straight to the end of the program and skip the computation. outputs will be empty so that you can skip the whole star generation
+			std::cerr << "     PURSUING BUT SKIPPING THE STAR COMPUTATION" << std::endl;
+			std::cerr << "     The output structure will be mostly empty and the star should be entirely skipped..." << std::endl;
+			params_out.failed=true;
+			return params_out;
+		}
+		if (neverfail == 2){ // Case where the star is computed as if it was a MS star
+			freqs.nu_m=freqs.nu_p;
+			std::cout << "     PURSUING..." << std::endl;
+		}
+		std::cout << " ---------------------------------------------------------" << std::endl;
+	}
 	// Filter solutions that endup at frequencies higher/lower than the nu_l0 because we will need to extrapolate height/widths otherwise...
 	posOK=where_in_range(freqs.nu_m, nu_l0.minCoeff(), nu_l0.maxCoeff(), false);
 	nu_m_l1.resize(posOK.size());
@@ -726,7 +767,7 @@ Params_synthetic_star make_synthetic_asymptotic_star(Cfg_synthetic_star cfg_star
 	height_l1p=height_l1p*cfg_star.Vl[0];
 	height_l1=h1_h0_ratio.cwiseProduct(height_l1p);
 	width_l1=gamma_l_fct2(ksi_pg, nu_m_l1, nu_l0, width_l0, h1_h0_ratio, el, cfg_star.Wfactor); //Wfactor Added on May 2, 2022
-
+	
 	// Generating splittings with a two-zone averaged rotation rates
 	if (cfg_star.rot_env_input >=0)
 	{
@@ -806,7 +847,7 @@ Params_synthetic_star make_synthetic_asymptotic_star(Cfg_synthetic_star cfg_star
 	// Assume that the l=3 modes are only sensitive to the envelope rotation
 	a1_l3.resize(nu_l3.size());
 	a1_l3.setConstant(rot2data.rot_env);//=numpy.repeat(rot_env, len(nu_l3))
-
+	
 	//-----  ADDED ON 13 Sept -----
 	// Implementation of the latitudinal differential rotation for outer layers
 	// This uses the new substructure env_lat_dif_rot that has all its values initialised to 0 
@@ -914,7 +955,7 @@ void displayCfgSyntheticStar(const Cfg_synthetic_star& cfg) {
     std::cout << "sigma_m: " << cfg.sigma_m << std::endl;
     std::cout << "Hfactor: " << cfg.Hfactor << std::endl;
     std::cout << "Wfactor: " << cfg.Wfactor << std::endl;
-    std::cout << "inclination: " << cfg.inclination << std::endl;
+    //std::cout << "inclination: " << cfg.inclination << std::endl;
     //std::cout << "nu_nl: " << cfg.nu_nl << std::endl;
     //std::cout << "Nf_el: " << cfg.Nf_el.transpose() << std::endl;
     //std::cout << "use_nu_nl: " << cfg.use_nu_nl << std::endl;

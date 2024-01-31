@@ -1,3 +1,11 @@
+### 1.12 ## 
+        Edge case handling:
+                - adding a hard-coded variable "neverfail" within bump.cpp to handle edge case when computing a subgiant with make_asymptotic_star(). 
+                  If neverfail = 0 : The code stops when the solution is empty (no mixed modes found)
+                  If neverfail = 1 : The code continue but skip any computation of Height, Width and splitting. To be used to skip the star computation.
+                  If neverfail = 2: The code continue assuming that the star has only pure p modes. 
+                  The switch is currently set to 1. 
+
 ### 1.11 ##
 	Minor improvment:
 		- adding the possibility to directly provide a harvey_like set of parameters when running the make_star program

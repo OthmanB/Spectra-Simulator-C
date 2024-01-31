@@ -30,7 +30,7 @@ using Eigen::MatrixXd;
 double *r8vec_normal_01 ( int n, int *seed );
 
 
-void asymptotic_mm_v1(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string file_cfg_mm, std::string external_path, std::string template_file){
+bool asymptotic_mm_v1(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string file_cfg_mm, std::string external_path, std::string template_file){
 
 	int seed=(unsigned)time(NULL);
 	srand(seed);
@@ -153,38 +153,41 @@ void asymptotic_mm_v1(VectorXd input_params, std::string file_out_modes, std::st
 	inc_star=inc_rad*180./PI;
 	// b. Generate the mode profiles and frequencies
 	params=make_synthetic_asymptotic_star(cfg_star);
-	mode_params=bumpoutputs_2_MatrixXd(params, inc_star); // get the output in a format that can be written with the writting function
+	if (params.failed == false){
+		mode_params=bumpoutputs_2_MatrixXd(params, inc_star); // get the output in a format that can be written with the writting function
 
-	//el, nu, h, w, a1, eta, a3, b, alfa, asym, inc
-	write_star_mode_params_act_asym(mode_params, file_out_modes);
-	write_range_modes(cfg_star, params, file_range);
+		//el, nu, h, w, a1, eta, a3, b, alfa, asym, inc
+		write_star_mode_params_act_asym(mode_params, file_out_modes);
+		write_range_modes(cfg_star, params, file_range);
 
-	if (cfg_star.Dnu_star <= 15){
-		std::cout << "    Model with small Dnu ==> many mixed modes. This might be long to find the solutions..." << std::endl; 
+		if (cfg_star.Dnu_star <= 15){
+			std::cout << "    Model with small Dnu ==> many mixed modes. This might be long to find the solutions..." << std::endl; 
+		}
+		
+		tau=input_params[18] * pow(cfg_star.numax_star*1e-6,input_params[19]) + input_params[20]; // Granulation timescale (in seconds)
+		H=input_params[15] * pow(cfg_star.numax_star*1e-6,input_params[16]) + input_params[17]; // Granulation Amplitude
+		H=H/tau ; //This is due to the used definition for the Harvey profile (conversion from Hz to microHz)
+		tau=tau/1000. ; //conversion in ksec
+		p=input_params[21];// power law:  MUST BE CLOSE TO 2
+		N0=input_params[22];
+		noise_params(0,0)=-1;
+		noise_params(0,1)=-1;
+		noise_params(0,2)=-1; 
+		noise_params(1,0)=H;
+		noise_params(1,1)=tau;
+		noise_params(1,2)=p; 
+		noise_params(2, 0)=N0; // White noise
+		noise_params(2, 1)=-2;
+		noise_params(2, 2)=-2;
+
+		// A FUNCTION THAT WRITES THE Noise
+		write_star_noise_params(noise_params, file_out_noise);
 	}
-	
-	tau=input_params[18] * pow(cfg_star.numax_star*1e-6,input_params[19]) + input_params[20]; // Granulation timescale (in seconds)
-	H=input_params[15] * pow(cfg_star.numax_star*1e-6,input_params[16]) + input_params[17]; // Granulation Amplitude
-	H=H/tau ; //This is due to the used definition for the Harvey profile (conversion from Hz to microHz)
-	tau=tau/1000. ; //conversion in ksec
-	p=input_params[21];// power law:  MUST BE CLOSE TO 2
-	N0=input_params[22];
-	noise_params(0,0)=-1;
-	noise_params(0,1)=-1;
-	noise_params(0,2)=-1; 
-	noise_params(1,0)=H;
-	noise_params(1,1)=tau;
-	noise_params(1,2)=p; 
-	noise_params(2, 0)=N0; // White noise
-	noise_params(2, 1)=-2;
-	noise_params(2, 2)=-2;
-
-	// A FUNCTION THAT WRITES THE Noise
-	write_star_noise_params(noise_params, file_out_noise);
+	return params.failed;
 }
 
 
-void asymptotic_mm_v2(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string file_cfg_mm, std::string external_path, std::string template_file){
+bool asymptotic_mm_v2(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string file_cfg_mm, std::string external_path, std::string template_file){
 
 	int seed=(unsigned)time(NULL);
 	srand(seed);
@@ -313,40 +316,43 @@ void asymptotic_mm_v2(VectorXd input_params, std::string file_out_modes, std::st
 	
 	// b. Generate the mode profiles and frequencies
 	params=make_synthetic_asymptotic_star(cfg_star);
-	mode_params=bumpoutputs_2_MatrixXd(params, inc_star); // get the output in a format that can be written with the writting function
+	if (params.failed == false){
+		mode_params=bumpoutputs_2_MatrixXd(params, inc_star); // get the output in a format that can be written with the writting function
 
-	//el, nu, h, w, a1, eta, a3, b, alfa, asym, inc
-	write_star_mode_params_act_asym(mode_params, file_out_modes);
-	write_range_modes(cfg_star, params, file_range);
+		//el, nu, h, w, a1, eta, a3, b, alfa, asym, inc
+		write_star_mode_params_act_asym(mode_params, file_out_modes);
+		write_range_modes(cfg_star, params, file_range);
 
-	if (cfg_star.Dnu_star <= 15){
-		std::cout << "    Model with small Dnu ==> many mixed modes. This might be long to find the solutions..." << std::endl; 
+		if (cfg_star.Dnu_star <= 15){
+			std::cout << "    Model with small Dnu ==> many mixed modes. This might be long to find the solutions..." << std::endl; 
+		}
+
+		tau=input_params[19] * pow(cfg_star.numax_star*1e-6,input_params[20]) + input_params[21]; // Granulation timescale (in seconds)
+		H=input_params[16] * pow(cfg_star.numax_star*1e-6,input_params[17]) + input_params[18]; // Granulation Amplitude
+		H=H/tau ; //This is due to the used definition for the Harvey profile (conversion from Hz to microHz)
+		tau=tau/1000. ; //conversion in ksec
+		p=input_params[22];// power law:  MUST BE CLOSE TO 2
+		N0=input_params[23];
+		noise_params(0,0)=-1;
+		noise_params(0,1)=-1;
+		noise_params(0,2)=-1; 
+		noise_params(1,0)=H;
+		noise_params(1,1)=tau;
+		noise_params(1,2)=p; 
+		noise_params(2, 0)=N0; // White noise
+		noise_params(2, 1)=-2;
+		noise_params(2, 2)=-2;
+
+		// A FUNCTION THAT WRITES THE Noise
+		write_star_noise_params(noise_params, file_out_noise);
+
+		//std::cout << "Model finished" << std::endl;
 	}
-
-	tau=input_params[19] * pow(cfg_star.numax_star*1e-6,input_params[20]) + input_params[21]; // Granulation timescale (in seconds)
-	H=input_params[16] * pow(cfg_star.numax_star*1e-6,input_params[17]) + input_params[18]; // Granulation Amplitude
-	H=H/tau ; //This is due to the used definition for the Harvey profile (conversion from Hz to microHz)
-	tau=tau/1000. ; //conversion in ksec
-	p=input_params[22];// power law:  MUST BE CLOSE TO 2
-	N0=input_params[23];
-	noise_params(0,0)=-1;
-	noise_params(0,1)=-1;
-	noise_params(0,2)=-1; 
-	noise_params(1,0)=H;
-	noise_params(1,1)=tau;
-	noise_params(1,2)=p; 
-	noise_params(2, 0)=N0; // White noise
-	noise_params(2, 1)=-2;
-	noise_params(2, 2)=-2;
-
-	// A FUNCTION THAT WRITES THE Noise
-	write_star_noise_params(noise_params, file_out_noise);
-
-	//std::cout << "Model finished" << std::endl;
+	return params.failed;
 }
 
 
-void asymptotic_mm_v3(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string file_cfg_mm, std::string external_path, std::string template_file){
+bool asymptotic_mm_v3(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string file_cfg_mm, std::string external_path, std::string template_file){
 
 	int seed=(unsigned)time(NULL);
 	srand(seed);
@@ -475,38 +481,40 @@ void asymptotic_mm_v3(VectorXd input_params, std::string file_out_modes, std::st
 	
 	// b. Generate the mode profiles and frequencies
 	params=make_synthetic_asymptotic_star(cfg_star);
-	mode_params=bumpoutputs_2_MatrixXd(params, inc_star); // get the output in a format that can be written with the writting function
+	if (params.failed == false){
+		mode_params=bumpoutputs_2_MatrixXd(params, inc_star); // get the output in a format that can be written with the writting function
 
-	//el, nu, h, w, a1, eta, a3, b, alfa, asym, inc
-	write_star_mode_params_act_asym(mode_params, file_out_modes);
-	write_range_modes(cfg_star, params, file_range);
+		//el, nu, h, w, a1, eta, a3, b, alfa, asym, inc
+		write_star_mode_params_act_asym(mode_params, file_out_modes);
+		write_range_modes(cfg_star, params, file_range);
 
-	if (cfg_star.Dnu_star <= 15){
-		std::cout << "    Model with small Dnu ==> many mixed modes. This might be long to find the solutions..." << std::endl; 
+		if (cfg_star.Dnu_star <= 15){
+			std::cout << "    Model with small Dnu ==> many mixed modes. This might be long to find the solutions..." << std::endl; 
+		}
+		tau=input_params[19] * pow(cfg_star.numax_star*1e-6,input_params[20]) + input_params[21]; // Granulation timescale (in seconds)
+		H=input_params[16] * pow(cfg_star.numax_star*1e-6,input_params[17]) + input_params[18]; // Granulation Amplitude
+		H=H/tau ; //This is due to the used definition for the Harvey profile (conversion from Hz to microHz)
+		tau=tau/1000. ; //conversion in ksec
+		p=input_params[22];// power law:  MUST BE CLOSE TO 2
+		N0=input_params[23];
+		noise_params(0,0)=-1;
+		noise_params(0,1)=-1;
+		noise_params(0,2)=-1; 
+		noise_params(1,0)=H;
+		noise_params(1,1)=tau;
+		noise_params(1,2)=p; 
+		noise_params(2, 0)=N0; // White noise
+		noise_params(2, 1)=-2;
+		noise_params(2, 2)=-2;
+		// A FUNCTION THAT WRITES THE Noise
+		write_star_noise_params(noise_params, file_out_noise);
 	}
-	tau=input_params[19] * pow(cfg_star.numax_star*1e-6,input_params[20]) + input_params[21]; // Granulation timescale (in seconds)
-	H=input_params[16] * pow(cfg_star.numax_star*1e-6,input_params[17]) + input_params[18]; // Granulation Amplitude
-	H=H/tau ; //This is due to the used definition for the Harvey profile (conversion from Hz to microHz)
-	tau=tau/1000. ; //conversion in ksec
-	p=input_params[22];// power law:  MUST BE CLOSE TO 2
-	N0=input_params[23];
-	noise_params(0,0)=-1;
-	noise_params(0,1)=-1;
-	noise_params(0,2)=-1; 
-	noise_params(1,0)=H;
-	noise_params(1,1)=tau;
-	noise_params(1,2)=p; 
-	noise_params(2, 0)=N0; // White noise
-	noise_params(2, 1)=-2;
-	noise_params(2, 2)=-2;
-	// A FUNCTION THAT WRITES THE Noise
-	write_star_noise_params(noise_params, file_out_noise);
-
 	//exit(EXIT_SUCCESS);
+	return params.failed;
 }
 
 
-void asymptotic_mm_freeDp_numaxspread_curvepmodes_v1(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string file_cfg_mm, std::string external_path, std::string template_file){
+bool asymptotic_mm_freeDp_numaxspread_curvepmodes_v1(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string file_cfg_mm, std::string external_path, std::string template_file){
 
 	int seed=(unsigned)time(NULL);
 	srand(seed);
@@ -629,38 +637,40 @@ void asymptotic_mm_freeDp_numaxspread_curvepmodes_v1(VectorXd input_params, std:
 	
 	// b. Generate the mode profiles and frequencies
 	params=make_synthetic_asymptotic_star(cfg_star);
-	mode_params=bumpoutputs_2_MatrixXd(params, inc_star); // get the output in a format that can be written with the writting function
+	if (params.failed == false){
+		mode_params=bumpoutputs_2_MatrixXd(params, inc_star); // get the output in a format that can be written with the writting function
 
-	//el, nu, h, w, a1, eta, a3, b, alfa, asym, inc
-	write_star_mode_params_act_asym(mode_params, file_out_modes);
-	write_range_modes(cfg_star, params, file_range);
+		//el, nu, h, w, a1, eta, a3, b, alfa, asym, inc
+		write_star_mode_params_act_asym(mode_params, file_out_modes);
+		write_range_modes(cfg_star, params, file_range);
 
-	if (cfg_star.Dnu_star <= 15){
-		std::cout << "    Model with small Dnu ==> many mixed modes. This might be long to find the solutions..." << std::endl; 
+		if (cfg_star.Dnu_star <= 15){
+			std::cout << "    Model with small Dnu ==> many mixed modes. This might be long to find the solutions..." << std::endl; 
+		}
+
+		tau=input_params[19] * pow(cfg_star.numax_star*1e-6,input_params[20]) + input_params[21]; // Granulation timescale (in seconds)
+		H=input_params[16] * pow(cfg_star.numax_star*1e-6,input_params[17]) + input_params[18]; // Granulation Amplitude
+		H=H/tau ; //This is due to the used definition for the Harvey profile (conversion from Hz to microHz)
+		tau=tau/1000. ; //conversion in ksec
+		p=input_params[22];// power law:  MUST BE CLOSE TO 2
+		N0=input_params[23];
+		noise_params(0,0)=-1;
+		noise_params(0,1)=-1;
+		noise_params(0,2)=-1; 
+		noise_params(1,0)=H;
+		noise_params(1,1)=tau;
+		noise_params(1,2)=p; 
+		noise_params(2, 0)=N0; // White noise
+		noise_params(2, 1)=-2;
+		noise_params(2, 2)=-2;
+		// A FUNCTION THAT WRITES THE Noise
+		write_star_noise_params(noise_params, file_out_noise);
 	}
-
-	tau=input_params[19] * pow(cfg_star.numax_star*1e-6,input_params[20]) + input_params[21]; // Granulation timescale (in seconds)
-	H=input_params[16] * pow(cfg_star.numax_star*1e-6,input_params[17]) + input_params[18]; // Granulation Amplitude
-	H=H/tau ; //This is due to the used definition for the Harvey profile (conversion from Hz to microHz)
-	tau=tau/1000. ; //conversion in ksec
-	p=input_params[22];// power law:  MUST BE CLOSE TO 2
-	N0=input_params[23];
-	noise_params(0,0)=-1;
-	noise_params(0,1)=-1;
-	noise_params(0,2)=-1; 
-	noise_params(1,0)=H;
-	noise_params(1,1)=tau;
-	noise_params(1,2)=p; 
-	noise_params(2, 0)=N0; // White noise
-	noise_params(2, 1)=-2;
-	noise_params(2, 2)=-2;
-	// A FUNCTION THAT WRITES THE Noise
-	write_star_noise_params(noise_params, file_out_noise);
-
+	return params.failed;
 }
 
 
-void asymptotic_mm_freeDp_numaxspread_curvepmodes_v2(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string file_cfg_mm, std::string external_path, std::string template_file){
+bool asymptotic_mm_freeDp_numaxspread_curvepmodes_v2(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string file_cfg_mm, std::string external_path, std::string template_file){
 	
 	int seed=(unsigned)time(NULL);
 	srand(seed);
@@ -819,36 +829,38 @@ void asymptotic_mm_freeDp_numaxspread_curvepmodes_v2(VectorXd input_params, std:
 	
 	// b. Generate the mode profiles and frequencies
 	params=make_synthetic_asymptotic_star(cfg_star);
-	mode_params=bumpoutputs_2_MatrixXd(params, inc_star); // get the output in a format that can be written with the writting function
+	if (params.failed == false){
+		mode_params=bumpoutputs_2_MatrixXd(params, inc_star); // get the output in a format that can be written with the writting function
 
-	write_star_mode_params_aj(mode_params, file_out_modes);
-	write_range_modes(cfg_star, params, file_range);
+		write_star_mode_params_aj(mode_params, file_out_modes);
+		write_range_modes(cfg_star, params, file_range);
 
-	if (cfg_star.Dnu_star <= 15){
-		std::cout << "    Model with small Dnu ==> many mixed modes. This might be long to find the solutions..." << std::endl; 
+		if (cfg_star.Dnu_star <= 15){
+			std::cout << "    Model with small Dnu ==> many mixed modes. This might be long to find the solutions..." << std::endl; 
+		}
+
+		tau=input_params[30] * pow(cfg_star.numax_star*1e-6,input_params[31]) + input_params[32]; // Granulation timescale (in seconds)
+		H=input_params[27] * pow(cfg_star.numax_star*1e-6,input_params[28]) + input_params[29]; // Granulation Amplitude
+		H=H/tau ; //This is due to the used definition for the Harvey profile (conversion from Hz to microHz)
+		tau=tau/1000. ; //conversion in ksec
+		p=input_params[33];// power law:  MUST BE CLOSE TO 2
+		N0=input_params[34];
+		noise_params(0,0)=-1;
+		noise_params(0,1)=-1;
+		noise_params(0,2)=-1; 
+		noise_params(1,0)=H;
+		noise_params(1,1)=tau;
+		noise_params(1,2)=p; 
+		noise_params(2, 0)=N0; // White noise
+		noise_params(2, 1)=-2;
+		noise_params(2, 2)=-2;
+		// A FUNCTION THAT WRITES THE Noise
+		write_star_noise_params(noise_params, file_out_noise);
 	}
-
-	tau=input_params[30] * pow(cfg_star.numax_star*1e-6,input_params[31]) + input_params[32]; // Granulation timescale (in seconds)
-	H=input_params[27] * pow(cfg_star.numax_star*1e-6,input_params[28]) + input_params[29]; // Granulation Amplitude
-	H=H/tau ; //This is due to the used definition for the Harvey profile (conversion from Hz to microHz)
-	tau=tau/1000. ; //conversion in ksec
-	p=input_params[33];// power law:  MUST BE CLOSE TO 2
-	N0=input_params[34];
-	noise_params(0,0)=-1;
-	noise_params(0,1)=-1;
-	noise_params(0,2)=-1; 
-	noise_params(1,0)=H;
-	noise_params(1,1)=tau;
-	noise_params(1,2)=p; 
-	noise_params(2, 0)=N0; // White noise
-	noise_params(2, 1)=-2;
-	noise_params(2, 2)=-2;
-	// A FUNCTION THAT WRITES THE Noise
-	write_star_noise_params(noise_params, file_out_noise);
-
+	return params.failed;
 }
 
-void asymptotic_mm_freeDp_numaxspread_curvepmodes_v3(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string file_cfg_mm, std::string external_path, std::string template_file){
+bool asymptotic_mm_freeDp_numaxspread_curvepmodes_v3(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string file_cfg_mm, std::string external_path, std::string template_file){
 
 	int seed=(unsigned)time(NULL);
 	srand(seed);
@@ -1068,41 +1080,44 @@ void asymptotic_mm_freeDp_numaxspread_curvepmodes_v3(VectorXd input_params, std:
 	
 	// b. Generate the mode profiles and frequencies
 	params=make_synthetic_asymptotic_star(cfg_star);
-	mode_params=bumpoutputs_2_MatrixXd(params, inc_star); // get the output in a format that can be written with the writting function
+	if (params.failed == false){
+		mode_params=bumpoutputs_2_MatrixXd(params, inc_star); // get the output in a format that can be written with the writting function
 
-	write_star_mode_params_aj(mode_params, file_out_modes);
-	write_range_modes(cfg_star, params, file_range);
+		write_star_mode_params_aj(mode_params, file_out_modes);
+		write_range_modes(cfg_star, params, file_range);
 
-	if (cfg_star.Dnu_star <= 15){
-		std::cout << "    Model with small Dnu ==> many mixed modes. This might be long to find the solutions..." << std::endl; 
+		if (cfg_star.Dnu_star <= 15){
+			std::cout << "    Model with small Dnu ==> many mixed modes. This might be long to find the solutions..." << std::endl; 
+		}
+
+		tau=input_params[30] * pow(cfg_star.numax_star*1e-6,input_params[31]) + input_params[32]; // Granulation timescale (in seconds)
+		H=input_params[27] * pow(cfg_star.numax_star*1e-6,input_params[28]) + input_params[29]; // Granulation Amplitude
+		//std::cout << "pass" << std::endl;
+		H=H/tau ; //This is due to the used definition for the Harvey profile (conversion from Hz to microHz)
+		tau=tau/1000. ; //conversion in ksec
+		p=input_params[23];// power law:  MUST BE CLOSE TO 2
+		N0=input_params[24];
+		noise_params(0,0)=-1;
+		noise_params(0,1)=-1;
+		noise_params(0,2)=-1; 
+		noise_params(1,0)=H;
+		noise_params(1,1)=tau;
+		noise_params(1,2)=p; 
+		noise_params(2, 0)=N0; // White noise
+		noise_params(2, 1)=-2;
+		noise_params(2, 2)=-2;
+		//std::cout << "pass" << std::endl;
+		//exit(EXIT_SUCCESS);
+
+		// A FUNCTION THAT WRITES THE Noise
+		write_star_noise_params(noise_params, file_out_noise);
 	}
-
-	tau=input_params[30] * pow(cfg_star.numax_star*1e-6,input_params[31]) + input_params[32]; // Granulation timescale (in seconds)
-	H=input_params[27] * pow(cfg_star.numax_star*1e-6,input_params[28]) + input_params[29]; // Granulation Amplitude
-	//std::cout << "pass" << std::endl;
-	H=H/tau ; //This is due to the used definition for the Harvey profile (conversion from Hz to microHz)
-	tau=tau/1000. ; //conversion in ksec
-	p=input_params[23];// power law:  MUST BE CLOSE TO 2
-	N0=input_params[24];
-	noise_params(0,0)=-1;
-	noise_params(0,1)=-1;
-	noise_params(0,2)=-1; 
-	noise_params(1,0)=H;
-	noise_params(1,1)=tau;
-	noise_params(1,2)=p; 
-	noise_params(2, 0)=N0; // White noise
-	noise_params(2, 1)=-2;
-	noise_params(2, 2)=-2;
-	//std::cout << "pass" << std::endl;
 	//exit(EXIT_SUCCESS);
-
-	// A FUNCTION THAT WRITES THE Noise
-	write_star_noise_params(noise_params, file_out_noise);
-	//exit(EXIT_SUCCESS);
+	return params.failed;
 }
 
 
-void asymptotic_mm_freeDp_numaxspread_curvepmodes_v3_GRANscaled_Kallinger2014(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string file_cfg_mm, std::string external_path, std::string template_file){
+bool asymptotic_mm_freeDp_numaxspread_curvepmodes_v3_GRANscaled_Kallinger2014(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string file_cfg_mm, std::string external_path, std::string template_file){
 
 	int seed=(unsigned)time(NULL);
 	srand(seed);
@@ -1319,26 +1334,27 @@ void asymptotic_mm_freeDp_numaxspread_curvepmodes_v3_GRANscaled_Kallinger2014(Ve
 	
 	// b. Generate the mode profiles and frequencies
 	params=make_synthetic_asymptotic_star(cfg_star);
-	mode_params=bumpoutputs_2_MatrixXd(params, inc_star); // get the output in a format that can be written with the writting function
+	if (params.failed == false){
+		mode_params=bumpoutputs_2_MatrixXd(params, inc_star); // get the output in a format that can be written with the writting function
+		write_star_mode_params_aj(mode_params, file_out_modes);
+		write_range_modes(cfg_star, params, file_range);
 
-	write_star_mode_params_aj(mode_params, file_out_modes);
-	write_range_modes(cfg_star, params, file_range);
-
-	noise_params(0,0)=noise_params_harvey[0];
-	noise_params(0,1)=noise_params_harvey[1];
-	noise_params(0,2)=noise_params_harvey[2];
-	noise_params(1,0)=noise_params_harvey[3];
-	noise_params(1,1)=noise_params_harvey[4];
-	noise_params(1,2)=noise_params_harvey[5]; 
-	noise_params(2, 0)=noise_params_harvey[6];
-	noise_params(2, 1)=noise_params_harvey[7];
-	noise_params(2, 2)=noise_params_harvey[8];
-	noise_params(3, 0)=noise_params_harvey[9]; // White noise
-	noise_params(3, 1)=-2;
-	noise_params(3, 2)=-2;
-	// A FUNCTION THAT WRITES THE Noise
-	write_star_noise_params(noise_params, file_out_noise);
-
+		noise_params(0,0)=noise_params_harvey[0];
+		noise_params(0,1)=noise_params_harvey[1];
+		noise_params(0,2)=noise_params_harvey[2];
+		noise_params(1,0)=noise_params_harvey[3];
+		noise_params(1,1)=noise_params_harvey[4];
+		noise_params(1,2)=noise_params_harvey[5]; 
+		noise_params(2, 0)=noise_params_harvey[6];
+		noise_params(2, 1)=noise_params_harvey[7];
+		noise_params(2, 2)=noise_params_harvey[8];
+		noise_params(3, 0)=noise_params_harvey[9]; // White noise
+		noise_params(3, 1)=-2;
+		noise_params(3, 2)=-2;
+		// A FUNCTION THAT WRITES THE Noise
+		write_star_noise_params(noise_params, file_out_noise);
+	}
+	return params.failed;
 }
 
 

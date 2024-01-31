@@ -1320,37 +1320,49 @@ bool call_model_random(std::string model_name, VectorXd input_params, std::strin
 		model_name == "asymptotic_mm_freeDp_numaxspread_curvepmodes_v1" || model_name == "asymptotic_mm_freeDp_numaxspread_curvepmodes_v2" ||
 		model_name == "asymptotic_mm_freeDp_numaxspread_curvepmodes_v3" || model_name == "asymptotic_mm_freeDp_numaxspread_curvepmodes_v3_GRANscaled_Kallinger2014"){
 		if(model_name =="asymptotic_mm_v1"){
-			asymptotic_mm_v1(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path, template_file);
-			artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel, data_path);
+			bool failed=asymptotic_mm_v1(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path, template_file);
+			if(failed == false){
+				artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel, data_path);
+			}
 			subpassed=1;
 		}
 		if(model_name =="asymptotic_mm_v2"){
-			asymptotic_mm_v2(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path, template_file);
-			artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel, data_path);
+			bool failed=asymptotic_mm_v2(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path, template_file);
+			if(failed == false){
+				artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel, data_path);
+			}
 			subpassed=1;
 		}
 		if(model_name =="asymptotic_mm_v3"){
-			asymptotic_mm_v3(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path, template_file);
-			artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel, data_path);
+			bool failed=asymptotic_mm_v3(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path, template_file);
+			if(failed == false){
+				artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel, data_path);
+			}
 			subpassed=1;
 		}
 		if(model_name =="asymptotic_mm_freeDp_numaxspread_curvepmodes_v1"){ 
 			file_cfg_mm=""; // By-pass the definition to avoid issues
-			asymptotic_mm_freeDp_numaxspread_curvepmodes_v1(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path, template_file);
-			artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel, data_path);
+			bool failed=asymptotic_mm_freeDp_numaxspread_curvepmodes_v1(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path, template_file);
+			if(failed == false){
+				artificial_spectrum_act_asym(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, cfg.write_inmodel, data_path);
+			}
 			subpassed=1;
 		}
 		if(model_name =="asymptotic_mm_freeDp_numaxspread_curvepmodes_v2"){ 
 			file_cfg_mm=""; // By-pass the definiton to avoid issues
-			asymptotic_mm_freeDp_numaxspread_curvepmodes_v2(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path, template_file);
-			artificial_spectrum_aj(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, 
+			bool failed=asymptotic_mm_freeDp_numaxspread_curvepmodes_v2(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path, template_file);
+			if(failed == false){
+				artificial_spectrum_aj(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, 
 									cfg.write_inmodel, cfg.do_modelfiles, cfg.limit_data_range, cfg.modefile_modelname, data_path);
+			}
 			subpassed=1;
 		}
 		if(model_name =="asymptotic_mm_freeDp_numaxspread_curvepmodes_v3"){ 
-			asymptotic_mm_freeDp_numaxspread_curvepmodes_v3(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path, template_file);
-			artificial_spectrum_aj(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, 
+			bool failed=asymptotic_mm_freeDp_numaxspread_curvepmodes_v3(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path, template_file);
+			if(failed == false){
+				artificial_spectrum_aj(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, 
 									cfg.write_inmodel, cfg.do_modelfiles, cfg.limit_data_range, cfg.modefile_modelname, data_path);
+			}
 			subpassed=1;
 		}
 		if(model_name =="asymptotic_mm_freeDp_numaxspread_curvepmodes_v3_GRANscaled_Kallinger2014"){ 
@@ -1358,9 +1370,11 @@ bool call_model_random(std::string model_name, VectorXd input_params, std::strin
 			input_params.conservativeResize(old_size+2);
 			input_params[old_size]=cfg.Tobs;
 			input_params[old_size+1]=cfg.Cadence;
-			asymptotic_mm_freeDp_numaxspread_curvepmodes_v3_GRANscaled_Kallinger2014(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path, template_file);
-			artificial_spectrum_aj(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, 
+			bool failed=asymptotic_mm_freeDp_numaxspread_curvepmodes_v3_GRANscaled_Kallinger2014(input_params, file_out_modes, file_out_noise,  file_cfg_mm, external_path, template_file);
+			if(failed == false){
+				artificial_spectrum_aj(cfg.Tobs, cfg.Cadence, cfg.Nspectra, cfg.Nrealisation, dir_core, id_str, cfg.doplots, 
 									cfg.write_inmodel, cfg.do_modelfiles, cfg.limit_data_range, cfg.modefile_modelname, data_path, "harvey_like");
+			}
 			subpassed=1;
 		}
 		if(subpassed == 0){

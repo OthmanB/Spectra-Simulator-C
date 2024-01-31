@@ -175,6 +175,7 @@ struct Cfg_synthetic_star{
  * This structure is used to hold synthetic star parameter data, including vectors for various parameters such as nu_l0, nu_p_l1, nu_g_l1, nu_m_l1, nu_l2, nu_l3, width_l0, width_l1, width_l2, width_l3, height_l0, height_l1, height_l2, height_l3, a1_l1, a1_l2, a1_l3, a2_l1, a2_l2, a2_l3, a3_l2, a3_l3, a4_l2, a4_l3, a5_l3, and a6_l3.
  */
 struct Params_synthetic_star{
+	bool failed=false; ///< Variable that is set to true if the mixed modes computation somewhat failed
 	VectorXd nu_l0; ///< Frequencies of l=0 p modes.
 	VectorXd nu_p_l1; ///< Frequencies of l=1 p modes used in the compuation of the mixed modes.
 	VectorXd nu_g_l1;  ///< Frequencies of l=1 g modes used in the compuation of the mixed modes.

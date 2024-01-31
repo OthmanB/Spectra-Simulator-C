@@ -1,5 +1,11 @@
 # Version history #
 
+### v1.53 ###
+	* Edge case handling in bump.cpp + iterative_artificial_spectrum.cpp: When attempting to generate a Subgiant with no mixed modes solutions, the code was crashing.
+	  As a crash without explanation is not satisfactory, I have added message specifying that the generated star has no mixed modes. A hard-coded switch is currently 
+          set to a mode that lead to skipping the "failed" computation of mixed modes. This switch, called "neverfail" inside bump.cpp can be also set to a safe exit (neverfail = 0)
+          or to a process continuing after replacing the solution with pure p modes (neverfail =2)
+ 
 ### v1.52 ###
 	* Adding the possibility to modify the output Data directory. After compilation, type ./specsim --help for further details.
 	* Adding an option to create automatically the Data directory and its subdirectories if they don't exist. 

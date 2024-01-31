@@ -37,8 +37,9 @@
  * @param file_cfg_mm The file path for the configuration file of the simulated star.
  * @param external_path The external path for the ARMM-solver.
  * @param template_file The template file for the simulated star.
+ * @return A status variable that is true if the computation failed (skipping the star)
  */
-void asymptotic_mm_v1(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string file_cfg_mm, std::string external_path, std::string template_file);
+bool asymptotic_mm_v1(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string file_cfg_mm, std::string external_path, std::string template_file);
 
 /**
  * @brief Generate synthetic mode parameters and noise for an asymptotic star.
@@ -49,8 +50,9 @@ void asymptotic_mm_v1(VectorXd input_params, std::string file_out_modes, std::st
  * @param file_cfg_mm The configuration file path for the star model.
  * @param external_path The external path for the star model.
  * @param template_file The template file path for the star model.
+ * @return A status variable that is true if the computation failed (skipping the star)
  */
-void asymptotic_mm_v2(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string file_cfg_mm, std::string external_path, std::string template_file);
+bool asymptotic_mm_v2(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string file_cfg_mm, std::string external_path, std::string template_file);
 
 /**
  * @brief Generate synthetic mode parameters and noise for an asymptotic star.
@@ -61,8 +63,9 @@ void asymptotic_mm_v2(VectorXd input_params, std::string file_out_modes, std::st
  * @param file_cfg_mm The configuration file path for the star model.
  * @param external_path The external path for the star model.
  * @param template_file The template file path for the star model.
+ * @return A status variable that is true if the computation failed (skipping the star)
  */
-void asymptotic_mm_v3(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string file_cfg_mm, std::string external_path, std::string template_file);
+bool asymptotic_mm_v3(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string file_cfg_mm, std::string external_path, std::string template_file);
 
 /**
  * @brief Generate synthetic mode parameters and noise for an asymptotic star.
@@ -73,8 +76,9 @@ void asymptotic_mm_v3(VectorXd input_params, std::string file_out_modes, std::st
  * @param file_cfg_mm The configuration file path for the star model.
  * @param external_path The external path for the star model.
  * @param template_file The template file path for the star model.
+ * @return A status variable that is true if the computation failed (skipping the star)
  */
-void asymptotic_mm_freeDp_numaxspread_curvepmodes_v1(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string file_cfg_mm, std::string external_path, std::string template_file);
+bool asymptotic_mm_freeDp_numaxspread_curvepmodes_v1(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string file_cfg_mm, std::string external_path, std::string template_file);
 
 /**
  * @brief Generate synthetic mode parameters and noise for an asymptotic star.
@@ -85,8 +89,9 @@ void asymptotic_mm_freeDp_numaxspread_curvepmodes_v1(VectorXd input_params, std:
  * @param file_cfg_mm The configuration file path for the star model.
  * @param external_path The external path for the star model.
  * @param template_file The template file path for the star model.
+ * @return A status variable that is true if the computation failed (skipping the star)
  */
-void asymptotic_mm_freeDp_numaxspread_curvepmodes_v2(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string file_cfg_mm, std::string external_path, std::string template_file);
+bool asymptotic_mm_freeDp_numaxspread_curvepmodes_v2(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string file_cfg_mm, std::string external_path, std::string template_file);
 
 /**
  * @brief Generate synthetic mode parameters and noise for an asymptotic star.
@@ -97,8 +102,9 @@ void asymptotic_mm_freeDp_numaxspread_curvepmodes_v2(VectorXd input_params, std:
  * @param file_cfg_mm The configuration file path for the star model.
  * @param external_path The external path for the star model.
  * @param template_file The template file path for the star model.
+* @return A status variable that is true if the computation failed (skipping the star)
  */
-void asymptotic_mm_freeDp_numaxspread_curvepmodes_v3(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string file_cfg_mm, std::string external_path, std::string template_file);
+bool asymptotic_mm_freeDp_numaxspread_curvepmodes_v3(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string file_cfg_mm, std::string external_path, std::string template_file);
 
 /**
  * @brief Generate synthetic mode parameters and noise for an asymptotic star.
@@ -109,8 +115,9 @@ void asymptotic_mm_freeDp_numaxspread_curvepmodes_v3(VectorXd input_params, std:
  * @param file_cfg_mm The configuration file path for the star model.
  * @param external_path The external path for the star model.
  * @param template_file The template file path for the star model.
+ * @return A status variable that is true if the computation failed (skipping the star)
  */
-void asymptotic_mm_freeDp_numaxspread_curvepmodes_v3_GRANscaled_Kallinger2014(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string file_cfg_mm, std::string external_path, std::string template_file);
+bool asymptotic_mm_freeDp_numaxspread_curvepmodes_v3_GRANscaled_Kallinger2014(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string file_cfg_mm, std::string external_path, std::string template_file);
 
 /**
  * @brief Generate configuration file for an asymptotic star with active asymmetry and Gaussian height profile.
