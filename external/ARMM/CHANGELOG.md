@@ -1,3 +1,14 @@
+### 1.13 ##
+	Bug fix for ARMMSolver executable:
+		- The help instruction on how to setup the configuration file was outdated, leading to misconfiguration.
+		- An example of configuration is now provided in the config/ directory (file solver.cfg).
+	Other Bug Fixes:
+		- Adding a condition that avoid ng_min<=0 as this leads to inf or negative frequencies (with respect to the ng definiton in the code). This is applied to all solver functions.
+		- Adding a condition that throw an error if ng_max is not >= 1.  This is applied to all solver functions.
+		- Fixing issues when ng_max - ng_min is small (case of Subgiants) that lead to missing mixed modes solutions.
+	Warning:
+		- There is a difference in definition of delta0l in the case of the models with mixed modes with the executable make_star where delta0l should be given > 0 to reproduce the negative d0l  and the executable ARMMsolver that use delta0l = C d0l. This because there is a d0l = - Cte delta0l expression in the make_asymptotic_star() function that is used by make_star
+
 ### 1.12 ## 
         Edge case handling:
                 - adding a hard-coded variable "neverfail" within bump.cpp to handle edge case when computing a subgiant with make_asymptotic_star(). 

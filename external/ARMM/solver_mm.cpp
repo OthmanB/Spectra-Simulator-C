@@ -345,91 +345,93 @@ Data_coresolver solver_mm(const long double nu_p, const long double nu_g, const 
 	Data_coresolver results;
 	VectorXi idx;
 	VectorXd nu, pnu, gnu, nu_local, pnu_local, gnu_local, nu_m, ysol_all;
-
 	if (nu_g >= numin && nu_g <= numax){
-	// Generate a frequency axis that has a fixed resolution and that span from numin to numax
-	nu = Eigen::VectorXd::LinSpaced(long((numax-numin)/resol), numin, numax);
-
-	// Function p(nu) describing the p modes
-	pnu=pnu_fct(nu, nu_p);
-	// Function g(nu) describing the g modes 
-	gnu=gnu_fct(nu, nu_g, Dnu_p, DPl, q);
-	
-	/* Find when p(nu) = g(nu) by looking for solution of p(nu) - g(nu) = 0
-	#     Method 1: Direct Interpolation... Works only for single solutions ==> Not used here
-	#int_fct = interpolate.interp1d(pnu - gnu, nu)
-	#nu_m=int_fct(0)
-	#     Method 2: (a) Find indices close to sign changes for p(nu) - g(nu)
-	#               (b) Then perform an iterative interpolation in narrow ranges
-	#                   near the approximate solutions. How narrow is the range is defined
-	#					by the resolution parameter resol, which in this case can be view
-	#					as the minimum precision.
-	*/
-	idx=sign_change(pnu-gnu);
-	s_ok=0;
-	nu_m.resize(idx.size());
-	for (long ind=0; ind<idx.size();ind++)
-	{
-		//std::cout << "idx[" << ind << "] =" << idx[ind] << std::endl;
-		// Define a small local range around each of the best solutions
-		range_min=nu[idx[ind]] - 2*resol;
-		range_max=nu[idx[ind]] + 2*resol;
-		// Redefine nu, pnu and gnu for that local range
+		// Generate a frequency axis that has a fixed resolution and that span from numin to numax
+		if (numin >=0){
+			nu = Eigen::VectorXd::LinSpaced(long((numax-numin)/resol), numin, numax);
+		} else{
+			nu = Eigen::VectorXd::LinSpaced(long((numax)/resol), 0, numax);
+		}
+		// Function p(nu) describing the p modes
+		pnu=pnu_fct(nu, nu_p);
+		// Function g(nu) describing the g modes 
+		gnu=gnu_fct(nu, nu_g, Dnu_p, DPl, q);
 		
-		nu_local = Eigen::VectorXd::LinSpaced(long((range_max-range_min)/(resol*factor)), range_min, range_max);
-		pnu_local=pnu_fct(nu_local, nu_p);
-		gnu_local=gnu_fct(nu_local, nu_g, Dnu_p, DPl, q);	
+		/* Find when p(nu) = g(nu) by looking for solution of p(nu) - g(nu) = 0
+		#     Method 1: Direct Interpolation... Works only for single solutions ==> Not used here
+		#int_fct = interpolate.interp1d(pnu - gnu, nu)
+		#nu_m=int_fct(0)
+		#     Method 2: (a) Find indices close to sign changes for p(nu) - g(nu)
+		#               (b) Then perform an iterative interpolation in narrow ranges
+		#                   near the approximate solutions. How narrow is the range is defined
+		#					by the resolution parameter resol, which in this case can be view
+		#					as the minimum precision.
+		*/
+		idx=sign_change(pnu-gnu);
+		s_ok=0;
+		nu_m.resize(idx.size());
+		for (long ind=0; ind<idx.size();ind++)
+		{
+			//std::cout << "idx[" << ind << "] =" << idx[ind] << std::endl;
+			// Define a small local range around each of the best solutions
+			range_min=nu[idx[ind]] - 2*resol;
+			range_max=nu[idx[ind]] + 2*resol;
+			// Redefine nu, pnu and gnu for that local range
+			
+			nu_local = Eigen::VectorXd::LinSpaced(long((range_max-range_min)/(resol*factor)), range_min, range_max);
+			pnu_local=pnu_fct(nu_local, nu_p);
+			gnu_local=gnu_fct(nu_local, nu_g, Dnu_p, DPl, q);	
 
-		// Perform the interpolation on the local range and append the solution to the nu_m list
-		nu_m_proposed=lin_interpol(pnu_local - gnu_local, nu_local, 0);
-		try
-		{	
-			ysol_gnu=gnu_fct(nu_m_proposed, nu_g, Dnu_p, DPl, q);
-			ysol_pnu=pnu_fct(nu_m_proposed, nu_p);
-		}
-		catch(...)
-		{
-			std::cout << "Interpolation issue detected. Debuging information:" << std::endl;
-			std::cout << "    nu_p: " <<  nu_p << std::endl;
-			std::cout << "    nu_g: " <<  nu_g << std::endl;
-			std::cout << "    Dnu_p: "<< Dnu_p << std::endl;
-			std::cout << "    DPl: "<< DPl << std::endl;
-			std::cout << "    q: " << q << std::endl;
-			std::cout << "    numin: "<< numin << std::endl;
-			std::cout << "    numax: "<< numax << std::endl;
-			std::cout << "    resol:"<< resol << std::endl;
-			std::cout << "    factor:"<< factor << std::endl;
-			std::cout << " ------------" << std::endl;
-			std::cout << "range_min/max: "<< range_min << range_max << std::endl;
-			std::cout << "  nu_local: "<< nu_local << std::endl;
-			std::cout << "  pnu_local: "<< pnu_local << std::endl;
-			std::cout << "  gnu_local: "<< gnu_local << std::endl;
-			std::cout << " ------------" << std::endl;
-			std::cout << " int_fct  ==>  nu_local      /   pnu_local - gnu_local : " << std::endl;
-			for (i=0; i<nu_local.size(); i++)
-			{
-				std::cout << "    " <<  nu_local[i]<< pnu_local[i]-gnu_local[i] << std::endl;
+			// Perform the interpolation on the local range and append the solution to the nu_m list
+			nu_m_proposed=lin_interpol(pnu_local - gnu_local, nu_local, 0);
+			try
+			{	
+				ysol_gnu=gnu_fct(nu_m_proposed, nu_g, Dnu_p, DPl, q);
+				ysol_pnu=pnu_fct(nu_m_proposed, nu_p);
 			}
-			exit(EXIT_FAILURE);
+			catch(...)
+			{
+				std::cout << "Interpolation issue detected. Debuging information:" << std::endl;
+				std::cout << "    nu_p: " <<  nu_p << std::endl;
+				std::cout << "    nu_g: " <<  nu_g << std::endl;
+				std::cout << "    Dnu_p: "<< Dnu_p << std::endl;
+				std::cout << "    DPl: "<< DPl << std::endl;
+				std::cout << "    q: " << q << std::endl;
+				std::cout << "    numin: "<< numin << std::endl;
+				std::cout << "    numax: "<< numax << std::endl;
+				std::cout << "    resol:"<< resol << std::endl;
+				std::cout << "    factor:"<< factor << std::endl;
+				std::cout << " ------------" << std::endl;
+				std::cout << "range_min/max: "<< range_min << range_max << std::endl;
+				std::cout << "  nu_local: "<< nu_local << std::endl;
+				std::cout << "  pnu_local: "<< pnu_local << std::endl;
+				std::cout << "  gnu_local: "<< gnu_local << std::endl;
+				std::cout << " ------------" << std::endl;
+				std::cout << " int_fct  ==>  nu_local      /   pnu_local - gnu_local : " << std::endl;
+				for (i=0; i<nu_local.size(); i++)
+				{
+					std::cout << "    " <<  nu_local[i]<< pnu_local[i]-gnu_local[i] << std::endl;
+				}
+				exit(EXIT_FAILURE);
+			}
+			ratio=ysol_gnu/ysol_pnu;
+			if (verbose == true)
+			{	std::cout << "-------"<< std::endl;
+				std::cout << "nu_m:"<<  nu_m_proposed<< std::endl;
+				std::cout << "Ratio:"<<  ratio << std::endl;
+			}
+			// Sometimes, the interpolator mess up due to the limits of validity for the atan function
+			// The way to keep real intersection is to verify after interpolation that we really
+			// have p(nu_m_proposed) = g(nu_m_proposed). We then only keeps solutions that satisfy
+			// a precision criteria of 0.1%.
+			if ((ratio >= 0.999) && (ratio <= 1.001))
+			{
+				nu_m[s_ok]=nu_m_proposed;
+				s_ok=s_ok+1;
+			}
 		}
-		ratio=ysol_gnu/ysol_pnu;
-		if (verbose == true)
-		{	std::cout << "-------"<< std::endl;
-			std::cout << "nu_m:"<<  nu_m_proposed<< std::endl;
-			std::cout << "Ratio:"<<  ratio << std::endl;
-		}
-		// Sometimes, the interpolator mess up due to the limits of validity for the atan function
-		// The way to keep real intersection is to verify after interpolation that we really
-		// have p(nu_m_proposed) = g(nu_m_proposed). We then only keeps solutions that satisfy
-		// a precision criteria of 0.1%.
-		if ((ratio >= 0.999) && (ratio <= 1.001))
-		{
-			nu_m[s_ok]=nu_m_proposed;
-			s_ok=s_ok+1;
-		}
-	}
-	nu_m.conservativeResize(s_ok);
-	ysol_all=gnu_fct(nu_m, nu_g, Dnu_p, DPl, q);
+		nu_m.conservativeResize(s_ok);
+		ysol_all=gnu_fct(nu_m, nu_g, Dnu_p, DPl, q);
 	}
 	if (returns_axis == true){
 		results.nu_m=nu_m;
@@ -451,7 +453,7 @@ Data_coresolver solver_mm(const long double nu_p, const long double nu_g, const 
  * @param Dnu_p The large separation for p modes (in microHz).
  * @param epsilon The value of epsilon.
  * @param el The value of el.
- * @param delta0l The value of delta0l.
+ * @param delta0l The value of delta0l in fraction of Dnu.
  * @param alpha_p The value of alpha_p.
  * @param nmax The value of nmax.
  * @param DPl The period spacing for g modes (in seconds).
@@ -489,7 +491,7 @@ Data_eigensols solve_mm_asymptotic_O2p(const long double Dnu_p, const long doubl
 	Deriv_out deriv_p, deriv_g;
 
 	// Use fmin and fmax to define the number of pure p modes and pure g modes to be considered
-	np_min=int(floor(fmin/Dnu_p - epsilon - el/2 - delta0l));
+	np_min=int(floor(fmin/Dnu_p - epsilon - el/2 - delta0l)); // Beware: delta0l is fraction of Dnu here
 	np_max=int(ceil(fmax/Dnu_p - epsilon - el/2 - delta0l));
 
 	np_min=int(floor(np_min - alpha_p*std::pow(np_min - nmax, 2) /2.));
@@ -497,7 +499,29 @@ Data_eigensols solve_mm_asymptotic_O2p(const long double Dnu_p, const long doubl
 
 	ng_min=int(floor(1e6/(fmax*DPl) - alpha));
 	ng_max=int(ceil(1e6/(fmin*DPl) - alpha));
+	// Fix for ng_max>0 added on 6 Feb 2024
+	if (ng_min <=0 && ng_max < 1){
+		std::cerr << "Error : ng_min <= 0 and ng_max <= 1" << std::endl;
+		std::cerr << "        Cannot generate mixed modes with this " << std::endl;
+		std::cerr << "        Try to reduce Dnu and DP" << std::endl;
+		std::cerr << "        Debug required" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	if (ng_min <= 0 && ng_max >=1){
+		ng_min=1;
+	} 
 
+	// 6 Feb 2024: Fix of the lack of mixed modes solutions for Subgiants
+	// Adding a coefficient that defines the region where intersections are searched. For RGB, it can be ~ 1.75 (of Dnu)
+	// But for SG, ie when ng_max - ng_min is "small", it should be much bigger to ensure that we do not miss modes
+	// This comes at a negligible computational cost because if ng_max - ng_min ~ 1, the computation is extremely fast anyway
+	const int ng_thld_SG=6;
+	double Coeff_search_zone;//=1.75; // The default search zone around each nu_p
+	if (ng_max - ng_min < ng_thld_SG){
+		Coeff_search_zone=np_max; // We basically look at any mode as much as np_max*Dnu (and above 0, see solver_mm() definition)
+	} else{
+		Coeff_search_zone=1.75; // Former values that worked well for RGB
+	}
 	if (np_min <= 0)
 	{
 		np_min=1;
@@ -542,8 +566,7 @@ Data_eigensols solve_mm_asymptotic_O2p(const long double Dnu_p, const long doubl
 			double nu_g = nu_g_all[ng];
 			double Dnu_p_local = Dnu_p * (1.0 + alpha_p * (np + np_min - nmax));
 			double DPl_local = DPl;
-
-			Data_coresolver sols_iter = solver_mm(nu_p, nu_g, Dnu_p_local, DPl_local, q, nu_p - 1.75 * Dnu_p, nu_p + 1.75 * Dnu_p, resol, returns_axis, verbose, fact);
+			Data_coresolver sols_iter = solver_mm(nu_p, nu_g, Dnu_p_local, DPl_local, q, nu_p - Coeff_search_zone * Dnu_p, nu_p + Coeff_search_zone * Dnu_p, resol, returns_axis, verbose, fact);
 			if (sols_iter.nu_m.size() > 0) {
 				for (int i = 0; i < sols_iter.nu_m.size(); i++) {
 					if (sols_iter.nu_m[i] >= fmin && sols_iter.nu_m[i] <= fmax) {
@@ -637,7 +660,29 @@ Data_eigensols solve_mm_asymptotic_O2from_l0(const VectorXd& nu_l0_in, const int
 
 	ng_min=int(floor(1e6/(fmax*DPl) - alpha));
 	ng_max=int(ceil(1e6/(fmin*DPl) - alpha));
+	// Fix for ng_max>0 added on 6 Feb 2024
+	if (ng_min <=0 && ng_max < 1){
+		std::cerr << "Error : ng_min <= 0 and ng_max <= 1" << std::endl;
+		std::cerr << "        Cannot generate mixed modes with this " << std::endl;
+		std::cerr << "        Try to reduce Dnu and DP" << std::endl;
+		std::cerr << "        Debug required" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	if (ng_min <= 0 && ng_max >=1){
+		ng_min=1;
+	} 
 
+	// 6 Feb 2024: Fix of the lack of mixed modes solutions for Subgiants
+	// Adding a coefficient that defines the region where intersections are searched. For RGB, it can be ~ 1.75 (of Dnu)
+	// But for SG, ie when ng_max - ng_min is "small", it should be much bigger to ensure that we do not miss modes
+	// This comes at a negligible computational cost because if ng_max - ng_min ~ 1, the computation is extremely fast anyway
+	const int ng_thld_SG=6;
+	double Coeff_search_zone; 
+	if (ng_max - ng_min < ng_thld_SG){
+		Coeff_search_zone=20; // We basically look at any mode as much as np_max*Dnu (and above 0, see solver_mm() definition)
+	} else{
+		Coeff_search_zone=1.75; // Former values that worked well for RGB
+	}
 	if (fmin <= 150) // overrides of the default factor in case fmin is low
 	{
 		fact=0.01;
@@ -672,7 +717,7 @@ Data_eigensols solve_mm_asymptotic_O2from_l0(const VectorXd& nu_l0_in, const int
 			Dnu_p_local=deriv_p.deriv[np]; 
 			DPl_local=DPl; // The solver needs here d(nu_g)/dng. Here we assume no core glitches so that it is the same as DPl. 	
 			
-			Data_coresolver sols_iter = solver_mm(nu_p, nu_g, Dnu_p_local, DPl_local, q, nu_p - 1.75 * Dnu_p, nu_p + 1.75 * Dnu_p, resol, returns_axis, verbose, fact);
+			Data_coresolver sols_iter = solver_mm(nu_p, nu_g, Dnu_p_local, DPl_local, q, nu_p - Coeff_search_zone * Dnu_p, nu_p + Coeff_search_zone * Dnu_p, resol, returns_axis, verbose, fact);
 			if (sols_iter.nu_m.size() > 0) {
 				for (int i = 0; i < sols_iter.nu_m.size(); i++) {
 					if (sols_iter.nu_m[i] >= freq_min && sols_iter.nu_m[i] <= freq_max) {
@@ -765,6 +810,29 @@ Data_eigensols solve_mm_asymptotic_O2from_nupl(const VectorXd& nu_p_all, const i
 
 	ng_min=int(floor(1e6/(fmax*DPl) - alpha));
 	ng_max=int(ceil(1e6/(fmin*DPl) - alpha));
+	// Fix for ng_max>0 added on 6 Feb 2024
+	if (ng_min <=0 && ng_max < 1){
+		std::cerr << "Error : ng_min <= 0 and ng_max <= 1" << std::endl;
+		std::cerr << "        Cannot generate mixed modes with this " << std::endl;
+		std::cerr << "        Try to reduce Dnu and DP" << std::endl;
+		std::cerr << "        Debug required" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	if (ng_min <= 0 && ng_max >=1){
+		ng_min=1;
+	} 
+
+	// 6 Feb 2024: Fix of the lack of mixed modes solutions for Subgiants
+	// Adding a coefficient that defines the region where intersections are searched. For RGB, it can be ~ 1.75 (of Dnu)
+	// But for SG, ie when ng_max - ng_min is "small", it should be much bigger to ensure that we do not miss modes
+	// This comes at a negligible computational cost because if ng_max - ng_min ~ 1, the computation is extremely fast anyway
+	const int ng_thld_SG=6;
+	double Coeff_search_zone; 
+	if (ng_max - ng_min < ng_thld_SG){
+		Coeff_search_zone=20; // We basically look at any mode as much as np_max*Dnu (and above 0, see solver_mm() definition)
+	} else{
+		Coeff_search_zone=1.75; // Former values that worked well for RGB
+	}
 
 	if (fmin <= 150) // overrides of the default factor in case fmin is low
 	{
@@ -796,7 +864,7 @@ Data_eigensols solve_mm_asymptotic_O2from_nupl(const VectorXd& nu_p_all, const i
 			// This is the local Dnu_p which differs from the average Dnu_p because of the curvature. The solver needs basically d(nu_p)/dnp , which is Dnu if O2 terms are 0.
 			Dnu_p_local=deriv_p.deriv[np]; 
 			DPl_local=DPl; // The solver needs here d(nu_g)/dng. Here we assume no core glitches so that it is the same as DPl. 	
-			Data_coresolver sols_iter = solver_mm(nu_p, nu_g, Dnu_p_local, DPl_local, q, nu_p - 1.75 * Dnu_p_local, nu_p + 1.75 * Dnu_p_local, resol, returns_axis, verbose, fact);
+			Data_coresolver sols_iter = solver_mm(nu_p, nu_g, Dnu_p_local, DPl_local, q, nu_p - Coeff_search_zone * Dnu_p_local, nu_p + Coeff_search_zone * Dnu_p_local, resol, returns_axis, verbose, fact);
 			if (sols_iter.nu_m.size() > 0) {
 				for (int i = 0; i < sols_iter.nu_m.size(); i++) {
 					if (sols_iter.nu_m[i] >= freq_min && sols_iter.nu_m[i] <= freq_max) {

@@ -168,7 +168,6 @@ Cfg_synthetic_star configure_make_star(std::unordered_map<std::string, std::stri
     if (input_params["beta_p"] == "None" && input_params["alpha_p"] != "None"){
         cfg_star.alpha_p_star=str_to_dbl(input_params["alpha_p"]);
         cfg_star.beta_p_star=cfg_star.alpha_p_star*cfg_star.nmax_star;
-        std::cout << " INSIDE " << std::endl;
     }
     // ------------------  Noise ------------------   
 	cfg_star.legacynoise=str_to_bool(input_params["legacynoise"]);

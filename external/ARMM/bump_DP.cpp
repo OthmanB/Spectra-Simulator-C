@@ -695,9 +695,33 @@ Params_synthetic_star make_synthetic_asymptotic_star(Cfg_synthetic_star cfg_star
 	// ------- l=1 modes ------
 	// Use the solver to get mixed modes
 	el=1;
-	delta0l_star=-el*(el + 1) * cfg_star.delta0l_percent_star / 100.;	
+	delta0l_star=-el*(el + 1) * cfg_star.delta0l_percent_star / 100.; // IS THAT THE CORRECT SIGN??
 	freqs=solve_mm_asymptotic_O2p(cfg_star.Dnu_star, cfg_star.epsilon_star, el, delta0l_star, cfg_star.alpha_p_star, cfg_star.nmax_star, cfg_star.DPl_star, 
 								  cfg_star.alpha_g_star, cfg_star.q_star, cfg_star.sigma_p, cfg_star.fmin, cfg_star.fmax, resol, true, false);
+	const bool debug=false;
+	if (debug == true){
+		std::cout << "    The input parameters are:" << std::endl;
+		std::cout << "        - cfg_star.Dnu_star     = " << cfg_star.Dnu_star << std::endl;
+		std::cout << "        - cfg_star.epsilon_star = " << cfg_star.epsilon_star << std::endl;
+		std::cout << "        - delta0l_star_frac     = " << delta0l_star << std::endl;
+		std::cout << "        - cfg_star.alpha_p_star = " << cfg_star.alpha_p_star << std::endl;
+		std::cout << "        - cfg_star.nmax_star    = " << cfg_star.nmax_star << std::endl;
+		std::cout << "        - cfg_star.numax_star   = " << cfg_star.numax_star << std::endl;
+		std::cout << "        - cfg_star.DPl_star     = " << cfg_star.DPl_star << std::endl;
+		std::cout << "        - cfg_star.alpha_g_star = " << cfg_star.alpha_g_star << std::endl;
+		std::cout << "        - cfg_star.q_star       = " << cfg_star.q_star << std::endl;
+		std::cout << "        - cfg_star.sigma_p      = " <<  cfg_star.sigma_p << std::endl;
+		std::cout << "        - cfg_star.fmin         = " <<  cfg_star.fmin << std::endl;
+		std::cout << "        - cfg_star.fmax         = " <<  cfg_star.fmax << std::endl;
+		std::cout << "        - resol                 = " <<  resol << std::endl;
+		std::cout << "     Calculated nu(l=0) :   " << std::endl;
+		std::cout << "        " << nu_l0.transpose() << std::endl;
+		std::cout << "     With resulting p and g mode frequencies:" << std::endl;
+		std::cout << "        - nu_p : " << freqs.nu_p.transpose() << std::endl;
+		std::cout << "        - nu_g : " << freqs.nu_g.transpose() << std::endl;
+		std::cout << "     And mixed modes:" << std::endl;
+		std::cout << "        - nu_m : " << freqs.nu_m.transpose() << std::endl;
+	}
 	const u_int8_t neverfail = 1;
 	// Case where we return p modes only to avoid any crash further in the code... 
 	// But this is a MS star, so we Show a Warning about this
