@@ -502,104 +502,104 @@ Data_eigensols solve_mm_asymptotic_O2p(const long double Dnu_p, const long doubl
 	// Fix for ng_max>0 added on 6 Feb 2024
 	if (ng_min <=0 && ng_max < 1){
 		std::cerr << "Error : ng_min <= 0 and ng_max <= 1" << std::endl;
-		std::cerr << "        Cannot generate mixed modes with this " << std::endl;
-		std::cerr << "        Try to reduce Dnu and DP" << std::endl;
-		std::cerr << "        Debug required" << std::endl;
-		exit(EXIT_FAILURE);
-	}
-	if (ng_min <= 0 && ng_max >=1){
-		ng_min=1;
-	} 
-
-	// 6 Feb 2024: Fix of the lack of mixed modes solutions for Subgiants
-	// Adding a coefficient that defines the region where intersections are searched. For RGB, it can be ~ 1.75 (of Dnu)
-	// But for SG, ie when ng_max - ng_min is "small", it should be much bigger to ensure that we do not miss modes
-	// This comes at a negligible computational cost because if ng_max - ng_min ~ 1, the computation is extremely fast anyway
-	const int ng_thld_SG=6;
-	double Coeff_search_zone;//=1.75; // The default search zone around each nu_p
-	if (ng_max - ng_min < ng_thld_SG){
-		Coeff_search_zone=np_max; // We basically look at any mode as much as np_max*Dnu (and above 0, see solver_mm() definition)
+		std::cerr << "        Cannot generate mixed modes with this. You requested an impossible star " << std::endl;
+		std::cerr << "        Try to reduce Dnu and DP if you want to compute this >>> Computation skipped" << std::endl;
+		return nu_sols;
 	} else{
-		Coeff_search_zone=1.75; // Former values that worked well for RGB
-	}
-	if (np_min <= 0)
-	{
-		np_min=1;
-	}
-	if (fmin <= 150) // overrides of the default factor in case fmin is low
-	{
-		fact=0.01;
-	}
-	if (fmin <= 50)
-	{
-		fact=0.005;
-	}
-	// Handling the p and g modes, randomized or not
-	nu_p_all.resize(np_max-np_min);
-	nu_g_all.resize(ng_max-ng_min);
-	for (int np=np_min; np<np_max; np++)
-	{
-		nu_p=asympt_nu_p(Dnu_p, np, epsilon, el, delta0l, alpha_p, nmax);
-		if (sigma_p == 0)
+		if (ng_min <= 0 && ng_max >=1){
+			ng_min=1;
+		} 
+
+		// 6 Feb 2024: Fix of the lack of mixed modes solutions for Subgiants
+		// Adding a coefficient that defines the region where intersections are searched. For RGB, it can be ~ 1.75 (of Dnu)
+		// But for SG, ie when ng_max - ng_min is "small", it should be much bigger to ensure that we do not miss modes
+		// This comes at a negligible computational cost because if ng_max - ng_min ~ 1, the computation is extremely fast anyway
+		const int ng_thld_SG=6;
+		double Coeff_search_zone;//=1.75; // The default search zone around each nu_p
+		if (ng_max - ng_min < ng_thld_SG){
+			Coeff_search_zone=np_max; // We basically look at any mode as much as np_max*Dnu (and above 0, see solver_mm() definition)
+		} else{
+			Coeff_search_zone=1.75; // Former values that worked well for RGB
+		}
+		if (np_min <= 0)
+		{
+			np_min=1;
+		}
+		if (fmin <= 150) // overrides of the default factor in case fmin is low
+		{
+			fact=0.01;
+		}
+		if (fmin <= 50)
+		{
+			fact=0.005;
+		}
+		// Handling the p and g modes, randomized or not
+		nu_p_all.resize(np_max-np_min);
+		nu_g_all.resize(ng_max-ng_min);
+		for (int np=np_min; np<np_max; np++)
 		{
 			nu_p=asympt_nu_p(Dnu_p, np, epsilon, el, delta0l, alpha_p, nmax);
-		} else{
-			r = distrib_p(gen_p);
-			nu_p=asympt_nu_p(Dnu_p, np, epsilon, el, delta0l, alpha_p, nmax, r);
-		}		
-		nu_p_all[np-np_min]=nu_p;
-	}
+			if (sigma_p == 0)
+			{
+				nu_p=asympt_nu_p(Dnu_p, np, epsilon, el, delta0l, alpha_p, nmax);
+			} else{
+				r = distrib_p(gen_p);
+				nu_p=asympt_nu_p(Dnu_p, np, epsilon, el, delta0l, alpha_p, nmax, r);
+			}		
+			nu_p_all[np-np_min]=nu_p;
+		}
 
-	for (int ng=ng_min; ng<ng_max;ng++)
-	{
-		nu_g=asympt_nu_g(DPl, ng, alpha);
-		nu_g_all[ng-ng_min]=nu_g;
-	}
-	deriv_p=Frstder_adaptive_reggrid(nu_p_all);
-	deriv_g.deriv.resize(nu_g_all.size());
-	deriv_g.deriv.setConstant(DPl);
-	std::vector<double> filteredVec;
-	#pragma omp parallel for collapse(2)
-	for (size_t np = 0; np < nu_p_all.size(); np++) {
-		for (size_t ng = 0; ng < nu_g_all.size(); ng++) {
-			double nu_p = nu_p_all[np];
-			double nu_g = nu_g_all[ng];
-			double Dnu_p_local = Dnu_p * (1.0 + alpha_p * (np + np_min - nmax));
-			double DPl_local = DPl;
-			Data_coresolver sols_iter = solver_mm(nu_p, nu_g, Dnu_p_local, DPl_local, q, nu_p - Coeff_search_zone * Dnu_p, nu_p + Coeff_search_zone * Dnu_p, resol, returns_axis, verbose, fact);
-			if (sols_iter.nu_m.size() > 0) {
-				for (int i = 0; i < sols_iter.nu_m.size(); i++) {
-					if (sols_iter.nu_m[i] >= fmin && sols_iter.nu_m[i] <= fmax) {
-						#pragma omp critical
-						{
-							filteredVec.push_back(sols_iter.nu_m[i]);
+		for (int ng=ng_min; ng<ng_max;ng++)
+		{
+			nu_g=asympt_nu_g(DPl, ng, alpha);
+			nu_g_all[ng-ng_min]=nu_g;
+		}
+		deriv_p=Frstder_adaptive_reggrid(nu_p_all);
+		deriv_g.deriv.resize(nu_g_all.size());
+		deriv_g.deriv.setConstant(DPl);
+		std::vector<double> filteredVec;
+		#pragma omp parallel for collapse(2)
+		for (size_t np = 0; np < nu_p_all.size(); np++) {
+			for (size_t ng = 0; ng < nu_g_all.size(); ng++) {
+				double nu_p = nu_p_all[np];
+				double nu_g = nu_g_all[ng];
+				double Dnu_p_local = Dnu_p * (1.0 + alpha_p * (np + np_min - nmax));
+				double DPl_local = DPl;
+				Data_coresolver sols_iter = solver_mm(nu_p, nu_g, Dnu_p_local, DPl_local, q, nu_p - Coeff_search_zone * Dnu_p, nu_p + Coeff_search_zone * Dnu_p, resol, returns_axis, verbose, fact);
+				if (sols_iter.nu_m.size() > 0) {
+					for (int i = 0; i < sols_iter.nu_m.size(); i++) {
+						if (sols_iter.nu_m[i] >= fmin && sols_iter.nu_m[i] <= fmax) {
+							#pragma omp critical
+							{
+								filteredVec.push_back(sols_iter.nu_m[i]);
+							}
 						}
 					}
 				}
 			}
 		}
-	}
-	std::sort(filteredVec.begin(), filteredVec.end());
-	filteredVec.erase(std::unique(filteredVec.begin(), filteredVec.end(), [tol](double a, double b) {
-		return std::abs(a - b) <= tol;
-	}), filteredVec.end());
+		std::sort(filteredVec.begin(), filteredVec.end());
+		filteredVec.erase(std::unique(filteredVec.begin(), filteredVec.end(), [tol](double a, double b) {
+			return std::abs(a - b) <= tol;
+		}), filteredVec.end());
 
-	nu_m_all.resize(filteredVec.size());
-	std::copy(filteredVec.begin(), filteredVec.end(), nu_m_all.data());
-	nu_m_all.resize(filteredVec.size());
+		nu_m_all.resize(filteredVec.size());
+		std::copy(filteredVec.begin(), filteredVec.end(), nu_m_all.data());
+		nu_m_all.resize(filteredVec.size());
 
-	if (returns_pg_freqs == true)
-	{
-		nu_sols.nu_m=nu_m_all;
-		nu_sols.nu_p=nu_p_all;
-		nu_sols.nu_g=nu_g_all;
-		nu_sols.dnup=deriv_p.deriv;
-		nu_sols.dPg=deriv_g.deriv;
-		return nu_sols;
-	} else
-	{
-		nu_sols.nu_m=nu_m_all;
-		return nu_sols;
+		if (returns_pg_freqs == true)
+		{
+			nu_sols.nu_m=nu_m_all;
+			nu_sols.nu_p=nu_p_all;
+			nu_sols.nu_g=nu_g_all;
+			nu_sols.dnup=deriv_p.deriv;
+			nu_sols.dPg=deriv_g.deriv;
+			return nu_sols;
+		} else
+		{
+			nu_sols.nu_m=nu_m_all;
+			return nu_sols;
+		}
 	}
 }
 
@@ -644,6 +644,7 @@ Data_eigensols solve_mm_asymptotic_O2from_l0(const VectorXd& nu_l0_in, const int
 	Data_eigensols nu_sols;
 	Deriv_out deriv_p, deriv_g;
 
+	const int ng_thld_SG=6;
 	const Eigen::VectorXd tmp = Eigen::VectorXd::LinSpaced(nu_l0_in.size(), 0, nu_l0_in.size()-1);
     
 	fit=linfit(tmp, nu_l0_in); // fit[0] is the slope ==> Dnu and fit[1] is the ordinate at origin ==> fit[1]/fit[0] = epsilon
@@ -663,94 +664,93 @@ Data_eigensols solve_mm_asymptotic_O2from_l0(const VectorXd& nu_l0_in, const int
 	// Fix for ng_max>0 added on 6 Feb 2024
 	if (ng_min <=0 && ng_max < 1){
 		std::cerr << "Error : ng_min <= 0 and ng_max <= 1" << std::endl;
-		std::cerr << "        Cannot generate mixed modes with this " << std::endl;
-		std::cerr << "        Try to reduce Dnu and DP" << std::endl;
-		std::cerr << "        Debug required" << std::endl;
-		exit(EXIT_FAILURE);
-	}
-	if (ng_min <= 0 && ng_max >=1){
-		ng_min=1;
-	} 
-
-	// 6 Feb 2024: Fix of the lack of mixed modes solutions for Subgiants
-	// Adding a coefficient that defines the region where intersections are searched. For RGB, it can be ~ 1.75 (of Dnu)
-	// But for SG, ie when ng_max - ng_min is "small", it should be much bigger to ensure that we do not miss modes
-	// This comes at a negligible computational cost because if ng_max - ng_min ~ 1, the computation is extremely fast anyway
-	const int ng_thld_SG=6;
-	double Coeff_search_zone; 
-	if (ng_max - ng_min < ng_thld_SG){
-		Coeff_search_zone=20; // We basically look at any mode as much as np_max*Dnu (and above 0, see solver_mm() definition)
+		std::cerr << "        Cannot generate mixed modes with this. You requested an impossible star " << std::endl;
+		std::cerr << "        Try to reduce Dnu and DP if you want to compute this >>> Computation skipped" << std::endl;
+		return nu_sols;
 	} else{
-		Coeff_search_zone=1.75; // Former values that worked well for RGB
-	}
-	if (fmin <= 150) // overrides of the default factor in case fmin is low
-	{
-		fact=0.01;
-	}
-	if (fmin <= 50)
-	{
-		fact=0.005;
-	}
+		if (ng_min <= 0 && ng_max >=1){
+			ng_min=1;
+		} 
 
-	// Handling the p and g modes, randomized or not
-	nu_g_all.resize(ng_max-ng_min);
+		// 6 Feb 2024: Fix of the lack of mixed modes solutions for Subgiants
+		// Adding a coefficient that defines the region where intersections are searched. For RGB, it can be ~ 1.75 (of Dnu)
+		// But for SG, ie when ng_max - ng_min is "small", it should be much bigger to ensure that we do not miss modes
+		// This comes at a negligible computational cost because if ng_max - ng_min ~ 1, the computation is extremely fast anyway
+		double Coeff_search_zone; 
+		if (ng_max - ng_min < ng_thld_SG){
+			Coeff_search_zone=20; // We basically look at any mode as much as np_max*Dnu (and above 0, see solver_mm() definition)
+		} else{
+			Coeff_search_zone=1.75; // Former values that worked well for RGB
+		}
+		if (fmin <= 150) // overrides of the default factor in case fmin is low
+		{
+			fact=0.01;
+		}
+		if (fmin <= 50)
+		{
+			fact=0.005;
+		}
 
-	// Step of extrapolating edges to avoid egdes effect when shifting l=0 frequencies to generate l=1 p modes
-	nu_p_all=asympt_nu_p_from_l0_Xd(nu_l0_in, Dnu_p, el, delta0l, fmin, fmax);
-	
-	for (int ng=ng_min; ng<ng_max;ng++)
-	{
-		nu_g=asympt_nu_g(DPl, ng, alpha);
-		nu_g_all[ng-ng_min]=nu_g;
-	}
-	
-	deriv_p=Frstder_adaptive_reggrid(nu_p_all);
-	deriv_g.deriv.resize(nu_g_all.size());
-	deriv_g.deriv.setConstant(DPl);
-	std::vector<double> filteredVec;
-	#pragma omp parallel for collapse(2)
-	for (size_t np = 0; np < nu_p_all.size(); np++) {
-		for (size_t ng = 0; ng < nu_g_all.size(); ng++) {
-			double nu_p = nu_p_all[np];
-			double nu_g = nu_g_all[ng];
-			// This is the local Dnu_p which differs from the average Dnu_p because of the curvature. The solver needs basically d(nu_p)/dnp , which is Dnu if O2 terms are 0.
-			Dnu_p_local=deriv_p.deriv[np]; 
-			DPl_local=DPl; // The solver needs here d(nu_g)/dng. Here we assume no core glitches so that it is the same as DPl. 	
-			
-			Data_coresolver sols_iter = solver_mm(nu_p, nu_g, Dnu_p_local, DPl_local, q, nu_p - Coeff_search_zone * Dnu_p, nu_p + Coeff_search_zone * Dnu_p, resol, returns_axis, verbose, fact);
-			if (sols_iter.nu_m.size() > 0) {
-				for (int i = 0; i < sols_iter.nu_m.size(); i++) {
-					if (sols_iter.nu_m[i] >= freq_min && sols_iter.nu_m[i] <= freq_max) {
-						#pragma omp critical
-						{
-							filteredVec.push_back(sols_iter.nu_m[i]);
+		// Handling the p and g modes, randomized or not
+		nu_g_all.resize(ng_max-ng_min);
+
+		// Step of extrapolating edges to avoid egdes effect when shifting l=0 frequencies to generate l=1 p modes
+		nu_p_all=asympt_nu_p_from_l0_Xd(nu_l0_in, Dnu_p, el, delta0l, fmin, fmax);
+		
+		for (int ng=ng_min; ng<ng_max;ng++)
+		{
+			nu_g=asympt_nu_g(DPl, ng, alpha);
+			nu_g_all[ng-ng_min]=nu_g;
+		}
+		
+		deriv_p=Frstder_adaptive_reggrid(nu_p_all);
+		deriv_g.deriv.resize(nu_g_all.size());
+		deriv_g.deriv.setConstant(DPl);
+		std::vector<double> filteredVec;
+		#pragma omp parallel for collapse(2)
+		for (size_t np = 0; np < nu_p_all.size(); np++) {
+			for (size_t ng = 0; ng < nu_g_all.size(); ng++) {
+				double nu_p = nu_p_all[np];
+				double nu_g = nu_g_all[ng];
+				// This is the local Dnu_p which differs from the average Dnu_p because of the curvature. The solver needs basically d(nu_p)/dnp , which is Dnu if O2 terms are 0.
+				Dnu_p_local=deriv_p.deriv[np]; 
+				DPl_local=DPl; // The solver needs here d(nu_g)/dng. Here we assume no core glitches so that it is the same as DPl. 	
+				
+				Data_coresolver sols_iter = solver_mm(nu_p, nu_g, Dnu_p_local, DPl_local, q, nu_p - Coeff_search_zone * Dnu_p, nu_p + Coeff_search_zone * Dnu_p, resol, returns_axis, verbose, fact);
+				if (sols_iter.nu_m.size() > 0) {
+					for (int i = 0; i < sols_iter.nu_m.size(); i++) {
+						if (sols_iter.nu_m[i] >= freq_min && sols_iter.nu_m[i] <= freq_max) {
+							#pragma omp critical
+							{
+								filteredVec.push_back(sols_iter.nu_m[i]);
+							}
 						}
 					}
 				}
 			}
 		}
-	}
-	std::sort(filteredVec.begin(), filteredVec.end());
-	filteredVec.erase(std::unique(filteredVec.begin(), filteredVec.end(), [tol](double a, double b) {
-		return std::abs(a - b) <= tol;
-	}), filteredVec.end());
+		std::sort(filteredVec.begin(), filteredVec.end());
+		filteredVec.erase(std::unique(filteredVec.begin(), filteredVec.end(), [tol](double a, double b) {
+			return std::abs(a - b) <= tol;
+		}), filteredVec.end());
 
-	nu_m_all.resize(filteredVec.size());
-	std::copy(filteredVec.begin(), filteredVec.end(), nu_m_all.data());
-	nu_m_all.resize(filteredVec.size());
+		nu_m_all.resize(filteredVec.size());
+		std::copy(filteredVec.begin(), filteredVec.end(), nu_m_all.data());
+		nu_m_all.resize(filteredVec.size());
 
-	if (returns_pg_freqs == true)
-	{
-		nu_sols.nu_m=nu_m_all;
-		nu_sols.nu_p=nu_p_all;
-		nu_sols.nu_g=nu_g_all;
-		nu_sols.dnup=deriv_p.deriv;
-		nu_sols.dPg=deriv_g.deriv;
-		return nu_sols;
-	} else
-	{
-		nu_sols.nu_m=nu_m_all;
-		return nu_sols;
+		if (returns_pg_freqs == true)
+		{
+			nu_sols.nu_m=nu_m_all;
+			nu_sols.nu_p=nu_p_all;
+			nu_sols.nu_g=nu_g_all;
+			nu_sols.dnup=deriv_p.deriv;
+			nu_sols.dPg=deriv_g.deriv;
+			return nu_sols;
+		} else
+		{
+			nu_sols.nu_m=nu_m_all;
+			return nu_sols;
+		}
 	}
 }
 
@@ -792,7 +792,7 @@ Data_eigensols solve_mm_asymptotic_O2from_nupl(const VectorXd& nu_p_all, const i
 	Data_coresolver sols_iter;
 	Data_eigensols nu_sols;
 	Deriv_out deriv_p, deriv_g;
-
+	const int ng_thld_SG=6;
 	const Eigen::VectorXd tmp = Eigen::VectorXd::LinSpaced(nu_p_all.size(), 0, nu_p_all.size()-1);
     
 	// There is a problem here because nu_p_all IS NOT for l=0
@@ -813,91 +813,90 @@ Data_eigensols solve_mm_asymptotic_O2from_nupl(const VectorXd& nu_p_all, const i
 	// Fix for ng_max>0 added on 6 Feb 2024
 	if (ng_min <=0 && ng_max < 1){
 		std::cerr << "Error : ng_min <= 0 and ng_max <= 1" << std::endl;
-		std::cerr << "        Cannot generate mixed modes with this " << std::endl;
-		std::cerr << "        Try to reduce Dnu and DP" << std::endl;
-		std::cerr << "        Debug required" << std::endl;
-		exit(EXIT_FAILURE);
-	}
-	if (ng_min <= 0 && ng_max >=1){
-		ng_min=1;
-	} 
-
-	// 6 Feb 2024: Fix of the lack of mixed modes solutions for Subgiants
-	// Adding a coefficient that defines the region where intersections are searched. For RGB, it can be ~ 1.75 (of Dnu)
-	// But for SG, ie when ng_max - ng_min is "small", it should be much bigger to ensure that we do not miss modes
-	// This comes at a negligible computational cost because if ng_max - ng_min ~ 1, the computation is extremely fast anyway
-	const int ng_thld_SG=6;
-	double Coeff_search_zone; 
-	if (ng_max - ng_min < ng_thld_SG){
-		Coeff_search_zone=20; // We basically look at any mode as much as np_max*Dnu (and above 0, see solver_mm() definition)
+		std::cerr << "        Cannot generate mixed modes with this. You requested an impossible star " << std::endl;
+		std::cerr << "        Try to reduce Dnu and DP if you want to compute this >>> Computation skipped" << std::endl;
+		return nu_sols;
 	} else{
-		Coeff_search_zone=1.75; // Former values that worked well for RGB
-	}
+		if (ng_min <= 0 && ng_max >=1){
+			ng_min=1;
+		} 
 
-	if (fmin <= 150) // overrides of the default factor in case fmin is low
-	{
-		fact=0.01;
-	}
-	if (fmin <= 50)
-	{
-		fact=0.005;
-	}
+		// 6 Feb 2024: Fix of the lack of mixed modes solutions for Subgiants
+		// Adding a coefficient that defines the region where intersections are searched. For RGB, it can be ~ 1.75 (of Dnu)
+		// But for SG, ie when ng_max - ng_min is "small", it should be much bigger to ensure that we do not miss modes
+		// This comes at a negligible computational cost because if ng_max - ng_min ~ 1, the computation is extremely fast anyway
+		double Coeff_search_zone; 
+		if (ng_max - ng_min < ng_thld_SG){
+			Coeff_search_zone=20; // We basically look at any mode as much as np_max*Dnu (and above 0, see solver_mm() definition)
+		} else{
+			Coeff_search_zone=1.75; // Former values that worked well for RGB
+		}
 
-	// Handling the p and g modes, randomized or not
-	nu_g_all.resize(ng_max-ng_min);
+		if (fmin <= 150) // overrides of the default factor in case fmin is low
+		{
+			fact=0.01;
+		}
+		if (fmin <= 50)
+		{
+			fact=0.005;
+		}
 
-	for (int ng=ng_min; ng<ng_max;ng++)
-	{
-		nu_g=asympt_nu_g(DPl, ng, alpha);
-		nu_g_all[ng-ng_min]=nu_g;
-	}	
-	deriv_p=Frstder_adaptive_reggrid(nu_p_all);
-	deriv_g.deriv.resize(nu_g_all.size());
-	deriv_g.deriv.setConstant(DPl);
-	
-	std::vector<double> filteredVec;
-	#pragma omp parallel for collapse(2)
-	for (size_t np = 0; np < nu_p_all.size(); np++) {
-		for (size_t ng = 0; ng < nu_g_all.size(); ng++) {
-			double nu_p = nu_p_all[np];
-			double nu_g = nu_g_all[ng];
-			// This is the local Dnu_p which differs from the average Dnu_p because of the curvature. The solver needs basically d(nu_p)/dnp , which is Dnu if O2 terms are 0.
-			Dnu_p_local=deriv_p.deriv[np]; 
-			DPl_local=DPl; // The solver needs here d(nu_g)/dng. Here we assume no core glitches so that it is the same as DPl. 	
-			Data_coresolver sols_iter = solver_mm(nu_p, nu_g, Dnu_p_local, DPl_local, q, nu_p - Coeff_search_zone * Dnu_p_local, nu_p + Coeff_search_zone * Dnu_p_local, resol, returns_axis, verbose, fact);
-			if (sols_iter.nu_m.size() > 0) {
-				for (int i = 0; i < sols_iter.nu_m.size(); i++) {
-					if (sols_iter.nu_m[i] >= freq_min && sols_iter.nu_m[i] <= freq_max) {
-						#pragma omp critical
-						{
-							filteredVec.push_back(sols_iter.nu_m[i]);
+		// Handling the p and g modes, randomized or not
+		nu_g_all.resize(ng_max-ng_min);
+
+		for (int ng=ng_min; ng<ng_max;ng++)
+		{
+			nu_g=asympt_nu_g(DPl, ng, alpha);
+			nu_g_all[ng-ng_min]=nu_g;
+		}	
+		deriv_p=Frstder_adaptive_reggrid(nu_p_all);
+		deriv_g.deriv.resize(nu_g_all.size());
+		deriv_g.deriv.setConstant(DPl);
+		
+		std::vector<double> filteredVec;
+		#pragma omp parallel for collapse(2)
+		for (size_t np = 0; np < nu_p_all.size(); np++) {
+			for (size_t ng = 0; ng < nu_g_all.size(); ng++) {
+				double nu_p = nu_p_all[np];
+				double nu_g = nu_g_all[ng];
+				// This is the local Dnu_p which differs from the average Dnu_p because of the curvature. The solver needs basically d(nu_p)/dnp , which is Dnu if O2 terms are 0.
+				Dnu_p_local=deriv_p.deriv[np]; 
+				DPl_local=DPl; // The solver needs here d(nu_g)/dng. Here we assume no core glitches so that it is the same as DPl. 	
+				Data_coresolver sols_iter = solver_mm(nu_p, nu_g, Dnu_p_local, DPl_local, q, nu_p - Coeff_search_zone * Dnu_p_local, nu_p + Coeff_search_zone * Dnu_p_local, resol, returns_axis, verbose, fact);
+				if (sols_iter.nu_m.size() > 0) {
+					for (int i = 0; i < sols_iter.nu_m.size(); i++) {
+						if (sols_iter.nu_m[i] >= freq_min && sols_iter.nu_m[i] <= freq_max) {
+							#pragma omp critical
+							{
+								filteredVec.push_back(sols_iter.nu_m[i]);
+							}
 						}
 					}
 				}
 			}
 		}
-	}
-	std::sort(filteredVec.begin(), filteredVec.end());
-	filteredVec.erase(std::unique(filteredVec.begin(), filteredVec.end(), [tol](double a, double b) {
-		return std::abs(a - b) <= tol;
-	}), filteredVec.end());
+		std::sort(filteredVec.begin(), filteredVec.end());
+		filteredVec.erase(std::unique(filteredVec.begin(), filteredVec.end(), [tol](double a, double b) {
+			return std::abs(a - b) <= tol;
+		}), filteredVec.end());
 
-	nu_m_all.resize(filteredVec.size());
-	std::copy(filteredVec.begin(), filteredVec.end(), nu_m_all.data());
-	nu_m_all.resize(filteredVec.size());
-	
-	
-	if (returns_pg_freqs == true)
-	{
-		nu_sols.nu_m=nu_m_all;
-		nu_sols.nu_p=nu_p_all;
-		nu_sols.nu_g=nu_g_all;
-		nu_sols.dnup=deriv_p.deriv;
-		nu_sols.dPg=deriv_g.deriv;
-		return nu_sols;
-	} else
-	{
-		nu_sols.nu_m=nu_m_all;
-		return nu_sols;
+		nu_m_all.resize(filteredVec.size());
+		std::copy(filteredVec.begin(), filteredVec.end(), nu_m_all.data());
+		nu_m_all.resize(filteredVec.size());
+		
+		
+		if (returns_pg_freqs == true)
+		{
+			nu_sols.nu_m=nu_m_all;
+			nu_sols.nu_p=nu_p_all;
+			nu_sols.nu_g=nu_g_all;
+			nu_sols.dnup=deriv_p.deriv;
+			nu_sols.dPg=deriv_g.deriv;
+			return nu_sols;
+		} else
+		{
+			nu_sols.nu_m=nu_m_all;
+			return nu_sols;
+		}
 	}
 }
