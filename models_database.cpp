@@ -2223,7 +2223,7 @@ void generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled(VectorXd input_params
 	a6=input_params[10];
 	beta_asym=input_params[11];
 	inc=input_params[12];
-	numax_spread=input_params[21];
+	numax_spread=input_params[21]/100;
 	const double H_spread=input_params[22];
 	const double nu_spread=input_params[23];
 // ---------------------------------
@@ -2476,7 +2476,7 @@ void generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled_Kallinger2014(VectorX
 	a6=input_params[10];
 	beta_asym=input_params[11];
 	inc=input_params[12];
-	numax_spread=input_params[13];
+	numax_spread=input_params[13]/100;
 	const double H_spread=input_params[14];
 	const double nu_spread=input_params[15];
 	
