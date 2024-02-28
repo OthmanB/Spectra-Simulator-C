@@ -1,6 +1,8 @@
 # Spectra-Simulator-C
 Spectrum Simulator in C++. It is intended to create synthetic spectra that follows the chi(2,2) noise statistics.
 
+[![CMake](https://github.com/OthmanB/Spectra-Simulator-C/actions/workflows/cmake-single-platform.yml/badge.svg?branch=beta)](https://github.com/OthmanB/Spectra-Simulator-C/actions/workflows/cmake-single-platform.yml)
+
 ### Requirements ###
 * python3 with numpy and scipy
 * gnuplot-iostream (provided)
