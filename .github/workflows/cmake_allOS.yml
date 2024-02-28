@@ -35,11 +35,6 @@ jobs:
         run: |
           brew install gnuplot eigen boost gsl cmake
 
-      - name: Install Dependencies (Windows)
-        if: startsWith(runner.os, 'Windows')
-        run: |
-          choco install gnuplot eigen boost-msvc-14.3 gnuwin cmake --force
-
       - name: Configure CMake
         run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
