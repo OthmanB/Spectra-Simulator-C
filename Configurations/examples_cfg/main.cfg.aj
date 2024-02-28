@@ -9,7 +9,7 @@
 #               - erase_old_file: If 1, then (1) the combination file is overwritten and (2) the model number (identifier) is reset to 0. 
 #                                 If 0, then (1) append the combination file and (2) model number = last model number + 1
 grid 10 # forest_type, followed by the forest_params. If forest_type=random, then forest_params is a single value that corresponds to the Number of samples
-generate_cfg_from_synthese_file_Wscaled_aj   /Users/obenomar/Work/Spectra-Simulator-C/Configurations/infiles/8379927_1111kasoc_synthese.in      
+generate_cfg_from_synthese_file_Wscaled_aj   /Users/obenomar/Work/Spectra-Simulator-C/Configurations/infiles/8379927.in      
 NONE		        # Used template(s) name(s). If several, randomly select one/iteration. If set to 'all', will use all *.template files in Configuration/templates 
 Dnu  epsilon    delta0l_percent     HNR     a1ovGamma  Gamma_at_numax     a2      a3         a4      a5    a6      beta_asym     i       	H_spread   nu_spread   Gamma_spread    do_flat_noise     #Variable names 
 70    0.5          1.               10        0.6         1.              0.1     -0.1       0.15    0.2   0.05      10          0.0    	5          0.2         5                    1            #val_min

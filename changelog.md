@@ -1,6 +1,7 @@
 # Version history #
 
 ### v1.55 ###
+        * Change in the definition of d0l for aj MS models so that it is consistent with RGB models that are based on the ARMM code. thus the prescription nu = (n + l/2 + epsilon)*Dnu - d0l is used now
         * Cleanup configuration directory
         * Adding new templates for MS and RGB taken from a select number of good quality MS stars
         * removal of some obselete test files

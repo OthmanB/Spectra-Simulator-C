@@ -2212,7 +2212,7 @@ void generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled(VectorXd input_params
 // ---- Deploy the parameters -----
 	Dnu=input_params[0];
 	epsilon=input_params[1];
-	delta0l_percent=input_params[2];
+	delta0l_percent=-1*input_params[2];  // Convention changed on 28Feb2024... negative value of delta0l are default
 	HNR=input_params[3];
 	a1_ov_Gamma=input_params[4];
 	Gamma_at_numax=input_params[5];
@@ -2399,8 +2399,6 @@ void generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled(VectorXd input_params
 	//   Note on assumptions here: We assume that the template has monotonically increasing frequency, for each l. 
 	//                             It is also assumed that block of l are in the strict order l=0,1,2,3
 
-	//mode_params.col(0)=ref_star.mode_params.col(0); // List of els
-	//mode_params.col(1)=ref_star.mode_params.col(1); // List of frequencies
 	mode_params.col(1)=f_rescaled_lin; // Frequencies in a flat array
 	mode_params.col(2)=h_star;
 	mode_params.col(3)=gamma_star; 
@@ -2465,7 +2463,7 @@ void generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled_Kallinger2014(VectorX
 // ---- Deploy the mode parameters -----
 	Dnu=input_params[0];
 	epsilon=input_params[1];
-	delta0l_percent=input_params[2];
+	delta0l_percent=-1*input_params[2]; // Convention changed on 28Feb2024... negative value of delta0l are default
 	HNR=input_params[3];
 	a1_ov_Gamma=input_params[4];
 	Gamma_at_numax=input_params[5];
@@ -2498,13 +2496,6 @@ void generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled_Kallinger2014(VectorX
 	noise_params_Kallinger[5]=Na1;
 	noise_params_Kallinger[6]=Na2;
 	noise_params_Kallinger.segment(7,7)=input_params.segment(16+6+2-1,7);
-	//std::cout << "ka = " << ka << std::endl;
-	//std::cout << "ks = " << ks << std::endl;
-	//for(int k=0;k<noise_params_Kallinger.size();k++){
-	//	std::cout << "noise_params_Kallinger[" << k << "] = " << noise_params_Kallinger[k] << std::endl;
-	//}
-	//std::cout << "Verify that all these affectation are correct... " << std::endl;
-	//exit(EXIT_SUCCESS);
 
 	ref_star=read_star_params(extra, false);  // no verbose here
 	mode_params.setZero(ref_star.mode_params.rows(), 16); // Final table of values that define a star
@@ -2529,15 +2520,9 @@ void generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled_Kallinger2014(VectorX
 	const double df=1e6/(Tobs * 86400.);
 	const double Delta=1e6/Cadence; // /2
 	const int Ndata=Delta/df;
-	//std::cout << "Tobs=input_params[30] = " << Tobs << std::endl;
-	//std::cout << "Cadence=input_params[31] = " << Cadence << std::endl;
-	//std::cout << "Delta = " << Delta << std::endl;
 	x.setLinSpaced(Ndata, 0, Delta);
 	const double mu_numax=0; // This parameter is redundant with numax_spread as this already introduce some jitter in the mode position. 
 	const VectorXd noise_params_harvey=Kallinger2014_to_harveylike(numax_star_nospread, mu_numax, noise_params_Kallinger, x);
-	//std::cout << noise_params_harvey.transpose() << std::endl;
-	//std::cout << "models_database.cpp: Check here that noise_params_harvey is with correct units..." << std::endl;
-	//exit(EXIT_SUCCESS);
 
 	// --- Perform rescaling of frequencies  ---
 	d0l << delta0l_percent*Dnu/100., delta0l_percent*Dnu/100., delta0l_percent*Dnu/100.; // small separation l=1,2,3
@@ -2620,30 +2605,7 @@ void generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled_Kallinger2014(VectorX
 	local_noise_new.resize(f_rescaled_lin.size());
 	local_noise_new.setZero();
 	local_noise_new=harvey_like(noise_params_harvey, f_rescaled_lin, local_noise_new, 3); // Iterate on Noise_l0 to update it by putting the noise profile with one harvey profile
-	/* --- This is to test with the equivalent function in Python that use directly a1,a2, etc... (and not the translation to a Harvey-like)
-	std::cout << "noise_params_harvey = " << noise_params_harvey.transpose() << std::endl;
-	for (int i=0;i<local_noise.size();i++){
-		std::cout << local_noise[i] << std::setw(20) << local_noise_new[i] << std::endl;
-	}
-	VectorXd y(x.size());
-	y.setZero();
-	y=harvey_like(noise_params_harvey, x, y, 3); // Iterate on Noise_l0 to update it by putting the noise profile with one harvey profile
-	std::ofstream debugFile("debug.txt");
-	// Check if the debug file was successfully opened
-	if (debugFile.is_open()) {
-		for (int i = 0; i < x.size(); i++) {
-			debugFile << x(i) << "\t" << y(i) << "\n";
-		}
-		debugFile.close();
-	} else {
-		std::cout << "Error: Unable to open the debug file." << std::endl;
-	}
-	std::cout << "Check that the local_noise_new makes sense when star_ref == star_sim" << std::endl;
-	std::cout << "noise_params_harvey    = " << noise_params_harvey.transpose() << std::endl;
-	std::cout << "noise_params_kallinger = " << noise_params_Kallinger.transpose() << std::endl;
-	std::cout << "   - numax = " << numax_star << std::endl;
-	exit(EXIT_SUCCESS);
-	*/
+
 	// ---- Rescaling Height and Width profiles ----
 	HNRref=ref_star.mode_params.col(2);
 	HNRref=HNRref.cwiseProduct(local_noise.cwiseInverse());
@@ -2675,8 +2637,6 @@ void generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled_Kallinger2014(VectorX
 	h_star.resize(ref_star.mode_params.rows());
 	//h_star=Height_factor * HNRref * N0; 
 	if (local_noise_new.sum()!= 0){
-		//N0=1; // Imposing the the Noise background is 1
-		//std::cout <<  "Using N0=" << N0 << " (white noise)" << std::endl;
 		std::cout << "Using the Noise profile of the New star, using provided noise parameters and Karoff et al. 2010 prescription" << std::endl;
 		std::cout << "HNR of all modes:" << std::endl;
 		std::cout << "     "  << std::setw(15) << "degree" << std::setw(15) << "freq_template" << std::setw(15) <<  "freq_rescaled" << std::setw(15) << "HNR" << std::setw(15) <<  "Height" << std::setw(15) << "local_noise" << std::endl;
