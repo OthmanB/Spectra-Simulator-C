@@ -8,6 +8,7 @@ on:
 
 env:
   BUILD_TYPE: Release
+  EIGEN3_INCLUDE_DIR: /usr/include/eigen3
 
 jobs:
   build:
