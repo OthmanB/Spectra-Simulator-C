@@ -38,12 +38,7 @@ jobs:
       - name: Install Dependencies (Windows)
         if: startsWith(runner.os, 'Windows')
         run: |
-          choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System'
-          git clone https://github.com/Microsoft/vcpkg.git
-          cd vcpkg
-          .\bootstrap-vcpkg.bat
-          .\vcpkg integrate install
-          .\vcpkg install gnuplot eigen3 boost gsl
+          choco install gnuplot eigen boost-msvc-14.3 gnuwin cmake --force
 
       - name: Configure CMake
         run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
