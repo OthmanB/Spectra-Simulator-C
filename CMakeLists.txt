@@ -109,14 +109,12 @@ if (WITH_OPENMP)
         string(APPEND CMAKE_CXX_FLAGS_RELEASE " -fopenmp")
       endif()
   endif()
-#	else()
-#		message(FATAL_ERROR "OpenMP not found. Use -DWITH_OPENMP=OFF to build without OpenMP")
-#	endif()
 endif()
 
-#Look for eigen and explicitly specify to use it. EIGEN3_INCLUDE_DIR Must be specified in the bashrc
-include_directories( "$ENV{EIGEN3_INCLUDE_DIR}" )
+
+#
 include_directories()
+
 
 #Dependencies that are not portable (BOOST)
 set(Boost_USE_MULTITHREADED=OFF)
@@ -126,15 +124,12 @@ link_directories(${Boost_LIBRARY_DIRS})
 
 add_executable(${CMAKE_PROJECT_NAME}  ${SOURCES_MAIN})
 if(MACOS)
+  find_package(Eigen3 REQUIRED NO_MODULE)
   target_compile_definitions(${CMAKE_PROJECT_NAME}  PRIVATE MACOS)
-  #target_link_libraries(${CMAKE_PROJECT_NAME}  ${Boost_SYSTEM_LIBRARY_RELEASE} ${Boost_FILESYSTEM_LIBRARY_RELEASE} ${Boost_IOSTREAMS_LIBRARY_RELEASE}  "-framework CoreFoundation")
-  target_link_libraries(${CMAKE_PROJECT_NAME}  ${Boost_LIBRARIES} "-framework CoreFoundation")
+  target_link_libraries(${CMAKE_PROJECT_NAME}  Eigen3::Eigen  ${Boost_LIBRARIES} "-framework CoreFoundation")
 elseif(LINUX)
+  #Look for eigen and explicitly specify to use it. EIGEN3_INCLUDE_DIR Must be specified in the bashrc
+  include_directories( "$ENV{EIGEN3_INCLUDE_DIR}" )
   target_compile_definitions(${CMAKE_PROJECT_NAME}  PRIVATE LINUX)
-  #target_link_libraries(${CMAKE_PROJECT_NAME}  ${Boost_SYSTEM_LIBRARY_RELEASE} ${Boost_FILESYSTEM_LIBRARY_RELEASE} ${Boost_IOSTREAMS_LIBRARY_RELEASE}  rt)
   target_link_libraries(${CMAKE_PROJECT_NAME}  ${Boost_LIBRARIES}  rt)
 endif()
-
-#add_executable(test_lorentzians ${HEADERS} ${SOURCES_TEST_LORENTZIAN})
-#target_link_libraries(${CMAKE_PROJECT_NAME}  ${Boost_SYSTEM_LIBRARY_RELEASE} ${Boost_FILESYSTEM_LIBRARY_RELEASE} ${Boost_IOSTREAMS_LIBRARY_RELEASE})
-
