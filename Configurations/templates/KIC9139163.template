@@ -1,0 +1,49 @@
+# Template file used to compute the height and width profile of simulated stars. 
+# The values of this table is rescaled by the code so to match numax_star, Dnu_star and epsilon_star
+# The table was generated using fitted frequencies, Heights and Widths
+# carefully extrapolated at the edges to avoid rescaling issues. 
+# This template is part of a serie of MS templates created using the full Kepler data upon those criteria:
+# (1) High HNR, (2) No missing quarters, (3) Coverage of the whole Teff and numax range of MS stars, (3) Balance between F and G type
+# Note that the only template that iniitally had fitted l=3 is for 16 Cyg A (KIC 12069424)
+# Variant of theses templates exist also for RGB stars
+# KIC         Kp      numax.   Type      Gamma_at_numax.            Teff
+# 6508366    8.97     958      Flike      5.22                      6331  
+# 9139163    8.33     1730     Flike      5.28                      6400. 
+# 6603624    9.09     2384     Simple     0.56                      5674. 
+# 9139151    9.18     2690     Simple     1.99                      6302. 
+# 8379927    6.96     2795     Simple     2.43                      6067.
+# 12069424   5.95     2188     Simple     1.                        5825   
+# 8006161    7.36     3575     Simple     1.17                      5488. 
+ID_ref= 9139163
+Dnu_ref=  81.185
+epsilon_ref= 0.051119
+numax_ref= 1730
+# Frequency (microHz)     Height (ppm^2/microhz)       Width
+500             0           0
+700             0           0
+900             0           0.1
+950             0.04        0.5
+985.845981	    0.473371    1.048264
+1065.001980     0.589323    2.382962
+1143.125391     0.785571    1.810511
+1221.435610     0.811306    3.712531
+1301.879049     1.191346    2.789458
+1383.386958     1.272304    3.399297
+1464.743333     1.585765    4.242145
+1544.839515     1.956003    4.240859
+1624.515817     1.880729    4.789467
+1704.394261     1.735299    5.434701
+1785.810713     1.852104    4.439329
+1867.683125     1.264250    5.460151
+1949.770903     1.151659    5.047525
+2033.225780     0.705964    6.822597
+2115.173056     0.627376    7.128204
+2195.985462     0.386741    8.156124
+2278.037767     0.325197    7.057531
+2360.613096     0.135285    11.871817
+2444.786602     0.156932    7.883257
+2529.527136     0.074993    5.396720
+2550            0.001       10
+2600            0.0         10
+2900            0.0         10
+3300            0           10

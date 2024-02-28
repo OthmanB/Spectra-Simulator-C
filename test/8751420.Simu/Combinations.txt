@@ -1,6 +1,0 @@
-model_name= asymptotic_mm_freeDp_numaxspread_curvepmodes_v2
- --------------------------
-  List of all combinations 
- --------------------------
-# id       nurot_env   nurot_ratio           Dnu       epsilondelta0l_percent   beta_p_star   nmax_spread           DP1         alpha             q           SNR      maxGamma  numax_spread
-0000001         0.102          15.1          34.6       0.44454          1.75             0             0         134.2          0.05           0.2           100          0.25            20

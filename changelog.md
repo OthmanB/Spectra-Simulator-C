@@ -1,5 +1,11 @@
 # Version history #
 
+### v1.55 ###
+        * Cleanup configuration directory
+        * Adding new templates for MS and RGB taken from a select number of good quality MS stars
+        * removal of some obselete test files
+        * Consistency improvment for numax_spread between aj model and RGB model configuration file
+
 ### v1.53 ###
 	* Edge case handling in bump.cpp + iterative_artificial_spectrum.cpp: When attempting to generate a Subgiant with no mixed modes solutions, the code was crashing.
 	  As a crash without explanation is not satisfactory, I have added message specifying that the generated star has no mixed modes. A hard-coded switch is currently 

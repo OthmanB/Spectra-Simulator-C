@@ -1,0 +1,43 @@
+# Template file used to compute the height and width profile of simulated stars. 
+# The values of this table is rescaled by the code so to match numax_star, Dnu_star and epsilon_star
+# The table was generated using fitted frequencies, Heights and Widths
+# carefully extrapolated at the edges to avoid rescaling issues. 
+# This template is part of a serie of MS templates created using the full Kepler data upon those criteria:
+# (1) High HNR, (2) No missing quarters, (3) Coverage of the whole Teff and numax range of MS stars, (3) Balance between F and G type
+# Note that the only template that iniitally had fitted l=3 is for 16 Cyg A (KIC 12069424)
+# Variant of theses templates exist also for RGB stars
+# KIC         Kp      numax.   Type      Gamma_at_numax.            Teff
+# 6508366    8.97     958      Flike      5.22                      6331  
+# 9139163    8.33     1730     Flike      5.28                      6400. 
+# 6603624    9.09     2384     Simple     0.56                      5674. 
+# 9139151    9.18     2690     Simple     1.99                      6302. 
+# 8379927    6.96     2795     Simple     2.43                      6067.
+# 12069424   5.95     2188     Simple     1.                        5825   
+# 8006161    7.36     3575     Simple     1.17                      5488. 
+ID_ref= 6603624
+Dnu_ref=  109.857
+epsilon_ref= 0.557387
+numax_ref= 2384
+# Frequency (microHz)     Height (ppm^2/microhz)       Width
+ 800        0	         0
+ 1100       0.0	         0.01
+ 1400       0.0	         0.1
+ 1450       0.1	         1
+ 1489.1728  0.283973     1.698628
+ 1599.8405  0.657434     1.011868
+ 1710.0378  1.090890     0.824111
+ 1819.6997  1.552000     0.731073
+ 1928.3631  3.232826     0.743003
+ 2037.0401  5.463944     0.719518
+ 2146.7698  10.231499    0.655283
+ 2256.9944  14.309373    0.663758
+ 2367.0763  16.345826    0.705399
+ 2477.0440  10.391128    0.882568
+ 2587.5176  5.450967     1.228132
+ 2698.1700  1.654923     1.966378
+ 2808.8019  0.544198     3.935861
+ 2919.9099  0.339245     3.837100
+ 2950       0.05         3.9
+ 3000       0            4
+ 3300       0.0          4
+ 3500       0            4

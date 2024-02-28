@@ -1,4 +1,0 @@
-# First line: rot_env / rot_ratio / Dnu / epsilon / delta0l_percent / beta_p / nmax_spread. Second line: DP1 / alpha / q. Third line coupling / how many l=0 freq on left&right of numax / hmax / width at numax for l=0 / max uniform spread on numax (% or <=0 if off)
-0.102                15.1                34.6             0.44454                1.75                   0                   0
-134.2                0.05
-0.2                   6                 100                0.25                 0.2

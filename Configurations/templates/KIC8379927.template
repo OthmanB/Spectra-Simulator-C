@@ -1,0 +1,44 @@
+# Template file used to compute the height and width profile of simulated stars. 
+# The values of this table is rescaled by the code so to match numax_star, Dnu_star and epsilon_star
+# The table was generated using fitted frequencies, Heights and Widths
+# carefully extrapolated at the edges to avoid rescaling issues. 
+# This template is part of a serie of MS templates created using the full Kepler data upon those criteria:
+# (1) High HNR, (2) No missing quarters, (3) Coverage of the whole Teff and numax range of MS stars, (3) Balance between F and G type
+# Note that the only template that iniitally had fitted l=3 is for 16 Cyg A (KIC 12069424)
+# Variant of theses templates exist also for RGB stars
+# KIC         Kp      numax.   Type      Gamma_at_numax.            Teff
+# 6508366    8.97     958      Flike      5.22                      6331  
+# 9139163    8.33     1730     Flike      5.28                      6400. 
+# 6603624    9.09     2384     Simple     0.56                      5674. 
+# 9139151    9.18     2690     Simple     1.99                      6302. 
+# 8379927    6.96     2795     Simple     2.43                      6067.
+# 12069424   5.95     2188     Simple     1.                        5825   
+# 8006161    7.36     3575     Simple     1.17                      5488. 
+ID_ref= 8379927
+Dnu_ref=  120.125
+epsilon_ref= 0.364227
+numax_ref= 2795
+# Frequency (microHz)     Height (ppm^2/microhz)       Width
+1600.00000   0.00000   0.00000
+1650.00000   0.00000   0.00000
+1700.00000   0.01000   0.10000
+1728.01169   0.10540   1.27502
+1847.38684   0.17238   1.16395
+1967.94988   0.28711   1.33716
+2087.86222   0.39026   1.75644
+2206.66104   0.56023   1.85124
+2324.43943   0.83228   1.81334
+2443.13208   1.11118   1.88539
+2563.57580   1.37510   2.03115
+2683.95554   1.48699   2.22804
+2804.48468   1.30823   2.43151
+2924.42603   0.94932   2.88386
+3044.80576   0.60403   3.62174
+3165.45271   0.34807   4.57470
+3286.65229   0.20147   5.79057
+3408.90504   0.12262   6.52212
+3530.65228   0.06776   7.45899
+3651.09760   0.04346   9.05888
+3700.00000   0.01000   9.00000
+3750.00000   0.00000   9.00000
+3800.00000   0.00000   9.00000
