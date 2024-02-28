@@ -6,6 +6,11 @@
         * removal of some obselete test files
         * Consistency improvment for numax_spread between aj model and RGB model configuration file
 
+### v1.54 ###
+	* Consistency improvment: The definition of numax_spread was different between model generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled_Kallinger2014 and
+          model generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled, and model generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled_Kallinger2014 and other models.
+	  numax_spread had to be given in fraction of numax in one case, while it had to be in percentage in others. Now all quantities are in percentage.
+
 ### v1.53 ###
 	* Edge case handling in bump.cpp + iterative_artificial_spectrum.cpp: When attempting to generate a Subgiant with no mixed modes solutions, the code was crashing.
 	  As a crash without explanation is not satisfactory, I have added message specifying that the generated star has no mixed modes. A hard-coded switch is currently 
