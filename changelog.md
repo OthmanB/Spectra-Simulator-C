@@ -1,5 +1,9 @@
 # Version history #
 
+### v1.56 ###
+	* Bug Fix in asymptotic_mm_freeDp_numaxspread_curvepmodes_v3_GRANscaled_Kallinger2014:
+	  The model was set with legacynoise=true instead of legacynoise=false, leading to completely wrong noise backgrounds
+
 ### v1.55 ###
         * Change in the definition of d0l for aj MS models so that it is consistent with RGB models that are based on the ARMM code. thus the prescription nu = (n + l/2 + epsilon)*Dnu - d0l is used now
         * Cleanup configuration directory

@@ -1302,7 +1302,8 @@ bool asymptotic_mm_freeDp_numaxspread_curvepmodes_v3_GRANscaled_Kallinger2014(Ve
 	cfg_star.alpha_p_star=cfg_star.beta_p_star/cfg_star.nmax_star;
 	cfg_star.sigma_m=0;
 	cfg_star.sigma_p=0;
-
+	cfg_star.legacynoise=false; // added on 29 Feb 2024
+	
 	if (std::abs(nmax_spread) > 0)
 	{
 		try
@@ -1333,7 +1334,7 @@ bool asymptotic_mm_freeDp_numaxspread_curvepmodes_v3_GRANscaled_Kallinger2014(Ve
 	inc_star=inc_rad*180./PI;
 	
 	// b. Generate the mode profiles and frequencies
-	params=make_synthetic_asymptotic_star(cfg_star);
+	params=make_synthetic_asymptotic_star(cfg_star, cfg_star.legacynoise);
 	if (params.failed == false){
 		mode_params=bumpoutputs_2_MatrixXd(params, inc_star); // get the output in a format that can be written with the writting function
 		write_star_mode_params_aj(mode_params, file_out_modes);
@@ -1353,8 +1354,28 @@ bool asymptotic_mm_freeDp_numaxspread_curvepmodes_v3_GRANscaled_Kallinger2014(Ve
 		noise_params(3, 2)=-2;
 		// A FUNCTION THAT WRITES THE Noise
 		write_star_noise_params(noise_params, file_out_noise);
+		// ADDING on 29 Feb 2024
+		VectorXd tmp(mode_params.rows()); 	
+		tmp.setConstant(0);
+		const VectorXd local_noise=harvey_like(noise_params, mode_params.col(1), tmp); // Generate a list of local noise values for each frequencies
+		std::cout << "Using the Noise profile of the New star, using provided noise parameters and Kallinger+2014 prescription" << std::endl;
+		std::cout << "Target max(HNR):" << cfg_star.maxHNR_l0 << std::endl;
+		std::cout << "HNR of all modes:" << std::endl;
+		std::cout << "     "  << std::setw(15) << "degree" << std::setw(15) << "frequency"  << std::setw(15) << "Height" << std::setw(15) <<  "HNR" << std::setw(15) << "local_noise" << std::setw(15) << "Width" << std::endl;
+		for(int i =0; i<mode_params.rows(); i++){
+			double HNR=mode_params(i,2)/local_noise[i];
+			std::cout << "     " << std::setw(15) << mode_params(i,0) << std::setw(15) << mode_params(i,1)  << std::setw(15)  << mode_params(i,2) << std::setw(15) << HNR  << std::setw(15) << local_noise[i] << std::setw(15)  << mode_params(i,3) << std::endl;
+		}
+		/*
+		std::cout << "Noise parameters:" << std::endl;
+		for (int i=0; i<noise_params.rows();i++){
+			std::cout << noise_params.row(i) << std::endl;
+		}
+		exit(EXIT_SUCCESS);
+		*/
+		//
 	}
-	return params.failed;
+	return params.failed;	
 }
 
 
@@ -2638,6 +2659,7 @@ void generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled_Kallinger2014(VectorX
 	//h_star=Height_factor * HNRref * N0; 
 	if (local_noise_new.sum()!= 0){
 		std::cout << "Using the Noise profile of the New star, using provided noise parameters and Karoff et al. 2010 prescription" << std::endl;
+		std::cout << "Target HNR  : " << HNR << std::endl;
 		std::cout << "HNR of all modes:" << std::endl;
 		std::cout << "     "  << std::setw(15) << "degree" << std::setw(15) << "freq_template" << std::setw(15) <<  "freq_rescaled" << std::setw(15) << "HNR" << std::setw(15) <<  "Height" << std::setw(15) << "local_noise" << std::endl;
 		for(i =0; i<ref_star.mode_params.rows(); i++){

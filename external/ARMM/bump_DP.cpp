@@ -621,17 +621,6 @@ Params_synthetic_star make_synthetic_asymptotic_star(Cfg_synthetic_star cfg_star
 
 	// Allow to debug content of cfg_star
 	//displayCfgSyntheticStar(cfg_star); 
-	if(legacynoise == true){
-		//noise_params_harvey_like=[A_Pgran ,  B_Pgran , C_Pgran   ,  A_taugran ,  B_taugran  , C_taugran    , p      N0] // 
-		noise_params_harvey1985[0] = cfg_star.noise_params_harvey_like[0] * std::pow(cfg_star.numax_star*1e-6,cfg_star.noise_params_harvey_like[1]) + cfg_star.noise_params_harvey_like[2]; // Granulation Amplitude
-		noise_params_harvey1985[1] = cfg_star.noise_params_harvey_like[3] * std::pow(cfg_star.numax_star*1e-6, cfg_star.noise_params_harvey_like[4]) + cfg_star.noise_params_harvey_like[5]; // Granulation timescale (in seconds)
-		noise_params_harvey1985[0] = noise_params_harvey1985[0]/noise_params_harvey1985[1];
-		noise_params_harvey1985[1]= noise_params_harvey1985[1]/1000.;
-
-		noise_params_harvey1985[2]=cfg_star.noise_params_harvey_like[6];
-		noise_params_harvey1985[3]=cfg_star.noise_params_harvey_like[7];
-	}
-	
 	// Fix the resolution to 4 years (converted into microHz)
 	resol=1e6/(4*365.*86400.);
 	// ----- l=0 modes -----
@@ -660,12 +649,27 @@ Params_synthetic_star make_synthetic_asymptotic_star(Cfg_synthetic_star cfg_star
 	noise_l0.resize(nu_l0.size());
 	noise_l0.setZero();
 	if(legacynoise == true){
+		//noise_params_harvey_like=[A_Pgran ,  B_Pgran , C_Pgran   ,  A_taugran ,  B_taugran  , C_taugran    , p      N0] // 
+		noise_params_harvey1985[0] = cfg_star.noise_params_harvey_like[0] * std::pow(cfg_star.numax_star*1e-6,cfg_star.noise_params_harvey_like[1]) + cfg_star.noise_params_harvey_like[2]; // Granulation Amplitude
+		noise_params_harvey1985[1] = cfg_star.noise_params_harvey_like[3] * std::pow(cfg_star.numax_star*1e-6, cfg_star.noise_params_harvey_like[4]) + cfg_star.noise_params_harvey_like[5]; // Granulation timescale (in seconds)
+		noise_params_harvey1985[0] = noise_params_harvey1985[0]/noise_params_harvey1985[1];
+		noise_params_harvey1985[1]= noise_params_harvey1985[1]/1000.;
+
+		noise_params_harvey1985[2]=cfg_star.noise_params_harvey_like[6];
+		noise_params_harvey1985[3]=cfg_star.noise_params_harvey_like[7];
 		noise_l0=harvey1985(noise_params_harvey1985, nu_l0, noise_l0, 1); // Iterate on Noise_l0 to update it by putting the noise profile with one harvey profile
 	} else{
 		int Nharvey=(cfg_star.noise_params_harvey_like.size() -1)/3; // Assumes that we have Nharvey + white noise
 		noise_l0=harvey_like(cfg_star.noise_params_harvey_like, nu_l0, noise_l0, Nharvey); 
+		//std::cout << " Nharvey : " << Nharvey << std::endl;
 	}	
-	
+	/*std::cout << "noise within make_asymptotic_star :" << std::endl;
+	for (int i=0 ; i<nu_l0.size();i++){
+		std::cout << nu_l0[i] << std::setw(15) << noise_l0[i] << std::endl;
+	}
+	std::cout << " noise parameters within make_asymptotic_star :" << std::endl;
+	std::cout << "    " << cfg_star.noise_params_harvey_like.transpose() << std::endl;
+	*/
 	c=1; // This is the ratio of HNR between the reference star and the target simulated star: maxHNR_l0/maxHNR_ref.
 	hmax_l0=cfg_star.maxHNR_l0*noise_l0*c;
 	height_l0=height_l0.cwiseProduct(hmax_l0); // height_l0 being normalised to 1 on width_height_load_rescale, getting the desired hmax_l0 requires just to multiply height_l0 by hmax_l0
