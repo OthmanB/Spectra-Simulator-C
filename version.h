@@ -1,21 +1,23 @@
-void showversion();
-/* 
-	Header that contains version information
-*/
-#ifndef __VERSION_H__
-#define __VERSION_H__
 
-#define APP_ID        "CPPSpecSim"
-#define APP_NAME      "CPPSpecSim"
-#define APP_DESC      "Spectrum Simulator for Asteroseismology"
-#define APP_VERSION   "0.8.97-DEV"
-#define APP_DOMAIN    ""
-#define APP_SITE      ""
-#define APP_COPYRIGHT "Othman Benomar"
+/**
+ * @file version.h
+ * @brief Header file that contains version information.
+ */
 
-#define APP_VER_MAJOR  0
-#define APP_VER_MINOR  8.97
+#ifndef __VERSION_H__ 
+#define __VERSION_H__ /**< Version of the program*/
+
+#define APP_ID        "CPPSpecSim" /**< Application ID */
+#define APP_NAME      "CPPSpecSim" /**< Application Name */
+#define APP_DESC      "Spectrum Simulator for Asteroseismology" /**< Application Description */
+#define APP_VERSION   "1.56" /**< Application Version */
+#define APP_DOMAIN    "" /**< Application Domain */
+#define APP_SITE      "https://othmanbenomar.dev" /**< Application Site */
+#define APP_COPYRIGHT "Othman Benomar" /**< Application Copyright */
+
+#define APP_VER_MAJOR  1 /**< Application Major Version */
+#define APP_VER_MINOR  56 /**< Application Minor Version */
 //#define APP_VER_BUILD  0
 //#define APP_VER_REV    0
 
-#endif /* __VERSION_H__ */
+#endif /* __VERSION_H__ */ 

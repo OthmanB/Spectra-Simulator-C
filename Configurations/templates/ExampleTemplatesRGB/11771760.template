@@ -1,0 +1,37 @@
+# Template file used to compute the height and width profile of simulated stars. 
+# The values of this table is rescaled by the code so to match numax_star, Dnu_star and epsilon_star
+# The table was generated using fitted frequencies and Heights of the Subgiants and early Red Giants
+# Using the Coupled Oscilator Model (COscM) on Kepler Q0-7 data on 2011. Better templates can certainly
+# be made nowadays using latest Kepler data release, but these may offer already a good diversity of 
+# Width and Height profiles for l=0 modes. Note that this table is extrapolated at the edge to
+# avoid the interpolation routine in python crashes (if numax_ref is too different from numax_star)
+# If you note remaining crashes, try to 0s heights and widths at the edges.
+ID_ref= 11771760
+Dnu_ref= 32.26211478787879
+epsilon_ref= 0.19773560505324994
+numax_ref= 509.39037038226525
+# Frequency (microHz)     Height (ppm^2/microhz)       Width
+200.00                    0.                           0.01
+232.26                    0.01                         0.05
+264.52                    0.1                          0.1
+296.79                    1.00                         0.25
+329.04                    5.00                         0.5
+361.31199                 14.090924                    1.399878
+394.36761                 25.440476                    0.495627
+426.63225                 19.996703                    1.008862
+457.61940                 29.412393                    1.046457
+488.98464                 36.914712                    0.739228
+521.62625                 39.332155                    1.019560
+554.63588                 88.231929                    0.919862
+587.04188                 12.348582                    1.609272
+619.96165                 10.801918                    1.565156
+652.23993                 16.220101                    1.250749
+684.5                     5.220101                     2.250749
+716.7                	  2.220101                     3.250749
+749.0              	      1.220101                     4.250749
+781.29             	      0.50101                      5.250749
+813.55             	      0.20101                      6.250749
+845.81                    0.10                         7.250749
+878.07                 	  0.01                         8.250749
+910.33                    0.0                          10
+942.60                    0.0                          10

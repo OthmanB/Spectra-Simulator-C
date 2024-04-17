@@ -1,0 +1,43 @@
+# Template file used to compute the height and width profile of simulated stars. 
+# The values of this table is rescaled by the code so to match numax_star, Dnu_star and epsilon_star
+# The table was generated using fitted frequencies, Heights and Widths
+# carefully extrapolated at the edges to avoid rescaling issues. 
+# This template is part of a serie of MS templates created using the full Kepler data upon those criteria:
+# (1) High HNR, (2) No missing quarters, (3) Coverage of the whole Teff and numax range of MS stars, (3) Balance between F and G type
+# Note that the only template that iniitally had fitted l=3 is for 16 Cyg A (KIC 12069424)
+# Variant of theses templates exist also for RGB stars
+# KIC         Kp      numax.   Type      Gamma_at_numax.            Teff
+# 6508366    8.97     958      Flike      5.22                      6331  
+# 9139163    8.33     1730     Flike      5.28                      6400. 
+# 6603624    9.09     2384     Simple     0.56                      5674. 
+# 9139151    9.18     2690     Simple     1.99                      6302. 
+# 8379927    6.96     2795     Simple     2.43                      6067.
+# 12069424   5.95     2188     Simple     1.                        5825   
+# 8006161    7.36     3575     Simple     1.17                      5488. 
+ID_ref= 8006161
+Dnu_ref=  149.335
+epsilon_ref= 0.573047
+numax_ref= 3575
+# Frequency (microHz)     Height (ppm^2/microhz)       Width
+1700               0           0
+2000               0           0.001
+2380               0           0.01
+2420               0.05        0.1
+2476.471576        0.365960    0.458251
+2626.300759        0.481088    0.628713
+2774.762726        0.591634    0.558896
+2922.850751        1.199748    0.635218
+3071.160114        1.310842    0.747353
+3220.114571        1.646194    0.835082
+3369.571707        1.968325    0.931728
+3518.589809        2.132052    1.063449
+3667.829881        1.799756    1.373817
+3817.562845        1.028350    1.969723
+3967.224246        0.599356    2.709537
+4117.965392        0.289545    3.412587
+4268.707402        0.195861    5.089781
+4419.532330        0.105445	   5.297795
+4450               0.01        5.5
+4500               0           6
+4800               0           6.5
+5100               0           6.5  

@@ -1,3 +1,13 @@
+/**
+ * @file plots_diags.h
+ * @brief Plot the model using Gnuplot.
+ *
+ * Handling plots using gnuplot
+ *
+ * @date 06 Oct 2016
+ * @author obenomar
+ */
+
 #pragma once
 #include <Eigen/Dense>
 #include <vector>
@@ -6,16 +16,26 @@
 #include <iomanip>
 #include "gnuplot-iostream.h"
 #include "data.h"
-#include "string_handler.h"
-
-//#include <gsl/gsl_histogram.h>
-//#include <gsl/gsl_rng.h>
+#include "ioproc.h"
 
 
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
 
-void gnuplt_modelv0(VectorXd x, VectorXd y, VectorXd model, double data_scoef1, double data_scoef2, std::string file_model); // old type of function which is quite slow
+/**
+ * @brief Plot the model using Gnuplot.
+ *
+ * @param x The x values.
+ * @param y The y values.
+ * @param model The model values.
+ * @param scoef1 The first smoothing coefficient.
+ * @param scoef2 The second smoothing coefficient.
+ * @param file_model The output file name for the plot.
+ *
+ * This function handles the plotting of the model using Gnuplot. It takes the x values, y values, model values, and smoothing coefficients as input. The output plot is saved in the specified file_model.
+ *
+ * @note This function uses the Gnuplot library to generate the plot.
+ */
 void gnuplt_model(VectorXd x, VectorXd y, VectorXd model, double scoef1, double scoef2, std::string file_model);
 
 

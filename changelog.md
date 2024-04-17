@@ -1,10 +1,159 @@
 # Version history #
 
-### ROADMAP v0.9.0 (*Expected Release: TBD 2020*) ###
+### v1.56 ###
+	* Bug Fix in asymptotic_mm_freeDp_numaxspread_curvepmodes_v3_GRANscaled_Kallinger2014:
+	  The model was set with legacynoise=true instead of legacynoise=false, leading to completely wrong noise backgrounds
+
+### v1.55 ###
+        * Change in the definition of d0l for aj MS models so that it is consistent with RGB models that are based on the ARMM code. thus the prescription nu = (n + l/2 + epsilon)*Dnu - d0l is used now
+        * Cleanup configuration directory
+        * Adding new templates for MS and RGB taken from a select number of good quality MS stars
+        * removal of some obselete test files
+        * Consistency improvment for numax_spread between aj model and RGB model configuration file
+
+### v1.54 ###
+	* Consistency improvment: The definition of numax_spread was different between model generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled_Kallinger2014 and
+          model generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled, and model generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled_Kallinger2014 and other models.
+	  numax_spread had to be given in fraction of numax in one case, while it had to be in percentage in others. Now all quantities are in percentage.
+
+### v1.53 ###
+	* Edge case handling in bump.cpp + iterative_artificial_spectrum.cpp: When attempting to generate a Subgiant with no mixed modes solutions, the code was crashing.
+	  As a crash without explanation is not satisfactory, I have added message specifying that the generated star has no mixed modes. A hard-coded switch is currently 
+          set to a mode that lead to skipping the "failed" computation of mixed modes. This switch, called "neverfail" inside bump.cpp can be also set to a safe exit (neverfail = 0)
+          or to a process continuing after replacing the solution with pure p modes (neverfail =2)
+ 
+### v1.52 ###
+	* Adding the possibility to modify the output Data directory. After compilation, type ./specsim --help for further details.
+	* Adding an option to create automatically the Data directory and its subdirectories if they don't exist. 
+
+### v1.51 ###
+	* New model "asymptotic_mm_freeDp_numaxspread_curvepmodes_v3_GRANscaled_Kallinger2014": This is the equivalent to 
+	 "generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled_Kallinger2014" but for Red Giants. The noise follows Kallinger2014
+	 which allows for a better training. Read carefully the notes on v1.50 to understand the new way of handling the noise.
+	 Eventually, these models will replace the old non-GRANscaled. 
+	* The new model requiring ARMM v1.11, this one is also updated in specsim v1.51
+	
+### v1.50 ###
+	* New model: "generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled_Kallinger2014". This model allows to generate
+	noise following closely the Kallinger+2014 prescription and ensemble values derived from a sample of RGB + MS stars. 
+	Using MCMC, I have verified that this model is fairly accurate. Note that this model use the new structure of parameter
+	that is decomposed into two files: the main.cfg (see the example configuration main.cfg.aj_GRANscaledKallinger) and the
+	noise_Kallinger2014.cfg. The program accolate the configuration present in the two, to create a full model of noise + modes. This structure is prefered here due to (1) the high number of parameters in the Kallinger+2014 model (enhanced clarity with two shorter tables that fit on screen), (2) the necessity to define many Kallinger+2014 parameters as drawn from a Gaussian distribution instead of a Uniform distribution and, (3) the necessity to avoid confusion between the variables systematically drawn from a uniform distribution (unless fixed) defined the main.cfg files and the noise variables that very often drawn from the Gaussian distributions given in the Kallinger's paper. 
+	Incidentally, this has imposed an important restructuration of the way the random generation works.
+	* The adoption of v1.45_alt as the main branch, instead of v1.45.
+	* Bug fix: The maximum frequency of the spectrum was wrong by a factor 2. 
+	
+### v1.45 and v1.45_alt ###
+	* Bug fix in model asymptotic_mm_freeDp_numaxspread_curvepmodes_v3: indexes for the noise parameters were pointing to the wrong parameters + indexes for a2_l3, a3_l3, a4_l3 when checking <=-9999 were wrong.
+
+### v1.44_alt ##
+        * Take the version 1.44 but change the way the Gamma_spread parameter acts.  THIS VERSION IS EXPERIMENTAL: Gamma_spread IS APPLIED ON THE GAMMA_REF INSTEAD OF GAMMA_STAR
+	
+### v.1.44 ##
+	* For model "asymptotic_mm_freeDp_numaxspread_curvepmodes_v3", Fix the logic that controls how we can switch between using predefined frequencies in the configuration file "Configurations/MixedModes_models/star_params.theoretical" and the global main.cfg configuration files (in "Configurations/main.cfg*"). This avoids configuration mistakes that may not be obvious to the final user. In addition, I remived the "Configurations/MixedModes_models/star_params.theoretical" and kept only the "Configurations/MixedModes_models/star_params.theoretical.EXAMPLE". This again to avoid misconfigurations.
+
+### v1.43 ##
+	* Adding do_flat_noise parameter in the aj model. If do_flat_noise<=0, the noise background will the one of the template (Harvey-like). Otherwise, the noise background will be flat and set at the value given by do_flat_noise (eg. if do_flat_noise = 0.7, then N0=0.7). do_flat_noise can be a variable and does not need to be a constant (ie, if one wants to train a ML with a variable flat noise background). But only >0 do_flat_noise will behave that way. <=0 will necessarily lead to fixed background: Be careful with the min and max value of the parameters and the fix/variable flag.
+ 
+### v1.42 ##
+	* Bug fixes in the noise background of aj model
+
+### v1.41 ##
+	* Adding Gamma_spread parameter in generate_cfg_from_synthese_file_Wscaled_aj
+
+### v1.4 ##
+        * Adding H_spread and nu_spread parameters in generate_cfg_from_synthese_file_Wscaled_aj and generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled models. The idea is to perturbate the heights (H_spread) and frequencies (nu_spread) with a random quantity to avoid deterministic learning of these quantities by a ML method
+	* New parallelised Alm code (version 1.3)
+
+### v1.31 ##
+	* Adding a help for functions using Doxygen library
+	* Improved the algorithm for creating the combinations in combi.cpp
+	* Replacing the old "integrate" by the new "Alm"
+	
+### v1.3 ###
+	* Models asymptotic_mm_freeDp_numaxspread_curvepmodes_v2 and asymptotic_mm_freeDp_numaxspread_curvepmodes_v3 updated to work with the new parallelized ARMM solver. 
+	* Models asymptotic_mm_freeDp_numaxspread_curvepmodes_v2 and asymptotic_mm_freeDp_numaxspread_curvepmodes_v3 now handle ajl coefficients. Read instructions in the example main.cfg files associated to these models
+
+### v1.2 ###
+	* New model:
+		- generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled allows you to generate a simulated spectra with the noise brackground of your choice, assuming that this noise scales with numax
+
+### v1.1.2 ###
+	* Improvments:
+		- Adding the possibility to enter your own main file name (instead of the default main.cfg) and your own directory for the configuration file (instead of the default 'Configurations/')
+		- Improved showversion() function
+		- Improved handling of options by using the boost::program_options library
+
+### v1.1.1 ###
+	* Improvments:
+		- In the aj model, adding rescaling capabilities so that Dnu, epsilon, numax and d0l can be modified
+### v1.1.0 ###
+	* Bug Fix:
+		- Removed system command that were copying .rot and .range files from a temporary directory to the data directory. This was a relic of the time when python3 was called to solve the ARMM
+	* Addition:
+		- In asymptotic_mm_freeDp_numaxspread_curvepmodes_v3, added the possibility to provide a frequency input file. Can be used to link the simulator with frequencies generated by a Stellar evolution code + oscillation code. The file must be placed in  Configurations/MixedModes_models. Its name must be 'star_params.theoretical'. An example of such a file is provided in that directory. Note that the syntax is strict and no change in the file structure (order of its inputs, number of comments, etc...) should be performed.
+		Note also that this file will be used ONLY if the second line contains a 1
+		Like this, for the first two lines:
+		# use_nu_nl : 0 = false / 1 = true
+		1	 
+### v1.0.4-dev ###
+	* Bug Fix:
+		- Corrected a bug happening when reading the cfg file due to imporper syntax
+	* Improvements:
+		- Minimising the changes required to bump_DP.cpp amd solver_mm.cpp when migrating them from the standalone version: Only need to remove the omp section
+		- Slight restructuration of the ARMM calls
+	* Addition:
+		- Introducing the Hfactor and the Wfactor in asymptotic models for the mixed modes: It allows to 'break' the assumption of (1) equipartition of energy (Hfactor>0) and (2) inertia scaling with the Width, ie not considering that the damping is purely due to the evanescent zone between cavity (Wfactor<1)
+### v1.0.3-dev ###
+	* Bug Fix:
+		- Correcting eta in the *Hgauss model
+		- The rescaling of HNR in the models 'generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma' , 'generate_cfg_from_synthese_file_Wscaled_a1a2a3asymovGamma', 'generate_cfg_from_synthese_file_Wscaled_Alm', 'generate_cfg_from_synthese_file_Wscaled_aj' was incorrect due to a wrong generalisation from the old IDL code. 
+		The old code was considering a fix noise background of N=N0=1. The new implementation was supposed to instead keep the noise background
+		profile of the reference star in the new artificial star. This was not performed as it was still considering N0=1. 
+		The modification consist in replacing N0 by N(v)=local_noise 
+		- The rescaling was made considering the absolute highest HNR. This implies that it was considering the HNRmax for the l=1 (due to higher visibility of that mode). Instead, it is better to use the HNRmax(l=0) for reference when defining the HNR. A change was made in that way.
+		- Fix an issue with some infiles used as a template: The Cadence and Tobs was wrongly commented by #, which was leading to ignore the first l=0
+		- Fix an issue with the names of the variables in the Combinations.txt file: Some parameters names could be sticked together
+		
+### v1.0.2-dev ###
+	* Improvment: 
+		- Adding the possibility to use a file for defining the common section. See explanations in the Configuration/common_modelfile directory
+
+### v1.0.1-dev ###
+	* Bug fixes and improvments:
+		- generate_cfg_from_synthese_file_Wscaled_a1Alma3asymovGamma():
+			* Renaming to generate_cfg_from_synthese_file_Wscaled_Alm()
+			* Fixing error in the Alm computation + optimisation following the latest release of acoef_checks
+			* Possibility to use of all of aj coefficient up to a6 
+	* New model: generate_cfg_from_synthese_file_Wscaled_aj()
+	* Improvments:
+		- Grid approach now handles *Alm() model type
+		- Grid approach now handles *aj() model type
+		- Update of build_lorentzian.* to the latest version from the cpp and adding dependences. Large code-quality improvments
+
+### v1.0.0-dev ###
 	* Added functionalities:
-		- Code the grid capability
-		- Implement numax variable on generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma
-		- Adding random errors around the second order asymptotic relations. Try to make them spline-consistent
+		- Implement the new model generate_cfg_from_synthese_file_Wscaled_a1Alma3asymovGamma: Handling simulations with Activity effect on splittings using Alm() function
+                - Adding the grid approach within this code: NOTE THAT THERE MIGHT BE SOME BUGS HERE
+                - Adding new functionalities to the configuration file: 
+                	* do_modelfiles : If set to 1, it will make a .model file adequate for the TAMCMC code
+                	* limit_data_range: If set to 1, it will limit the data file to the range where there is modes +/- 2*Dnu. Can hugely save space for large simulations
+                	NOTE: This functionality is only valid for "artificial_spectrum_a1Alma3"
+                	
+### v0.9.1 [100%] ###
+	* Added functionalities:
+		- Implement on generate_cfg_from_synthese_file_Wscaled_a1a2a3asymovGamma: Handling simulation for a2 coeficient and a3 considering polynomials O2 for those
+	* Bug Fix:
+		- Fixing cfg template for main.cfg.MS.scaled
+		
+### v0.9.0 (*Released on 20 Nov 2020*) ###
+	* Improvments:
+		- Compilation is now made possible using cmake
+	* Added functionalities:
+		- Using bump_DP.cpp and solver_mm.cpp instead of their python counter parts
+	* Bug Fix:
+		- Bugs on the definition of np_min and np_max corrected
+		- Bugs on the solver_mm that was not handling properly the second order polynomials for the p modes
 
 ### v0.8.97 (*Released on 21 April 2020*) ###
         * Improvments:

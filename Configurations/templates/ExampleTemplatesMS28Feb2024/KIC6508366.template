@@ -1,0 +1,46 @@
+# Template file used to compute the height and width profile of simulated stars. 
+# The values of this table is rescaled by the code so to match numax_star, Dnu_star and epsilon_star
+# The table was generated using fitted frequencies, Heights and Widths
+# carefully extrapolated at the edges to avoid rescaling issues. 
+# This template is part of a serie of MS templates created using the full Kepler data upon those criteria:
+# (1) High HNR, (2) No missing quarters, (3) Coverage of the whole Teff and numax range of MS stars, (3) Balance between F and G type
+# Note that the only template that iniitally had fitted l=3 is for 16 Cyg A (KIC 12069424)
+# Variant of theses templates exist also for RGB stars
+# KIC         Kp      numax.   Type      Gamma_at_numax.            Teff
+# 6508366    8.97     958      Flike      5.22                      6331  
+# 9139163    8.33     1730     Flike      5.28                      6400. 
+# 6603624    9.09     2384     Simple     0.56                      5674. 
+# 9139151    9.18     2690     Simple     1.99                      6302. 
+# 8379927    6.96     2795     Simple     2.43                      6067.
+# 12069424   5.95     2188     Simple     1.                        5825   
+# 8006161    7.36     3575     Simple     1.17                      5488. 
+ID_ref= 6508366
+Dnu_ref=  51.710
+epsilon_ref= 0.022204
+numax_ref= 958
+# Frequency (microHz)     Height (ppm^2/microhz)       Width
+200                 0           0
+300                 0.0         0.01
+450                 0.0         0.1
+500                 0.1         1
+574.211213          0.956106    2.331931
+623.707598          1.304467    3.136829
+672.116690          1.660000    3.965965
+723.126931          2.549866    3.106037
+775.434589          2.594849    3.732892
+827.370343          3.431094    3.576065
+878.288164          3.580425    4.374449
+929.729778          3.967231    4.926549
+980.017032          3.303785    5.336770
+1030.741093         3.644398    4.656605
+1083.550904         2.646549    4.684982
+1136.079425         1.840297    5.607985
+1189.281388         1.473601    5.698278
+1241.864266         0.888522    7.416039
+1293.541001         0.679662    6.257754
+1346.927289         0.289377    9.366288
+1401.538352         0.202276    12.039031
+1450                0.025       12
+1500                0           12.5
+1700                0.0         13
+2000                0           13

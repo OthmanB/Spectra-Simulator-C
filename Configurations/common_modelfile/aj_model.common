@@ -1,0 +1,23 @@
+# Configuration for all common parameters. Check the program for a list of known keywords
+    model_fullname             model_MS_Global_aj_HarveyLike
+    freq_smoothness       bool             1.000       2.000
+ a1_0       		      Uniform          1.000       0.000        1.500
+ a1_1       		      Fix              0.000 
+ a2_0       		      Uniform          0.000       -0.220     0.270
+ a2_1       		      Fix              0.000 
+ a3_0       		      Fix              0.000       
+ a3_1       		      Fix              0.000 
+ a4_0       		      Uniform          0.000       -0.040        0.040
+ a4_1       		      Fix              0.000 
+ a5_0       		      Fix        	   0.000
+ a5_1       		      Fix              0.000 
+ a6_0       		      Fix 	       	   0.000
+ a6_1       		      Fix              0.000 
+ Asymetry                 Fix              0.000       
+ Inclination              Uniform          45.000      0             90.00
+ Visibility_l1            Gaussian         1.5         1.5           0.05
+ Visibility_l2            Gaussian         0.53        0.53          0.05
+ Visibility_l3            Gaussian         0.08        0.08          0.02
+ Height                   Jeffreys         1.000       10000.
+ Width                    Fix_Auto         1
+ trunc_c                  Fix              30   

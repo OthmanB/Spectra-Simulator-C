@@ -1,0 +1,244 @@
+
+&star_job
+
+      show_log_description_at_start = .false.
+      save_photo_when_terminate = .false.
+
+      load_saved_model = .true.
+      saved_model_name = 'astero_0.9.mod'
+      
+      change_net = .true. ! switch nuclear reaction network
+      new_net_name = 'pp_and_cno_extras.net'
+	   
+      set_uniform_initial_composition = .true.
+	initial_zfracs = 3 ! GS98_zfracs = 3
+      initial_h1 = star_h1
+      initial_h2 = 0
+      initial_he3 = star_he3
+      initial_he4 = star_he4
+
+      kappa_file_prefix = 'OP_gs98'
+      kappa_lowT_prefix = 'lowT_fa05_gs98' ! for lower temperatures.
+
+	   set_rate_c12ag = 'Kunz'
+	   set_rate_n14pg = 'jina reaclib'
+      
+      relax_initial_mass = .true.
+      new_mass = star_mass
+      lg_max_abs_mdot = -100
+
+      set_initial_model_number = .true.
+      initial_model_number = 0
+
+      pgstar_flag = .false.
+
+
+/ ! end of star_job namelist
+
+
+&controls
+
+      mixing_length_alpha = star_alp
+      
+      calculate_Brunt_N2 = .true.
+      num_cells_for_smooth_brunt_B = 0
+
+      ! atmosphere
+      which_atm_option = 'Eddington_grey'
+      
+      ! timesteps
+      max_years_for_timestep = 1d7
+      varcontrol_target = 1d-3
+      max_timestep_factor = 2d0
+      delta_lgT_cntr_limit = 0.1
+      delta_lgRho_cntr_limit = 0.5
+
+      ! stopping criterion   
+      max_age = 2.0d10
+      xa_central_lower_limit_species(1) = 'h1'
+      xa_central_lower_limit(1) = 1d-4
+      
+      ! controls for output
+      photostep = 10000
+      write_profiles_flag = .true.
+      profile_interval = 80
+      profile_data_prefix = 'profile'
+      profile_data_suffix = '.star_mod'
+      profiles_index_name = 'index01.dat'
+      write_pulse_info_with_profile = .true.
+      pulse_info_format = 'FGONG'
+      add_atmosphere_to_pulse_info = .true.
+      do_history_file = .false.
+      history_interval = 10000
+      terminal_interval = 10
+      write_header_frequency = 10
+      log_directory = '/scratch/kuldeep/grida/profile_results'
+
+      ! atomic diffusion
+      do_element_diffusion = .true. ! determines whether or not we do diffusion
+      diffusion_dt_limit = 7d11 ! no element diffusion if dt < this limit (in seconds)
+      diffusion_T_full_on = 1d3
+      diffusion_T_full_off = 1d3
+      
+      diffusion_calculates_ionization = .true.
+
+      diffusion_num_classes = 4 ! number of classes of species for diffusion calculations
+      diffusion_class_representative(1) = 'h1'
+      diffusion_class_representative(2) = 'he4'
+      diffusion_class_representative(3) = 'o16'
+      diffusion_class_representative(4) = 'fe56'
+   
+      ! in ascending order.  species goes into 1st class with A_max >= species A
+      diffusion_class_A_max(1) = 2
+      diffusion_class_A_max(2) = 4
+      diffusion_class_A_max(3) = 16
+      diffusion_class_A_max(4) = 10000
+
+      diffusion_class_factor(1) = 1.0d0
+      diffusion_class_factor(2) = 1.0d0
+      diffusion_class_factor(3) = 1.0d0
+      diffusion_class_factor(4) = 1.0d0
+
+      diffusion_use_isolve = .true.
+      diffusion_rtol_for_isolve = 1d-4
+      diffusion_atol_for_isolve = 1d-5
+      diffusion_maxsteps_for_isolve = 2000
+      diffusion_isolve_solver = 'ros2_solver'
+
+      ! mesh adjustment
+      mesh_delta_coeff = 0.4
+   	
+      ! opacity
+      cubic_interpolation_in_Z = .true.
+
+/ ! end of controls namelist
+
+
+
+&pgstar
+         
+      Grid1_win_flag = .true.
+      Grid1_win_width = 8
+      Grid1_win_aspect_ratio = 0.75 ! aspect_ratio = height/width
+      
+      show_TRho_Profile_eos_regions = .false.
+      TRho_Profile_xmin = -5.1
+      TRho_Profile_xmax = 10.2
+      TRho_Profile_ymin = 5.1
+      TRho_Profile_ymax = 10.2        
+         
+      !Grid1_file_flag = .true.
+      Grid1_file_dir = 'png'
+      Grid1_file_prefix = 'Grid1_'
+      Grid1_file_cnt = 5 ! output when mod(model_number,Grid1_file_cnt)==0
+      Grid1_file_width = -1 ! (inches) negative means use same value as for window
+      Grid1_file_aspect_ratio = -1 ! negative means use same value as for window
+            
+      
+      Abundance_win_flag = .true.
+      Abundance_win_width = 6
+      Abundance_win_aspect_ratio = 1 ! aspect_ratio = height/width
+
+      Abundance_xaxis_name = 'mass' 
+      Abundance_xaxis_reversed = .false.
+      Abundance_xmin = 0.00 ! -101d0 ! only used if /= -101d0
+      Abundance_xmax = -101 ! only used if /= -101d0
+      Abundance_log_mass_frac_min = -6 ! only used if < 0
+      
+      !Abundance_file_flag = .true.
+      Abundance_file_dir = 'png'
+      Abundance_file_prefix = 'abund_'
+      Abundance_file_cnt = 5 ! output when mod(model_number,Abundance_file_cnt)==0
+      Abundance_file_width = -1 ! (inches) negative means use same value as for window
+      Abundance_file_aspect_ratio = -1 ! negative means use same value as for window
+      
+      
+      Profile_Panels1_win_flag = .true.
+      Profile_Panels1_win_width = 6
+      Profile_Panels1_win_aspect_ratio = 1 ! aspect_ratio = height/width
+
+      Profile_Panels1_title = 'Profile Panels1'      
+      Profile_Panels1_num_panels = 3         
+      Profile_Panels1_yaxis_name(1) = 'logT'         
+      Profile_Panels1_other_yaxis_name(1) = 'entropy'         
+      Profile_Panels1_yaxis_name(2) = 'logRho'         
+      Profile_Panels1_other_yaxis_name(2) = 'opacity' 
+      Profile_Panels1_yaxis_name(3) = 'zone'         
+         Profile_Panels1_ymin(3) = -101 ! only used if /= -101d0
+         Profile_Panels1_ymax(3) = -101 ! only used if /= -101d0        
+         Profile_Panels1_ymargin(3) = 0.1 
+      Profile_Panels1_other_yaxis_name(3) = 'grada' 
+         Profile_Panels1_other_ymin(3) = -101 ! only used if /= -101d0
+         Profile_Panels1_other_ymax(3) = -101d0 ! only used if /= -101d0
+         Profile_Panels1_other_ymargin(:) = 0.1 
+  
+      Profile_Panels1_xaxis_name = 'mass'
+      Profile_Panels1_xaxis_reversed = .false.
+      Profile_Panels1_xmin = -101d0 ! only used if /= -101d0
+      Profile_Panels1_xmax = -101d0 ! only used if /= -101d0
+      Profile_Panels1_xmargin = 0d0
+      
+      ! file output
+      Profile_Panels1_file_flag = .false.
+      Profile_Panels1_file_dir = 'png'
+      Profile_Panels1_file_prefix = 'profile_panels1_'
+      Profile_Panels1_file_cnt = 5 ! output when mod(model_number,Profile_Panels1_file_cnt)==0
+      Profile_Panels1_file_width = -1 ! (inches) negative means use same value as for window
+      Profile_Panels1_file_aspect_ratio = -1 ! negative means use same value as for window
+
+
+
+      History_Panels1_win_flag = .true.
+      History_Panels1_win_width = 7
+      History_Panels1_win_aspect_ratio = 1 ! aspect_ratio = height/width
+      
+      History_Panels1_title = 'History_Panels1'      
+      History_Panels1_num_panels = 3
+      
+      History_Panels1_yaxis_name(1) = 'log_center_T' 
+      History_Panels1_yaxis_reversed(1) = .false.
+      History_Panels1_ymin(1) = -101d0 ! only used if /= -101d0
+      History_Panels1_ymax(1) = -101d0 ! only used if /= -101d0        
+      History_Panels1_dymin(1) = -1 
+      
+      History_Panels1_other_yaxis_name(1) = 'log_center_Rho' 
+      History_Panels1_other_yaxis_reversed(1) = .false.
+      History_Panels1_other_ymin(1) = -101d0 ! only used if /= -101d0
+      History_Panels1_other_ymax(1) = -101d0 ! only used if /= -101d0        
+      History_Panels1_other_dymin(1) = -1 
+      
+      History_Panels1_yaxis_name(2) = 'log_L' 
+      History_Panels1_yaxis_reversed(2) = .false.
+      History_Panels1_ymin(2) = -101d0 ! only used if /= -101d0
+      History_Panels1_ymax(2) = -101d0 ! only used if /= -101d0        
+      History_Panels1_dymin(2) = 0.01 
+      
+      History_Panels1_other_yaxis_name(2) = 'log_Teff' 
+      History_Panels1_other_yaxis_reversed(2) = .false.
+      History_Panels1_other_ymin(2) = -101d0 ! only used if /= -101d0
+      History_Panels1_other_ymax(2) = -101d0 ! only used if /= -101d0        
+      History_Panels1_other_dymin(2) = 0.01 
+      
+      History_Panels1_yaxis_name(3) = 'log_dt' 
+      History_Panels1_yaxis_reversed(3) = .false.
+      History_Panels1_ymin(3) = -101d0 ! only used if /= -101d0
+      History_Panels1_ymax(3) = -101d0 ! only used if /= -101d0        
+      History_Panels1_dymin(3) = -1 
+      
+      History_Panels1_other_yaxis_name(3) = 'num_zones' 
+      History_Panels1_other_yaxis_reversed(3) = .false.
+      History_Panels1_other_ymin(3) = -101d0 ! only used if /= -101d0
+      History_Panels1_other_ymax(3) = -101d0 ! only used if /= -101d0        
+      History_Panels1_other_dymin(3) = -1 
+      
+      ! file output
+      History_Panels1_file_flag = .false.
+      History_Panels1_file_dir = 'png'
+      History_Panels1_file_prefix = 'History_Panels1_'
+      History_Panels1_file_cnt = 5 ! output when mod(model_number,History_Panels1_file_cnt)==0
+      History_Panels1_file_width = -1 ! (inches) negative means use same value as for window
+      History_Panels1_file_aspect_ratio = -1 ! negative means use same value as for window
+         
+      
+
+/ ! end of pgstar namelist

@@ -1,0 +1,6 @@
+var searchData=
+[
+  ['h_5fl_5frgb_0',['h_l_rgb',['../bump___d_p_8cpp.html#a68f066f21a116c30448ba2ef92101dcf',1,'h_l_rgb(const VectorXd &amp;ksi_pg, const long double factor):&#160;bump_DP.cpp'],['../bump___d_p_8h.html#af2c893531aae9f2b772591ea66b57a7d',1,'h_l_rgb(const VectorXd &amp;ksi_pg, const long double factor=1.0):&#160;bump_DP.cpp']]],
+  ['harvey1985_1',['harvey1985',['../noise__models_8cpp.html#a56e54edb40d8c36e4ba9d87389b3f3bf',1,'harvey1985(const VectorXd &amp;noise_params, const VectorXd &amp;x, const VectorXd &amp;y, const int Nharvey):&#160;noise_models.cpp'],['../noise__models_8h.html#a56e54edb40d8c36e4ba9d87389b3f3bf',1,'harvey1985(const VectorXd &amp;noise_params, const VectorXd &amp;x, const VectorXd &amp;y, const int Nharvey):&#160;noise_models.cpp']]],
+  ['harvey_5flike_2',['harvey_like',['../noise__models_8cpp.html#a2ed93d49c88ecbff1565e9a70b8490b4',1,'harvey_like(const VectorXd &amp;noise_params, const VectorXd &amp;x, const VectorXd &amp;y, const int Nharvey):&#160;noise_models.cpp'],['../noise__models_8h.html#a2ed93d49c88ecbff1565e9a70b8490b4',1,'harvey_like(const VectorXd &amp;noise_params, const VectorXd &amp;x, const VectorXd &amp;y, const int Nharvey):&#160;noise_models.cpp']]]
+];

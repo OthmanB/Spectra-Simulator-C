@@ -4,18 +4,28 @@
  *  Created on: 11 Feb 2016
  *      Author: obenomar
  */
+/**
+ * @file function_rot.cpp
+ * @brief Functions that compute the mode heights from the stellar inclination.
+ * 
+ * 
+ * @date 11 Feb 2016
+ * @author obenomar
+ */ 
+
 #include <math.h>
 #include <Eigen/Dense>
-//#include "function_rot.h"
+#include "function_rot.h"
 
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
-
+/*
 double combi(int n, int r);
 double dmm(int l, int m1, int m2, double beta);
 int factorial(int n);
 MatrixXd function_rot( int l, double beta);
 VectorXd amplitude_ratio(int l, double beta);
+*/
 
 VectorXd amplitude_ratio(int l, double beta){
 /* Main function that calculates the mode visibilities
@@ -56,25 +66,21 @@ MatrixXd function_rot(int l, double beta){
 			mat(i+l,j+l)=dmm(l, i, j, beta);
 		}
 	}
-
 	for(int i=-l; i<=0 ; i++){
 		for(int j=i; j<= -i; j++){
 			mat(i+l,j+l)=mat(-i+l,-j+l)*pow(-1, i-j);
 		}
 	}
-
 	for(int j=0; j<=l; j++){
 		for(int i=-j; i<= j; i++){
 			mat(i+l,j+l)=dmm(l, j, i, -beta);
 		}
 	}
-
 	for(int j=-l; j<=0; j++){
 		for(int i=j; i<= -j; i++){
 			mat(i+l,j+l)=mat(-i+l,-j+l)*pow(-1, i-j);
 		}
 	}
-
 	return mat;
 }
 
