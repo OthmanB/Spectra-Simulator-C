@@ -1,0 +1,367 @@
+import os
+import shutil
+import subprocess
+import tempfile
+import unittest
+from pathlib import Path
+
+
+def run(cmd, cwd=None, timeout=None):
+    p = subprocess.run(
+        cmd,
+        cwd=cwd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        timeout=timeout,
+    )
+    return p.returncode, p.stdout
+
+
+def parse_spectrum_file(path: Path):
+    freqs = []
+    with path.open("r", encoding="utf-8", errors="replace") as f:
+        for line in f:
+            if not line.strip() or line.lstrip().startswith("#"):
+                continue
+            parts = line.split()
+            if len(parts) < 2:
+                continue
+            freqs.append(float(parts[0]))
+    return freqs
+
+
+class TestSpecsimPhase0Integration(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.repo_root = Path(__file__).resolve().parents[1]
+        cls.build_dir = cls.repo_root / "build-phase0-tests"
+        cls.build_dir.mkdir(parents=True, exist_ok=True)
+
+        # Build specsim once for the test suite.
+        rc, out = run(["cmake", "-S", str(cls.repo_root), "-B", str(cls.build_dir)])
+        if rc != 0:
+            raise RuntimeError("CMake configure failed:\n" + out)
+        rc, out = run(["cmake", "--build", str(cls.build_dir), "-j"])
+        if rc != 0:
+            raise RuntimeError("CMake build failed:\n" + out)
+
+        cls.specsim = cls.build_dir / "specsim"
+        if not cls.specsim.exists():
+            raise RuntimeError(f"specsim binary not found at {cls.specsim}")
+
+        cls.smoke_mod = __import__("scripts.smoke_test", fromlist=["patch_main_cfg"])
+
+    def _make_sandbox(self):
+        td = tempfile.TemporaryDirectory(prefix="specsim-phase0-it-")
+        root = Path(td.name)
+
+        # minimal runtime tree under the sandbox
+        (root / "Configurations").mkdir(parents=True, exist_ok=True)
+
+        # templates are required for evolved-star configs
+        (root / "Configurations" / "templates").symlink_to(
+            self.repo_root / "Configurations" / "templates"
+        )
+
+        # noise cfg may be referenced by CLI
+        shutil.copy2(
+            self.repo_root / "Configurations" / "noise_Kallinger2014.cfg",
+            root / "Configurations" / "noise_Kallinger2014.cfg",
+        )
+
+        # external directory is used for some mixed-mode metadata files (writes are non-critical)
+        (root / "external").symlink_to(self.repo_root / "external")
+
+        # ensure tmp dir does NOT exist initially (this is what Phase 0 fixes)
+        tmp_dir = root / "Configurations" / "tmp"
+        if tmp_dir.exists():
+            shutil.rmtree(tmp_dir)
+
+        return td, root
+
+    def _run_cfg_in_sandbox(
+        self,
+        example_cfg: Path,
+        fixed_template: str,
+        tobs_days: float = 2.0,
+        cadence_sec: float = 120.0,
+    ):
+        patch_main_cfg = getattr(self.smoke_mod, "patch_main_cfg")
+
+        td, root = self._make_sandbox()
+        out_dir = root / "out"
+
+        patched_lines = patch_main_cfg(
+            example_cfg,
+            repo_root=self.repo_root,
+            fixed_template=fixed_template,
+            tobs_days=tobs_days,
+            cadence_sec=cadence_sec,
+            nspectra=1,
+            nrealisation=1,
+            disable_plots=True,
+            disable_modelfiles=True,
+        )
+        patched_cfg = root / "main.cfg"
+        patched_cfg.write_text("".join(patched_lines), encoding="utf-8")
+
+        cmd = [
+            str(self.specsim),
+            "--main_file",
+            str(patched_cfg),
+            "--noise_file",
+            str(root / "Configurations" / "noise_Kallinger2014.cfg"),
+            "--out_dir",
+            str(out_dir),
+            "--force-create-output-dir",
+            "1",
+        ]
+        rc, out = run(cmd, cwd=root, timeout=600)
+        return td, root, out_dir, patched_cfg, rc, out
+
+    def _run_cfg_text_in_sandbox(self, cfg_text: str):
+        td, root = self._make_sandbox()
+        out_dir = root / "out"
+        cfg_path = root / "main.cfg"
+        cfg_path.write_text(cfg_text, encoding="utf-8")
+
+        cmd = [
+            str(self.specsim),
+            "--main_file",
+            str(cfg_path),
+            "--noise_file",
+            str(root / "Configurations" / "noise_Kallinger2014.cfg"),
+            "--out_dir",
+            str(out_dir),
+            "--force-create-output-dir",
+            "1",
+        ]
+        rc, out = run(cmd, cwd=root, timeout=600)
+        return td, root, out_dir, cfg_path, rc, out
+
+    def test_tmp_dir_created_and_combinations_path(self):
+        example_cfg = self.repo_root / "Configurations" / "examples_cfg" / "main.cfg.aj"
+        td, root, out_dir, patched_cfg, rc, out = self._run_cfg_in_sandbox(
+            example_cfg, fixed_template="12508433.template"
+        )
+        try:
+            self.assertEqual(rc, 0, msg=out)
+
+            # tmp dir created
+            self.assertTrue((root / "Configurations" / "tmp").is_dir())
+
+            # Combinations.txt is inside out_dir
+            self.assertTrue((out_dir / "Combinations.txt").exists())
+
+            # Old bug path must not exist
+            bug_path = Path(str(out_dir) + "Combinations.txt")
+            if bug_path != (out_dir / "Combinations.txt"):
+                self.assertFalse(bug_path.exists())
+
+            # Output directories exist
+            for sub in (
+                "Spectra_ascii",
+                "Spectra_info",
+                "Spectra_modelfile",
+                "Spectra_plot",
+            ):
+                self.assertTrue((out_dir / sub).is_dir())
+
+            # At least one spectrum file and one info file
+            spectra = list((out_dir / "Spectra_ascii").glob("*.data"))
+            infos = list((out_dir / "Spectra_info").glob("*.in"))
+            self.assertTrue(spectra)
+            self.assertTrue(infos)
+
+        finally:
+            td.cleanup()
+
+    def test_frequency_grid_invariants(self):
+        # Use a simple MS model for deterministic frequency axis properties.
+        tobs_days = 2.0
+        cadence_sec = 120.0
+        Delta = 1e6 / cadence_sec / 2.0
+        df = 1e6 / (tobs_days * 86400.0)
+        expected_n = int(Delta / df)
+
+        example_cfg = self.repo_root / "Configurations" / "examples_cfg" / "main.cfg.aj"
+        td, root, out_dir, patched_cfg, rc, out = self._run_cfg_in_sandbox(
+            example_cfg,
+            fixed_template="12508433.template",
+            tobs_days=tobs_days,
+            cadence_sec=cadence_sec,
+        )
+        try:
+            self.assertEqual(rc, 0, msg=out)
+            spectra = sorted((out_dir / "Spectra_ascii").glob("*.data"))
+            self.assertTrue(spectra)
+
+            freqs = parse_spectrum_file(spectra[0])
+            self.assertTrue(freqs)
+
+            # Invariants
+            self.assertAlmostEqual(freqs[0], 0.0, places=6)
+            self.assertAlmostEqual(freqs[-1], Delta, places=4)
+            self.assertTrue(all(freqs[i] < freqs[i + 1] for i in range(len(freqs) - 1)))
+
+            # Size is as per implementation (integer truncation)
+            self.assertEqual(len(freqs), expected_n)
+
+            # Spacing is (approximately) constant
+            steps = [freqs[i + 1] - freqs[i] for i in range(len(freqs) - 1)]
+            self.assertGreater(len(steps), 10)
+            self.assertLess(max(steps) - min(steps), 1e-3)
+        finally:
+            td.cleanup()
+
+    def test_evolved_model_smoke(self):
+        # Evolved-star pipeline: requires templates and Kallinger noise aggregation.
+        example_cfg = (
+            self.repo_root
+            / "Configurations"
+            / "examples_cfg"
+            / "main.cfg.freeDP_curvepmodes.v3_GRANscaled"
+        )
+        td, root, out_dir, patched_cfg, rc, out = self._run_cfg_in_sandbox(
+            example_cfg,
+            fixed_template="12508433.template",
+            tobs_days=2.0,
+            cadence_sec=120.0,
+        )
+        try:
+            self.assertEqual(rc, 0, msg=out)
+            self.assertTrue((out_dir / "Combinations.txt").exists())
+            spectra = list((out_dir / "Spectra_ascii").glob("*.data"))
+            infos = list((out_dir / "Spectra_info").glob("*.in"))
+            self.assertTrue(spectra)
+            self.assertTrue(infos)
+        finally:
+            td.cleanup()
+
+    def test_validation_rejects_mismatched_vector_sizes(self):
+        # labels has 2 entries but val_min has 1 -> must fail fast in read_main_cfg
+        infile = self.repo_root / "Configurations" / "infiles" / "8379927.in"
+        self.assertTrue(infile.exists())
+
+        cfg_text = "".join(
+            [
+                "random 1\n",
+                f"generate_cfg_from_synthese_file_Wscaled_aj {infile}\n",
+                "NONE\n",
+                "Dnu epsilon\n",
+                "70\n",
+                "70 0.5\n",
+                "0 0\n",
+                "Tobs Cadence Naverage Nrealisation\n",
+                "2 120 1 1\n",
+                "1\n",
+                "0\n",
+                "0\n",
+                "0\n",
+                "0\n",
+            ]
+        )
+        td, root, out_dir, cfg_path, rc, out = self._run_cfg_text_in_sandbox(cfg_text)
+        try:
+            self.assertNotEqual(rc, 0)
+            self.assertIn("different size", out)
+        finally:
+            td.cleanup()
+
+    def test_validation_rejects_duplicate_labels(self):
+        # Create a valid minimal config, then duplicate a label.
+        example_cfg = self.repo_root / "Configurations" / "examples_cfg" / "main.cfg.aj"
+        td, root, out_dir, patched_cfg, rc, out = self._run_cfg_in_sandbox(
+            example_cfg, fixed_template="12508433.template"
+        )
+        try:
+            self.assertEqual(rc, 0, msg=out)
+
+            # mutate labels line: replace 'epsilon' with 'Dnu' to create duplicates
+            lines = patched_cfg.read_text(
+                encoding="utf-8", errors="replace"
+            ).splitlines(True)
+            idx = None
+            for i, line in enumerate(lines):
+                if "delta0l_percent" in line and not line.lstrip().startswith("#"):
+                    idx = i
+                    break
+            self.assertIsNotNone(idx)
+
+            lhs, sep, comment = lines[idx].partition("#")
+            toks = lhs.split()
+            self.assertGreaterEqual(len(toks), 2)
+            toks[1] = "Dnu"
+            new_lhs = " ".join(toks)
+            lines[idx] = new_lhs + (" " + sep + comment if sep else "\n")
+            patched_cfg.write_text("".join(lines), encoding="utf-8")
+
+            # rerun
+            cmd = [
+                str(self.specsim),
+                "--main_file",
+                str(patched_cfg),
+                "--noise_file",
+                str(root / "Configurations" / "noise_Kallinger2014.cfg"),
+                "--out_dir",
+                str(out_dir),
+                "--force-create-output-dir",
+                "1",
+            ]
+            rc2, out2 = run(cmd, cwd=root, timeout=600)
+            self.assertNotEqual(rc2, 0)
+            self.assertIn("Duplicate labels", out2)
+            self.assertIn("Dnu", out2)
+        finally:
+            td.cleanup()
+
+    def test_validation_rejects_missing_or_extra_labels(self):
+        # Create a valid minimal config, then introduce a typo.
+        example_cfg = self.repo_root / "Configurations" / "examples_cfg" / "main.cfg.aj"
+        td, root, out_dir, patched_cfg, rc, out = self._run_cfg_in_sandbox(
+            example_cfg, fixed_template="12508433.template"
+        )
+        try:
+            self.assertEqual(rc, 0, msg=out)
+
+            lines = patched_cfg.read_text(
+                encoding="utf-8", errors="replace"
+            ).splitlines(True)
+            idx = None
+            for i, line in enumerate(lines):
+                if "delta0l_percent" in line and not line.lstrip().startswith("#"):
+                    idx = i
+                    break
+            self.assertIsNotNone(idx)
+
+            lhs, sep, comment = lines[idx].partition("#")
+            toks = lhs.split()
+            toks = [
+                "delta0l_percent_typo" if t == "delta0l_percent" else t for t in toks
+            ]
+            new_lhs = " ".join(toks)
+            lines[idx] = new_lhs + (" " + sep + comment if sep else "\n")
+            patched_cfg.write_text("".join(lines), encoding="utf-8")
+
+            cmd = [
+                str(self.specsim),
+                "--main_file",
+                str(patched_cfg),
+                "--noise_file",
+                str(root / "Configurations" / "noise_Kallinger2014.cfg"),
+                "--out_dir",
+                str(out_dir),
+                "--force-create-output-dir",
+                "1",
+            ]
+            rc2, out2 = run(cmd, cwd=root, timeout=600)
+            self.assertNotEqual(rc2, 0)
+            self.assertIn("Missing labels", out2)
+            self.assertIn("delta0l_percent", out2)
+        finally:
+            td.cleanup()
+
+
+if __name__ == "__main__":
+    unittest.main()

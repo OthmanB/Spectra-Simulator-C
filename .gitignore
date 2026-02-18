@@ -30,3 +30,10 @@
 *.exe
 *.out
 *.app
+
+# Build and runtime outputs
+build/
+build-*/
+Data/
+Configurations/tmp/
+dir.list

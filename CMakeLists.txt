@@ -94,9 +94,12 @@ set(SOURCES_TEST_LORENTZIAN
 
 
 # Check and Load dependencies
-find_package(Gnuplot REQUIRED)
+# NOTE: gnuplot is only required at *runtime* when plots are requested (doplots=1).
+# Some environments (CI, minimal containers) can build and run the simulator with doplots=0
+# without having the gnuplot executable installed. Therefore, we do not hard-require it here.
+find_package(Gnuplot)
 if(NOT GNUPLOT_FOUND)
-	message(FATAL_ERROR "Gnuplot is required for rendering. Cannot pursue. Please install gnuplot")
+	message(WARNING "Gnuplot executable not found. Plotting will fail if doplots=1. Install gnuplot or run with doplots=0")
 endif()
 
 if (WITH_OPENMP)
@@ -116,20 +119,54 @@ endif()
 include_directories()
 
 
-#Dependencies that are not portable (BOOST)
-set(Boost_USE_MULTITHREADED=OFF)
-find_package(Boost COMPONENTS system filesystem iostreams program_options REQUIRED)
-include_directories(${Boost_INCLUDE_DIRS})
-link_directories(${Boost_LIBRARY_DIRS})
+# Dependencies that are not portable (BOOST)
+#
+# Note: CMake >= 4 removed FindBoost. Some Boost distributions (e.g. Homebrew)
+# ship only `BoostConfig.cmake` without per-component `boost_<component>Config.cmake`
+# files. In that case, `find_package(Boost COMPONENTS ...)` fails.
+#
+# To keep builds working across environments, we locate Boost headers and the
+# required component libraries manually.
+
+find_path(BOOST_INCLUDE_DIR boost/filesystem.hpp)
+if(NOT BOOST_INCLUDE_DIR)
+	message(FATAL_ERROR "Boost headers not found (expected boost/filesystem.hpp). Install Boost or set CMAKE_PREFIX_PATH.")
+endif()
+
+find_library(BOOST_FILESYSTEM_LIBRARY NAMES boost_filesystem)
+find_library(BOOST_PROGRAM_OPTIONS_LIBRARY NAMES boost_program_options)
+find_library(BOOST_IOSTREAMS_LIBRARY NAMES boost_iostreams)
+find_library(BOOST_SYSTEM_LIBRARY NAMES boost_system)
+
+if(NOT BOOST_FILESYSTEM_LIBRARY)
+	message(FATAL_ERROR "Boost.Filesystem library not found (libboost_filesystem).")
+endif()
+if(NOT BOOST_PROGRAM_OPTIONS_LIBRARY)
+	message(FATAL_ERROR "Boost.ProgramOptions library not found (libboost_program_options).")
+endif()
+if(NOT BOOST_IOSTREAMS_LIBRARY)
+	message(FATAL_ERROR "Boost.Iostreams library not found (libboost_iostreams).")
+endif()
+
+set(BOOST_LIBRARIES
+	${BOOST_FILESYSTEM_LIBRARY}
+	${BOOST_PROGRAM_OPTIONS_LIBRARY}
+	${BOOST_IOSTREAMS_LIBRARY}
+)
+if(BOOST_SYSTEM_LIBRARY)
+	list(APPEND BOOST_LIBRARIES ${BOOST_SYSTEM_LIBRARY})
+endif()
+
+include_directories(${BOOST_INCLUDE_DIR})
 
 add_executable(${CMAKE_PROJECT_NAME}  ${SOURCES_MAIN})
 if(MACOS)
   find_package(Eigen3 REQUIRED NO_MODULE)
   target_compile_definitions(${CMAKE_PROJECT_NAME}  PRIVATE MACOS)
-  target_link_libraries(${CMAKE_PROJECT_NAME}  Eigen3::Eigen  ${Boost_LIBRARIES} "-framework CoreFoundation")
+  target_link_libraries(${CMAKE_PROJECT_NAME}  Eigen3::Eigen  ${BOOST_LIBRARIES} "-framework CoreFoundation")
 elseif(LINUX)
   #Look for eigen and explicitly specify to use it. EIGEN3_INCLUDE_DIR Must be specified in the bashrc
   include_directories( "$ENV{EIGEN3_INCLUDE_DIR}" )
   target_compile_definitions(${CMAKE_PROJECT_NAME}  PRIVATE LINUX)
-  target_link_libraries(${CMAKE_PROJECT_NAME}  ${Boost_LIBRARIES}  rt)
+  target_link_libraries(${CMAKE_PROJECT_NAME}  ${BOOST_LIBRARIES}  rt)
 endif()

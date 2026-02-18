@@ -1047,14 +1047,20 @@ Config_Data read_main_cfg(std::string cfg_file){
 		exit(EXIT_FAILURE);
 
 	}
-	if(cfg.step.size() != cfg.val_min.size() && cfg.step.size() != cfg.val_max.size()){
-		std::cout << "The configuration file contains input vectors (val_min, val_max, step) of different size" << std::endl;
-		std::cout << "The input vectors must gave the same size!" << std::endl;
+	// Basic size validation for vector-like parameters.
+	// NOTE: config-driven models assume these vectors have the same length and match cfg.labels.
+	if(cfg.labels.size() == 0 ||
+		cfg.val_min.size() != cfg.labels.size() ||
+		cfg.val_max.size() != cfg.labels.size() ||
+		cfg.step.size() != cfg.labels.size()){
+		std::cout << "The configuration file contains input vectors (labels, val_min, val_max, step) of different size" << std::endl;
+		std::cout << "The input vectors must have the same size!" << std::endl;
 		std::cout << "Please check your configuration file" << std::endl;
 		std::cout << "The program will stop now" << std::endl;
-		std::cout << "cfg.step.size()=" <<  cfg.step.size() << std::endl;
+		std::cout << "cfg.labels.size()=" << cfg.labels.size() << std::endl;
 		std::cout << "cfg.val_min.size()=" << cfg.val_min.size() << std::endl;
 		std::cout << "cfg.val_max.size()=" << cfg.val_max.size() << std::endl;
+		std::cout << "cfg.step.size()=" <<  cfg.step.size() << std::endl;
 		exit(EXIT_FAILURE);
 	}	
 	// ------- Verbose setup ------
@@ -1309,4 +1315,3 @@ void file_read_error(std::string file_out){
 		std::cout << " The program will exit now" << std::endl;
 		exit(EXIT_FAILURE);
 }
-

@@ -23,10 +23,15 @@
 #include <iomanip>
 #include <fstream>
 #include <string>
+#include <sstream>
+#include <unordered_map>
+#include <unordered_set>
+#include <cmath>
 #include <Eigen/Dense>
 #include <boost/random.hpp>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/program_options.hpp>
+#include <boost/filesystem.hpp>
 #include "artificial_spectrum.h"
 #include "models_database.h"
 #include "models_database_grid.h"
@@ -213,6 +218,158 @@ bool call_model_grid(std::string model_name, VectorXd input_params, Model_data i
  */
 std::vector<std::string> list_dir(const std::string path, const std::string filter);
 
+static void cfg_validation_fail(const std::string& cfg_file, const Config_Data& cfg, const std::string& stage, const std::string& msg){
+	std::cerr << "Configuration validation failed" << std::endl;
+	std::cerr << "  stage     : " << stage << std::endl;
+	std::cerr << "  cfg_file  : " << cfg_file << std::endl;
+	std::cerr << "  model_name: " << cfg.model_name << std::endl;
+	std::cerr << "  details   : " << msg << std::endl;
+	exit(EXIT_FAILURE);
+}
+
+static void validate_cfg_vector_sizes(const Config_Data& cfg, const std::string& cfg_file, const std::string& stage){
+	const size_t n = cfg.labels.size();
+	if(n == 0){
+		cfg_validation_fail(cfg_file, cfg, stage, "cfg.labels is empty");
+	}
+	if(cfg.val_min.size() != n || cfg.val_max.size() != n || cfg.step.size() != n || cfg.distrib.size() != n){
+		std::ostringstream oss;
+		oss << "Vector sizes mismatch: labels=" << n
+			<< " val_min=" << cfg.val_min.size()
+			<< " val_max=" << cfg.val_max.size()
+			<< " step=" << cfg.step.size()
+			<< " distrib=" << cfg.distrib.size();
+		cfg_validation_fail(cfg_file, cfg, stage, oss.str());
+	}
+}
+
+static void validate_cfg_forest_params(const Config_Data& cfg, const std::string& cfg_file, const std::string& stage){
+	if(cfg.forest_params.size() < 1){
+		cfg_validation_fail(cfg_file, cfg, stage, "cfg.forest_params is empty (expected at least one value)");
+	}
+	if(cfg.forest_type == "random"){
+		if(cfg.forest_params[0] <= 0){
+			cfg_validation_fail(cfg_file, cfg, stage, "random forest requires forest_params[0] > 0 (number of samples)");
+		}
+	}
+}
+
+static void validate_cfg_step_semantics(const Config_Data& cfg, const std::string& cfg_file, const std::string& stage){
+	if(cfg.forest_type == "random"){
+		for(size_t i=0; i<cfg.step.size(); i++){
+			const double s = cfg.step[i];
+			const bool is0 = std::abs(s - 0.0) < 1e-12;
+			const bool is1 = std::abs(s - 1.0) < 1e-12;
+			if(!is0 && !is1){
+				std::ostringstream oss;
+				oss << "random forest requires step values in {0,1}. Found step=" << s
+					<< " for label='" << cfg.labels[i] << "' (index " << i << ")";
+				cfg_validation_fail(cfg_file, cfg, stage, oss.str());
+			}
+		}
+	}
+}
+
+static void validate_cfg_labels_unique(const Config_Data& cfg, const std::string& cfg_file, const std::string& stage){
+	std::unordered_map<std::string, int> counts;
+	for(const auto& s : cfg.labels){
+		counts[s] += 1;
+	}
+	std::vector<std::string> dups;
+	dups.reserve(cfg.labels.size());
+	for(const auto& kv : counts){
+		if(kv.second > 1){
+			dups.push_back(kv.first);
+		}
+	}
+	if(!dups.empty()){
+		std::ostringstream oss;
+		oss << "Duplicate labels are not allowed. Duplicates:";
+		for(const auto& d : dups){
+			oss << " " << d;
+		}
+		cfg_validation_fail(cfg_file, cfg, stage, oss.str());
+	}
+}
+
+static void validate_cfg_for_model(const Config_Data& cfg, const std::string& cfg_file, const std::string& stage, const std::vector<std::string>& param_names){
+	// param_names is the canonical ordered list expected by the code for the selected model.
+	if(param_names.size() != cfg.labels.size()){
+		std::unordered_set<std::string> provided(cfg.labels.begin(), cfg.labels.end());
+		std::unordered_set<std::string> expected(param_names.begin(), param_names.end());
+
+		std::vector<std::string> missing;
+		std::vector<std::string> extra;
+		missing.reserve(param_names.size());
+		extra.reserve(cfg.labels.size());
+
+		for(const auto& p : param_names){
+			if(provided.find(p) == provided.end()){
+				missing.push_back(p);
+			}
+		}
+		for(const auto& l : cfg.labels){
+			if(expected.find(l) == expected.end()){
+				extra.push_back(l);
+			}
+		}
+
+		std::ostringstream oss;
+		oss << "Parameter list mismatch for model. expected=" << param_names.size() << " provided=" << cfg.labels.size();
+		if(!missing.empty()){
+			oss << "\n  Missing labels:";
+			for(const auto& m : missing){ oss << " " << m; }
+		}
+		if(!extra.empty()){
+			oss << "\n  Extra labels:";
+			for(const auto& e : extra){ oss << " " << e; }
+		}
+		oss << "\n  Expected (ordered):";
+		for(const auto& p : param_names){ oss << " " << p; }
+		oss << "\n  Provided:";
+		for(const auto& l : cfg.labels){ oss << " " << l; }
+		cfg_validation_fail(cfg_file, cfg, stage, oss.str());
+	}
+
+	// Size matches; now verify set equality and duplicates.
+	validate_cfg_labels_unique(cfg, cfg_file, stage);
+	std::unordered_set<std::string> provided(cfg.labels.begin(), cfg.labels.end());
+	std::unordered_set<std::string> expected(param_names.begin(), param_names.end());
+
+	std::vector<std::string> missing;
+	std::vector<std::string> extra;
+	missing.reserve(param_names.size());
+	extra.reserve(cfg.labels.size());
+
+	for(const auto& p : param_names){
+		if(provided.find(p) == provided.end()){
+			missing.push_back(p);
+		}
+	}
+	for(const auto& l : cfg.labels){
+		if(expected.find(l) == expected.end()){
+			extra.push_back(l);
+		}
+	}
+	if(!missing.empty() || !extra.empty()){
+		std::ostringstream oss;
+		oss << "Parameter names do not match the selected model";
+		if(!missing.empty()){
+			oss << "\n  Missing labels:";
+			for(const auto& m : missing){ oss << " " << m; }
+		}
+		if(!extra.empty()){
+			oss << "\n  Extra labels:";
+			for(const auto& e : extra){ oss << " " << e; }
+		}
+		oss << "\n  Expected (ordered):";
+		for(const auto& p : param_names){ oss << " " << p; }
+		oss << "\n  Provided:";
+		for(const auto& l : cfg.labels){ oss << " " << l; }
+		cfg_validation_fail(cfg_file, cfg, stage, oss.str());
+	}
+}
+
 
 void iterative_artificial_spectrum(const std::string dir_core, const std::string cfg_file, const std::string cfg_noise_file, const std::string data_out_path){
 /*
@@ -238,19 +395,38 @@ void iterative_artificial_spectrum(const std::string dir_core, const std::string
 	file_out_modes=dir_core + "Configurations/tmp/modes_tmp.cfg";
 	file_out_noise=dir_core + "Configurations/tmp/noise_tmp.cfg";
 	file_cfg_mm=dir_core + "Configurations/MixedModes_models/star_params.theoretical"; // This is for models of Evolved stars. Used only when the user has already a set of frequencies and want to use them to compute a model
+
+	// Ensure the temporary configuration directory exists.
+	// Several generators write into Configurations/tmp/*.cfg and will fail if the directory is missing.
+	{
+		boost::filesystem::path tmp_dir(dir_core + "Configurations/tmp");
+		if (!boost::filesystem::exists(tmp_dir)) {
+			try {
+				boost::filesystem::create_directories(tmp_dir);
+			} catch (const std::exception& e) {
+				std::cerr << "Error creating temporary directory: " << tmp_dir.string() << "\n";
+				std::cerr << "Reason: " << e.what() << std::endl;
+				exit(EXIT_FAILURE);
+			}
+		}
+	}
 	
 	if(data_out_path == ""){
 		data_path=dir_core + "/Data/";
 	} else{
 		data_path=data_out_path;
 	}
-	file_out_combi=data_path + "Combinations.txt";
+	file_out_combi=data_path + "/Combinations.txt";
 
 	std::string dir_freqs=dir_core + "external/MESA_grid/frequencies/";
 
 	std::cout << "1. Read the configuration file..." << std::endl;
 
 	cfg=read_main_cfg(cfg_file);
+	validate_cfg_vector_sizes(cfg, cfg_file, "read_main_cfg");
+	validate_cfg_forest_params(cfg, cfg_file, "read_main_cfg");
+	validate_cfg_step_semantics(cfg, cfg_file, "read_main_cfg");
+	validate_cfg_labels_unique(cfg, cfg_file, "read_main_cfg");
 	cfg_noise=readNoiseConfigFile(cfg_noise_file); // Used to handle models with a separate noise, essentially the Kallinger+2014 noise 
 
 	std::cout << "---------------------------------------------------------------------------------------" << std::endl;
@@ -386,6 +562,7 @@ void iterative_artificial_spectrum(const std::string dir_core, const std::string
 		// Warning: This model uses the file noise_Kallinger2014.cfg to set the noise parameters
 		const int Nmodel_modes=16;
 		const int Nmodel_noise=14; // 6 Dec 2023: Many of these parameters are in fact generated according to a Gaussian 
+		Nmodel=Nmodel_modes+Nmodel_noise;
 		// Agregate the old configuration with the noise configuration
 		cfg=agregate_maincfg_noisecfg(cfg, cfg_noise);	
 		param_names.push_back("Dnu");
@@ -419,7 +596,7 @@ void iterative_artificial_spectrum(const std::string dir_core, const std::string
 		param_names.push_back("s2");
 		param_names.push_back("c2");
 		param_names.push_back("N0");
-		if(param_names.size() != Nmodel_modes+Nmodel_noise){
+		if(param_names.size() != Nmodel){
 			std::cout << "    Invalid number of parameters for model_name= 'generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled_Kallinger2014'" << std::endl;
 			std::cout << "    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size() << std::endl;
 			std::cout << "    Check your main configuration file" << std::endl;
@@ -806,6 +983,13 @@ void iterative_artificial_spectrum(const std::string dir_core, const std::string
 	// -----------------------------------------------------------
 
 
+	// Validate cfg after any model-specific augmentation (e.g. noise cfg aggregation).
+	validate_cfg_vector_sizes(cfg, cfg_file, "post_model_selection");
+	validate_cfg_forest_params(cfg, cfg_file, "post_model_selection");
+	validate_cfg_step_semantics(cfg, cfg_file, "post_model_selection");
+	validate_cfg_for_model(cfg, cfg_file, "post_model_selection", param_names);
+	Nmodel=static_cast<int>(param_names.size());
+
 	std::cout << "2. Generating the models using the subroutine " << cfg.model_name << " of model_database.cpp..." << std::endl;
 	if(cfg.forest_type == "random"){
 		std::cout << "   Values are randomly generated into a uniform range defined in the main configuration file" << std::endl;
@@ -958,7 +1142,7 @@ Config_Data agregate_maincfg_noisecfg(Config_Data cfg_main, Config_Noise cfg_noi
 		pass=true;
 	}
 	if (cfg.forest_type == "grid"){
-		for (int i=0; i<cfg_noise.name_random.size();i++){
+		for (int i=0; i<cfg_noise.name_grid.size();i++){
 			cfg.labels.push_back(cfg_noise.name_grid[i]);
 			cfg.distrib.push_back(cfg_noise.distrib_grid[i]);
 			cfg.val_min.push_back(cfg_noise.x1_grid[i]);
@@ -973,7 +1157,6 @@ Config_Data agregate_maincfg_noisecfg(Config_Data cfg_main, Config_Noise cfg_noi
 					exit(EXIT_FAILURE);
 			} else{ // In the uniform case, the kerror_grid is used to set the step
 				cfg.step.push_back(cfg_noise.kerror_grid[i]);
-				cfg.step.push_back(1);
 			}
 		}
 		pass=true;

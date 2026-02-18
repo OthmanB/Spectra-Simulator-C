@@ -716,24 +716,40 @@ VectorXd order_input_params(const VectorXd& cte_params, const VectorXd& var_para
 	for(int i=0; i<var_names.size(); i++){
 		names.push_back(var_names[i]);
 	}
+	if(param_names.size() != names.size()){
+		std::cout << "Error in order_input_params(): param_names and cfg labels sizes do not match" << std::endl;
+		std::cout << "    param_names.size() = " << param_names.size() << std::endl;
+		std::cout << "    (cte_names+var_names).size() = " << names.size() << std::endl;
+		std::cout << "    This is likely due to missing/extra labels in the main.cfg file" << std::endl;
+		std::cout << "    Expected (param_names): ";
+		for(size_t k=0; k<param_names.size(); k++){
+			std::cout << param_names[k] << (k+1<param_names.size()?" ":"");
+		}
+		std::cout << std::endl;
+		std::cout << "    Provided (cfg.labels): ";
+		for(size_t k=0; k<names.size(); k++){
+			std::cout << names[k] << (k+1<names.size()?" ":"");
+		}
+		std::cout << std::endl;
+		exit(EXIT_FAILURE);
+	}
 	for(int i=0; i<names.size(); i++){
-		ind=where_strXi(names, strtrim(param_names[i])); // Assumes that only one value matches the criteria
-		if(ind.size() == 1){
+		const std::string expected=strtrim(param_names[i]);
+		ind=where_strXi(names, expected); // Assumes that only one value matches the criteria
+		if(ind.size() == 1 && ind[0] != -1){
 			order[i]=ind[0];
 			input2[i]=input[order[i]];
 	
 		} else {
-			if(ind.size() == 0){
-				std::cout << "Some values of cfg.labels could not be matched with param_names" << std::endl;
-				std::cout << "This is likely due to a mispelling" << std::endl;
-				std::cout << "Debug is required. The program will stop now" << std::endl;
-			} else {
-				std::cout << "Problem when organizing the parameters and varialbe in the correct order" << std::endl;
-				std::cout << "Multiple identical parameter names found" << std::endl;
-				std::cout << "This is prohibited" << std::endl;
-				std::cout << "Debug required: Keywords from the main.cfg must match keywords hardcoded in the program"  << std::endl;
-				std::cout << "The program will stop now" << std::endl;
+			std::cout << "Error in order_input_params(): cannot map expected parameter name to cfg labels" << std::endl;
+			std::cout << "    expected: '" << expected << "'" << std::endl;
+			std::cout << "    number of matches found in cfg.labels: " << (ind.size()==1 && ind[0]==-1 ? 0 : ind.size()) << std::endl;
+			std::cout << "    This is likely due to a misspelling or duplicated labels in the main.cfg file" << std::endl;
+			std::cout << "    cfg.labels: ";
+			for(size_t k=0; k<names.size(); k++){
+				std::cout << names[k] << (k+1<names.size()?" ":"");
 			}
+			std::cout << std::endl;
 			exit(EXIT_FAILURE);
 		}
 	}

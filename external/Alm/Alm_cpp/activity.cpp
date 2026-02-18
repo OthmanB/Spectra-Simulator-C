@@ -6,7 +6,6 @@
 #include "GaussLegendre2D.hpp"
 #include <Eigen/Dense>
 #include "activity.h"
-#include "bilinear_interpol.h"
 
 using Eigen::VectorXd;
 using Eigen::VectorXi;
