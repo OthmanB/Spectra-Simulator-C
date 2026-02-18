@@ -13,7 +13,7 @@ At a high level, each run:
 1. Reads a main configuration (`main.cfg`-style file).
 2. Optionally reads a separate noise configuration (`noise_Kallinger2014.cfg`-style file).
 3. Samples parameters from either:
-   - a random forest (`forest_type = random`), or
+   - a random sampling mode (`forest_type = random`), or
    - a grid (`forest_type = grid`).
 4. Writes spectra and metadata to output subfolders.
 
