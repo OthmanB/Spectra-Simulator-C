@@ -163,6 +163,35 @@ class TestSpecsimPhase0Integration(unittest.TestCase):
 
         return td, root
 
+    def _make_sandbox_with_templates(self, templates):
+        td = tempfile.TemporaryDirectory(prefix="specsim-phase0-it-templates-")
+        root = Path(td.name)
+
+        (root / "Configurations").mkdir(parents=True, exist_ok=True)
+        templates_dir = root / "Configurations" / "templates"
+        templates_dir.mkdir(parents=True, exist_ok=True)
+
+        for item in templates:
+            if isinstance(item, tuple):
+                name, content = item
+                (templates_dir / name).write_text(content, encoding="utf-8")
+            else:
+                src = Path(item)
+                shutil.copy2(src, templates_dir / src.name)
+
+        shutil.copy2(
+            self.repo_root / "Configurations" / "noise_Kallinger2014.cfg",
+            root / "Configurations" / "noise_Kallinger2014.cfg",
+        )
+
+        (root / "external").symlink_to(self.repo_root / "external")
+
+        tmp_dir = root / "Configurations" / "tmp"
+        if tmp_dir.exists():
+            shutil.rmtree(tmp_dir)
+
+        return td, root
+
     def _run_cfg_in_sandbox(
         self,
         example_cfg: Path,
@@ -538,6 +567,124 @@ class TestSpecsimPhase0Integration(unittest.TestCase):
         try:
             self.assertEqual(rc, 0, msg=out)
             self.assertIn("delta0l_percent is negative", out)
+        finally:
+            td.cleanup()
+
+    def test_template_validation_skips_invalid(self):
+        valid_template = (
+            self.repo_root / "Configurations" / "templates" / "12508433.template"
+        )
+        self.assertTrue(valid_template.exists())
+
+        invalid_template = (
+            "bad.template",
+            "".join(
+                [
+                    "# invalid template for testing\n",
+                    "ID_ref= bad\n",
+                    "Dnu_ref= 10\n",
+                    "epsilon_ref= 1\n",
+                    "numax_ref= 100\n",
+                    "# Frequency Height Width\n",
+                    "100.0 0.1\n",
+                ]
+            ),
+        )
+
+        td, root = self._make_sandbox_with_templates([valid_template, invalid_template])
+        try:
+            example_cfg = (
+                self.repo_root
+                / "Configurations"
+                / "examples_cfg"
+                / "main.cfg.freeDP_curvepmodes.v3_GRANscaled"
+            )
+            patch_main_cfg = getattr(self.smoke_mod, "patch_main_cfg")
+            patched_lines = patch_main_cfg(
+                example_cfg,
+                repo_root=self.repo_root,
+                fixed_template="all",
+                tobs_days=2.0,
+                cadence_sec=120.0,
+                nspectra=1,
+                nrealisation=1,
+                disable_plots=True,
+                disable_modelfiles=True,
+            )
+            patched_cfg = root / "main.cfg"
+            patched_cfg.write_text("".join(patched_lines), encoding="utf-8")
+
+            cmd = [
+                str(self.specsim),
+                "--main_file",
+                str(patched_cfg),
+                "--noise_file",
+                str(root / "Configurations" / "noise_Kallinger2014.cfg"),
+                "--out_dir",
+                str(root / "out"),
+                "--force-create-output-dir",
+                "1",
+            ]
+            rc, out = run(cmd, cwd=root, timeout=600)
+            self.assertEqual(rc, 0, msg=out)
+            self.assertIn("Skipping invalid template file", out)
+            self.assertIn("bad.template", out)
+        finally:
+            td.cleanup()
+
+    def test_template_validation_all_invalid_fails(self):
+        invalid_template = (
+            "bad.template",
+            "".join(
+                [
+                    "# invalid template for testing\n",
+                    "ID_ref= bad\n",
+                    "Dnu_ref= 10\n",
+                    "epsilon_ref= 1\n",
+                    "numax_ref= 100\n",
+                    "# Frequency Height Width\n",
+                    "100.0 0.1\n",
+                ]
+            ),
+        )
+
+        td, root = self._make_sandbox_with_templates([invalid_template])
+        try:
+            example_cfg = (
+                self.repo_root
+                / "Configurations"
+                / "examples_cfg"
+                / "main.cfg.freeDP_curvepmodes.v3_GRANscaled"
+            )
+            patch_main_cfg = getattr(self.smoke_mod, "patch_main_cfg")
+            patched_lines = patch_main_cfg(
+                example_cfg,
+                repo_root=self.repo_root,
+                fixed_template="all",
+                tobs_days=2.0,
+                cadence_sec=120.0,
+                nspectra=1,
+                nrealisation=1,
+                disable_plots=True,
+                disable_modelfiles=True,
+            )
+            patched_cfg = root / "main.cfg"
+            patched_cfg.write_text("".join(patched_lines), encoding="utf-8")
+
+            cmd = [
+                str(self.specsim),
+                "--main_file",
+                str(patched_cfg),
+                "--noise_file",
+                str(root / "Configurations" / "noise_Kallinger2014.cfg"),
+                "--out_dir",
+                str(root / "out"),
+                "--force-create-output-dir",
+                "1",
+            ]
+            rc, out = run(cmd, cwd=root, timeout=600)
+            self.assertNotEqual(rc, 0)
+            self.assertIn("No valid template files found", out)
         finally:
             td.cleanup()
 

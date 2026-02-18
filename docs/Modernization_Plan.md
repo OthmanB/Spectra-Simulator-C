@@ -237,15 +237,12 @@ Tasks:
 
 4) Optional follow-up (separate iteration): clean/fix the shipped template files themselves.
 
-Tests (plan):
+Tests (implemented):
 
-- Unit:
-  - `validate_template_file()` accepts valid templates and rejects malformed ones (wrong columns, missing keywords)
-- Integration:
-  - evolved model with `template_files=all`:
-    - skips invalid templates with warnings
-    - succeeds if at least one valid template exists
-    - fails clearly if none are valid
+- Integration / property (black-box):
+  - `tests/test_specsim_phase0_integration.py` includes:
+    - `test_template_validation_skips_invalid` (skips invalid template with warning, succeeds with a valid one)
+    - `test_template_validation_all_invalid_fails` (fails clearly when no valid templates remain)
 
 
 ## Phase 5: Portability + Robustness Improvements

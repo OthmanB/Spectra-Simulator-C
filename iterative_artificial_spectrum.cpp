@@ -26,6 +26,8 @@
 #include <sstream>
 #include <unordered_map>
 #include <unordered_set>
+#include <algorithm>
+#include <cctype>
 #include <cmath>
 #include <Eigen/Dense>
 #include <boost/random.hpp>
@@ -385,6 +387,152 @@ static void warn_negative_delta0l_percent(const Config_Data& cfg, const std::str
 			break;
 		}
 	}
+}
+
+static std::string to_lower_copy(const std::string& input){
+	std::string out=input;
+	std::transform(out.begin(), out.end(), out.begin(), [](unsigned char c){ return static_cast<char>(std::tolower(c)); });
+	return out;
+}
+
+static bool is_none_token(const std::string& value){
+	const std::string v=to_lower_copy(strtrim(value));
+	return (v == "none");
+}
+
+static bool is_all_token(const std::string& value){
+	const std::string v=to_lower_copy(strtrim(value));
+	return (v == "all" || v == "*");
+}
+
+static bool validate_template_file(const std::string& file_path, std::string* reason){
+	std::ifstream in(file_path.c_str());
+	if(!in.is_open()){
+		if(reason){ *reason="cannot open file"; }
+		return false;
+	}
+
+	bool has_numax=false;
+	bool has_dnu=false;
+	bool has_epsilon=false;
+	bool has_data=false;
+
+	std::string line;
+	// Skip initial comment and empty lines
+	while(std::getline(in, line)){
+		line=strtrim(line);
+		if(line.empty()){
+			continue;
+		}
+		if(line[0] == '#'){
+			continue;
+		}
+		break;
+	}
+
+	if(in.eof() && strtrim(line).empty()){
+		if(reason){ *reason="file contains no content"; }
+		return false;
+	}
+
+	// Read key/value lines until the data header (a line starting with '#')
+	while(true){
+		line=strtrim(line);
+		if(line.empty()){
+			if(!std::getline(in, line)){
+				break;
+			}
+			continue;
+		}
+		if(line[0] == '#'){
+			break;
+		}
+		const size_t pos=line.find('=');
+		if(pos == std::string::npos){
+			if(reason){ *reason="expected key=value entries before data table"; }
+			return false;
+		}
+		const std::string key=strtrim(line.substr(0, pos));
+		if(key == "numax_ref"){
+			has_numax=true;
+		} else if(key == "Dnu_ref"){
+			has_dnu=true;
+		} else if(key == "epsilon_ref"){
+			has_epsilon=true;
+		}
+		if(!std::getline(in, line)){
+			line="";
+			break;
+		}
+	}
+	if(!has_numax || !has_dnu || !has_epsilon){
+		if(reason){
+			std::ostringstream oss;
+			oss << "missing required keyword(s):";
+			if(!has_numax){ oss << " numax_ref"; }
+			if(!has_dnu){ oss << " Dnu_ref"; }
+			if(!has_epsilon){ oss << " epsilon_ref"; }
+			*reason=oss.str();
+		}
+		return false;
+	}
+
+	// If the current line is a data line (not a comment), validate it too.
+	if(!line.empty() && line[0] != '#'){
+		std::vector<std::string> cols=strsplit(line, " \t");
+		std::vector<std::string> filtered;
+		for(size_t i=0; i<cols.size(); i++){
+			const std::string c=strtrim(cols[i]);
+			if(c != ""){ filtered.push_back(c); }
+		}
+		if(filtered.size() != 3){
+			if(reason){ *reason="data row does not have exactly 3 columns"; }
+			return false;
+		}
+		for(size_t i=0; i<filtered.size(); i++){
+			std::istringstream iss(filtered[i]);
+			double v=0;
+			if(!(iss >> v)){
+				if(reason){ *reason="non-numeric value in data row"; }
+				return false;
+			}
+		}
+		has_data=true;
+	}
+
+	while(std::getline(in, line)){
+		line=strtrim(line);
+		if(line.empty()){
+			continue;
+		}
+		if(line[0] == '#'){
+			continue;
+		}
+		std::vector<std::string> cols=strsplit(line, " \t");
+		std::vector<std::string> filtered;
+		for(size_t i=0; i<cols.size(); i++){
+			const std::string c=strtrim(cols[i]);
+			if(c != ""){ filtered.push_back(c); }
+		}
+		if(filtered.size() != 3){
+			if(reason){ *reason="data row does not have exactly 3 columns"; }
+			return false;
+		}
+		for(size_t i=0; i<filtered.size(); i++){
+			std::istringstream iss(filtered[i]);
+			double v=0;
+			if(!(iss >> v)){
+				if(reason){ *reason="non-numeric value in data row"; }
+				return false;
+			}
+		}
+		has_data=true;
+	}
+	if(!has_data){
+		if(reason){ *reason="no data rows found"; }
+		return false;
+	}
+	return true;
 }
 
 
@@ -1235,27 +1383,53 @@ void generate_random(Config_Data cfg, std::vector<std::string> param_names, std:
  	boost::normal_distribution<> dist_gr_gauss(1,1); // 6Dec2023: Gaussian random number of mean=1 and std=1 
 	boost::variate_generator<boost::mt19937&, boost::normal_distribution<>> gaussian(generator, dist_gr_gauss);
 
-	// Generator of integers for selecting ramdomly a template file that contains a height and width profile
-    switch(cfg.template_files.size()){
-    	case 0: // The string is somewhat empty
-    		std::cout << "Error: The template_file cannot be empty. If not used, please set it to NONE" << std::endl;
-    		exit(EXIT_SUCCESS);
-    	case 1:
-    		template_file=templates_dir + cfg.template_files[0];
-    	default:
-    		if(cfg.template_files[0] == "all" || cfg.template_files[0] == "ALL" || cfg.template_files[0] == "*"){ // If the user specify that all *.template files should be used
-    			cfg.template_files=list_dir(templates_dir, "template");
-    		} 
-    		if (cfg.template_files.size() == 0){
-    			std::cout << "Could not find the template file in the expected directory" << std::endl;
-    			std::cout << "Be sure to have it in Configurations/templates/ " << std::endl;
-    			std::cout << "If the used mode does not require templates, specify NONE in the dedicated field " << std::endl;
-    			exit(EXIT_FAILURE);
-    		}
- 			boost::random::uniform_int_distribution<> dist(0, cfg.template_files.size()-1);
-    		template_file=templates_dir + cfg.template_files[dist(generator)];
-    }	
-    std::cout << "Selected template file: " << template_file << std::endl;	
+	// Generator of integers for selecting randomly a template file that contains a height and width profile
+	std::vector<std::string> template_candidates=cfg.template_files;
+	if(template_candidates.size() == 0){
+		std::cout << "Error: The template_file cannot be empty. If not used, please set it to NONE" << std::endl;
+		exit(EXIT_SUCCESS);
+	}
+	if(template_candidates.size() == 1 && is_none_token(template_candidates[0])){
+		template_file="";
+	} else{
+		if(is_all_token(template_candidates[0])){ // If the user specifies that all *.template files should be used
+			template_candidates=list_dir(templates_dir, "template");
+		}
+		if (template_candidates.size() == 0){
+			std::cout << "Could not find the template file in the expected directory" << std::endl;
+			std::cout << "Be sure to have it in Configurations/templates/ " << std::endl;
+			std::cout << "If the used mode does not require templates, specify NONE in the dedicated field " << std::endl;
+			exit(EXIT_FAILURE);
+		}
+		std::vector<std::string> valid_templates;
+		for(size_t i=0; i<template_candidates.size(); i++){
+			const std::string candidate=strtrim(template_candidates[i]);
+			if(candidate == "" || is_none_token(candidate)){
+				continue;
+			}
+			const std::string full_path=templates_dir + candidate;
+			std::string reason;
+			if(validate_template_file(full_path, &reason)){
+				valid_templates.push_back(candidate);
+			} else{
+				std::cerr << "Warning: Skipping invalid template file: " << full_path << std::endl;
+				std::cerr << "         Reason: " << reason << std::endl;
+			}
+		}
+		if(valid_templates.size() == 0){
+			std::cerr << "Error: No valid template files found after validation" << std::endl;
+			std::cerr << "       Check templates in: " << templates_dir << std::endl;
+			std::cerr << "       If the used mode does not require templates, specify NONE in the dedicated field" << std::endl;
+			exit(EXIT_FAILURE);
+		}
+		boost::random::uniform_int_distribution<> dist(0, valid_templates.size()-1);
+		template_file=templates_dir + valid_templates[dist(generator)];
+	}
+	if(template_file == ""){
+		std::cout << "Selected template file: NONE" << std::endl;
+	} else{
+		std::cout << "Selected template file: " << template_file << std::endl;
+	}
  	std::cout << " -----------------------------------------------------" << std::endl;
 	std::cout << " List of all combinations written iteratively into " << std::endl;
 	std::cout << "       " <<  file_out_combi << std::endl; 
