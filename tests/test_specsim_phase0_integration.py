@@ -512,6 +512,35 @@ class TestSpecsimPhase0Integration(unittest.TestCase):
         finally:
             td.cleanup()
 
+    def test_negative_delta0l_percent_warns(self):
+        infile = self.repo_root / "Configurations" / "infiles" / "8379927.in"
+        self.assertTrue(infile.exists())
+
+        cfg_text = "".join(
+            [
+                "random 1\n",
+                f"generate_cfg_from_synthese_file_Wscaled_aj {infile}\n",
+                "NONE\n",
+                "Dnu epsilon delta0l_percent HNR a1ovGamma Gamma_at_numax a2 a3 a4 a5 a6 beta_asym i H_spread nu_spread Gamma_spread do_flat_noise\n",
+                "70 0.5 -1 10 0.6 1 0.1 -0.1 0.15 0.2 0.05 10 60 0 0 0 0\n",
+                "70 0.5 -1 10 0.6 1 0.1 -0.1 0.15 0.2 0.05 10 60 0 0 0 0\n",
+                "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\n",
+                "Tobs Cadence Naverage Nrealisation\n",
+                "2 120 1 1\n",
+                "1\n",
+                "0\n",
+                "0\n",
+                "0\n",
+                "0\n",
+            ]
+        )
+        td, root, out_dir, cfg_path, rc, out = self._run_cfg_text_in_sandbox(cfg_text)
+        try:
+            self.assertEqual(rc, 0, msg=out)
+            self.assertIn("delta0l_percent is negative", out)
+        finally:
+            td.cleanup()
+
 
 if __name__ == "__main__":
     unittest.main()

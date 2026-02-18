@@ -699,7 +699,7 @@ Params_synthetic_star make_synthetic_asymptotic_star(Cfg_synthetic_star cfg_star
 	// ------- l=1 modes ------
 	// Use the solver to get mixed modes
 	el=1;
-	delta0l_star=-el*(el + 1) * cfg_star.delta0l_percent_star / 100.; // IS THAT THE CORRECT SIGN??
+	delta0l_star=el*(el + 1) * cfg_star.delta0l_percent_star / 100.;
 	freqs=solve_mm_asymptotic_O2p(cfg_star.Dnu_star, cfg_star.epsilon_star, el, delta0l_star, cfg_star.alpha_p_star, cfg_star.nmax_star, cfg_star.DPl_star, 
 								  cfg_star.alpha_g_star, cfg_star.q_star, cfg_star.sigma_p, cfg_star.fmin, cfg_star.fmax, resol, true, false);
 	const bool debug=false;
@@ -824,7 +824,7 @@ Params_synthetic_star make_synthetic_asymptotic_star(Cfg_synthetic_star cfg_star
 	a1_l1=dnu_rot_2zones(ksi_pg, rot2data.rot_env, rot2data.rot_core);
 	// ------- l=2 modes -----
 	el=2;
-	delta0l_star=-el*(el + 1) * cfg_star.delta0l_percent_star / 100.;
+	delta0l_star=el*(el + 1) * cfg_star.delta0l_percent_star / 100.;
 	nu_l2.resize(np_max-np_min);
 	for (int en=np_min; en< np_max;en++)
 	{
@@ -851,7 +851,7 @@ Params_synthetic_star make_synthetic_asymptotic_star(Cfg_synthetic_star cfg_star
 	
 	// ------ l=3 modes ----
 	el=3;
-	delta0l_star=-el*(el + 1) * cfg_star.delta0l_percent_star / 100.;
+	delta0l_star=el*(el + 1) * cfg_star.delta0l_percent_star / 100.;
 	nu_l3.resize(np_max-np_min);
 	for (int en=np_min; en<np_max;en++)
 	{

@@ -370,6 +370,23 @@ static void validate_cfg_for_model(const Config_Data& cfg, const std::string& cf
 	}
 }
 
+static void warn_negative_delta0l_percent(const Config_Data& cfg, const std::string& cfg_file, const std::string& stage){
+	for(size_t i=0; i<cfg.labels.size(); i++){
+		if(cfg.labels[i] == "delta0l_percent"){
+			if(cfg.val_min[i] < 0 || cfg.val_max[i] < 0){
+				std::cerr << "Warning: delta0l_percent is negative in cfg" << std::endl;
+				std::cerr << "  stage     : " << stage << std::endl;
+				std::cerr << "  cfg_file  : " << cfg_file << std::endl;
+				std::cerr << "  model_name: " << cfg.model_name << std::endl;
+				std::cerr << "  val_min   : " << cfg.val_min[i] << std::endl;
+				std::cerr << "  val_max   : " << cfg.val_max[i] << std::endl;
+				std::cerr << "  Note      : Convention expects a positive magnitude; values are negated internally." << std::endl;
+			}
+			break;
+		}
+	}
+}
+
 
 void iterative_artificial_spectrum(const std::string dir_core, const std::string cfg_file, const std::string cfg_noise_file, const std::string data_out_path){
 /*
@@ -988,6 +1005,7 @@ void iterative_artificial_spectrum(const std::string dir_core, const std::string
 	validate_cfg_forest_params(cfg, cfg_file, "post_model_selection");
 	validate_cfg_step_semantics(cfg, cfg_file, "post_model_selection");
 	validate_cfg_for_model(cfg, cfg_file, "post_model_selection", param_names);
+	warn_negative_delta0l_percent(cfg, cfg_file, "post_model_selection");
 	Nmodel=static_cast<int>(param_names.size());
 
 	std::cout << "2. Generating the models using the subroutine " << cfg.model_name << " of model_database.cpp..." << std::endl;

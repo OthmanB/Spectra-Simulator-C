@@ -91,7 +91,7 @@ bool asymptotic_mm_v1(VectorXd input_params, std::string file_out_modes, std::st
 	cfg_star.Teff_star=input_params[0];
 	cfg_star.Dnu_star=input_params[1];
 	cfg_star.epsilon_star=input_params[2];
-	cfg_star.delta0l_percent_star=input_params[3];
+	cfg_star.delta0l_percent_star=-std::abs(input_params[3]);
 	cfg_star.beta_p_star=input_params[4];
 	
 	DP=a*pow(cfg_star.Dnu_star, 2) + b*cfg_star.Dnu_star + c;
@@ -253,7 +253,7 @@ bool asymptotic_mm_v2(VectorXd input_params, std::string file_out_modes, std::st
 	cfg_star.Teff_star=-1;
 	cfg_star.Dnu_star=input_params[2];
 	cfg_star.epsilon_star=input_params[3];
-	cfg_star.delta0l_percent_star=input_params[4];
+	cfg_star.delta0l_percent_star=-std::abs(input_params[4]);
 	cfg_star.beta_p_star=input_params[5];
 	
 	DP=a*pow(cfg_star.Dnu_star, 2) + b*cfg_star.Dnu_star + c;
@@ -418,7 +418,7 @@ bool asymptotic_mm_v3(VectorXd input_params, std::string file_out_modes, std::st
 	cfg_star.Teff_star=-1;
 	cfg_star.Dnu_star=input_params[2];
 	cfg_star.epsilon_star=input_params[3];
-	cfg_star.delta0l_percent_star=input_params[4];
+	cfg_star.delta0l_percent_star=-std::abs(input_params[4]);
 	cfg_star.beta_p_star=input_params[5];
 	
 	DP=a*pow(cfg_star.Dnu_star, 2) + b*cfg_star.Dnu_star + c;
@@ -578,7 +578,7 @@ bool asymptotic_mm_freeDp_numaxspread_curvepmodes_v1(VectorXd input_params, std:
 	cfg_star.Teff_star=input_params[0];
 	cfg_star.Dnu_star=input_params[1];
 	cfg_star.epsilon_star=input_params[2];
-	cfg_star.delta0l_percent_star=input_params[3];
+	cfg_star.delta0l_percent_star=-std::abs(input_params[3]);
 	cfg_star.beta_p_star=input_params[4];
 	
 	cfg_star.DPl_star=input_params[6];                
@@ -747,7 +747,7 @@ bool asymptotic_mm_freeDp_numaxspread_curvepmodes_v2(VectorXd input_params, std:
 	cfg_star.Teff_star=-1;
 	cfg_star.Dnu_star=input_params[12];
 	cfg_star.epsilon_star=input_params[13];
-	cfg_star.delta0l_percent_star=input_params[14];
+	cfg_star.delta0l_percent_star=-std::abs(input_params[14]);
 	cfg_star.beta_p_star=input_params[15];
 	
 	cfg_star.DPl_star=input_params[17];                
@@ -962,7 +962,7 @@ bool asymptotic_mm_freeDp_numaxspread_curvepmodes_v3(VectorXd input_params, std:
 		std::cout << "    Note that delta0l_percent_star is taken from the main.cfg configuration " << std::endl;
 	}
 	cfg_star.Teff_star=-1;
-	cfg_star.delta0l_percent_star=input_params[14];
+	cfg_star.delta0l_percent_star=-std::abs(input_params[14]);
 	cfg_star.beta_p_star=input_params[15];
 
 	cfg_star.maxHNR_l0=input_params[20];
@@ -1181,7 +1181,7 @@ bool asymptotic_mm_freeDp_numaxspread_curvepmodes_v3_GRANscaled_Kallinger2014(Ve
 		std::cout << "    Note that delta0l_percent_star is taken from the main.cfg configuration " << std::endl;
 	}
 	cfg_star.Teff_star=-1;
-	cfg_star.delta0l_percent_star=input_params[14];
+	cfg_star.delta0l_percent_star=-std::abs(input_params[14]);
 	cfg_star.beta_p_star=input_params[15];
 
 	cfg_star.maxHNR_l0=input_params[20];
@@ -1986,7 +1986,7 @@ void generate_cfg_from_synthese_file_Wscaled_aj(VectorXd input_params, std::stri
 // ---- Deploy the parameters -----
 	Dnu=input_params[0];
 	epsilon=input_params[1];
-	delta0l_percent=input_params[2];
+	delta0l_percent=-std::abs(input_params[2]);
 	HNR=input_params[3];
 	a1_ov_Gamma=input_params[4];
 	Gamma_at_numax=input_params[5];
@@ -2251,7 +2251,7 @@ void generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled(VectorXd input_params
 // ---- Deploy the parameters -----
 	Dnu=input_params[0];
 	epsilon=input_params[1];
-	delta0l_percent=-1*input_params[2];  // Convention changed on 28Feb2024... negative value of delta0l are default
+	delta0l_percent=-std::abs(input_params[2]);  // Convention: internal negative small separation; input treated as magnitude
 	HNR=input_params[3];
 	a1_ov_Gamma=input_params[4];
 	Gamma_at_numax=input_params[5];
@@ -2502,7 +2502,7 @@ void generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled_Kallinger2014(VectorX
 // ---- Deploy the mode parameters -----
 	Dnu=input_params[0];
 	epsilon=input_params[1];
-	delta0l_percent=-1*input_params[2]; // Convention changed on 28Feb2024... negative value of delta0l are default
+	delta0l_percent=-std::abs(input_params[2]); // Convention: internal negative small separation; input treated as magnitude
 	HNR=input_params[3];
 	a1_ov_Gamma=input_params[4];
 	Gamma_at_numax=input_params[5];

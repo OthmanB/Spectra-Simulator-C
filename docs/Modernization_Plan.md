@@ -193,14 +193,11 @@ Tasks:
 3) Update any example cfg comments that contradict the convention.
 4) Add a validation warning if user provides a negative `delta0l_percent` (likely unintended).
 
-Tests (plan):
+Tests (implemented):
 
-- Unit:
-  - input `delta0l_percent>0` produces the expected internal sign usage for all non-obsolete models
-  - negative input triggers warning and is interpreted consistently
-- Property (cross-version, modulo this intentional behavior change):
-  - only models using `delta0l_percent` are affected
-  - documented examples produce consistent frequency patterns after update
+- Integration / property (black-box):
+  - `tests/test_specsim_phase0_integration.py` includes `test_negative_delta0l_percent_warns`
+    - negative input emits a warning and the run completes
 
 Compatibility note:
 
