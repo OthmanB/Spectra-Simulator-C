@@ -1,5 +1,6 @@
 # Spectra-Simulator-C
 
+> New here? Start with the practical guide in **`docs/User_Guide.md`** and use Doxygen for API-level details (`docs/Readme.md`).
 Spectrum Simulator in C++. It is intended to create synthetic spectra that follows the chi(2,2) noise statistics.
 
 Tests for MacOS and Linux:
