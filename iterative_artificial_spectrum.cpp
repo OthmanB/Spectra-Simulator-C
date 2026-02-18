@@ -1614,12 +1614,27 @@ int main(int argc, char* argv[]){
 	std::string main_dir = vm["main_dir"].as<std::string>();
 	boost::filesystem::path out_dir = vm["out_dir"].as<boost::filesystem::path>();
 	bool force_mkdir = vm["force-create-output-dir"].as<bool>();
-	if(main_dir == "Configurations/"){
-		cfg_file=full_path.string() + "/" + main_dir + main_f;
-		cfg_noise_file=full_path.string() + "/" + main_dir + noise_f;
-	} else{
-		cfg_file=main_dir + main_f;
-		cfg_noise_file=main_dir + noise_f;
+	boost::filesystem::path main_dir_path(main_dir);
+	boost::filesystem::path main_cfg_path(main_f);
+	if(main_cfg_path.is_absolute() || main_cfg_path.has_parent_path()){
+		cfg_file = main_cfg_path.string();
+	}else{
+		cfg_file = (main_dir_path / main_cfg_path).string();
+	}
+
+	boost::filesystem::path noise_cfg_path(noise_f);
+	if(noise_cfg_path.is_absolute() || noise_cfg_path.has_parent_path()){
+		cfg_noise_file = noise_cfg_path.string();
+	}else{
+		boost::filesystem::path noise_in_main_dir = main_dir_path / noise_cfg_path;
+		boost::filesystem::path noise_in_default_dir = full_path / "Configurations" / noise_cfg_path;
+		if(boost::filesystem::exists(noise_in_main_dir)){
+			cfg_noise_file = noise_in_main_dir.string();
+		}else if(boost::filesystem::exists(noise_in_default_dir)){
+			cfg_noise_file = noise_in_default_dir.string();
+		}else{
+			cfg_noise_file = noise_in_main_dir.string();
+		}
 	}
     if (out_dir.is_relative()) {
         boost::filesystem::path current_path = boost::filesystem::current_path();
