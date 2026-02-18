@@ -275,15 +275,12 @@ Tasks:
    - replace absolute paths in `Configurations/examples_cfg/*.cfg` with repo-relative paths
    - document how paths are resolved (`--main_dir`, absolute vs relative)
 
-Tests (plan):
+Tests (implemented):
 
-- Unit:
-  - filesystem helper functions (remove/list) behave correctly on empty/invalid paths
-- Property:
-  - `--out_dir` works with and without trailing slash
-  - `--seed` provides deterministic outputs (byte-for-byte for deterministic artifacts; numeric tolerance for floats if needed)
-- Integration:
-  - run two identical jobs with same `--seed` and confirm identical outputs
+- Integration / property (black-box):
+  - `tests/test_specsim_phase0_integration.py` includes:
+    - `test_seed_reproducibility` (same `--seed` produces identical outputs)
+    - `test_out_dir_trailing_slash` (output path handling with and without trailing slash)
 
 
 ## Phase 6: Structured Logging Upgrade (Info/Debug/Warning/Error)

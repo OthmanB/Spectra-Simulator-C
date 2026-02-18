@@ -1,4 +1,5 @@
 import os
+import hashlib
 import shutil
 import subprocess
 import tempfile
@@ -29,6 +30,29 @@ def parse_spectrum_file(path: Path):
                 continue
             freqs.append(float(parts[0]))
     return freqs
+
+
+def hash_file(path: Path):
+    h = hashlib.sha256()
+    with path.open("rb") as f:
+        for chunk in iter(lambda: f.read(8192), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def collect_output_hashes(out_dir: Path):
+    hashes = {}
+    for rel in (Path("Combinations.txt"),):
+        p = out_dir / rel
+        if p.exists():
+            hashes[str(rel)] = hash_file(p)
+
+    for sub in ("Spectra_ascii", "Spectra_info"):
+        for p in sorted((out_dir / sub).glob("*")):
+            if p.is_file():
+                rel = str(Path(sub) / p.name)
+                hashes[rel] = hash_file(p)
+    return hashes
 
 
 def parse_mode_widths_from_info_file(path: Path):
@@ -198,6 +222,7 @@ class TestSpecsimPhase0Integration(unittest.TestCase):
         fixed_template: str,
         tobs_days: float = 2.0,
         cadence_sec: float = 120.0,
+        extra_args=None,
     ):
         patch_main_cfg = getattr(self.smoke_mod, "patch_main_cfg")
 
@@ -229,10 +254,12 @@ class TestSpecsimPhase0Integration(unittest.TestCase):
             "--force-create-output-dir",
             "1",
         ]
+        if extra_args:
+            cmd.extend(extra_args)
         rc, out = run(cmd, cwd=root, timeout=600)
         return td, root, out_dir, patched_cfg, rc, out
 
-    def _run_cfg_text_in_sandbox(self, cfg_text: str):
+    def _run_cfg_text_in_sandbox(self, cfg_text: str, extra_args=None):
         td, root = self._make_sandbox()
         out_dir = root / "out"
         cfg_path = root / "main.cfg"
@@ -249,6 +276,8 @@ class TestSpecsimPhase0Integration(unittest.TestCase):
             "--force-create-output-dir",
             "1",
         ]
+        if extra_args:
+            cmd.extend(extra_args)
         rc, out = run(cmd, cwd=root, timeout=600)
         return td, root, out_dir, cfg_path, rc, out
 
@@ -567,6 +596,72 @@ class TestSpecsimPhase0Integration(unittest.TestCase):
         try:
             self.assertEqual(rc, 0, msg=out)
             self.assertIn("delta0l_percent is negative", out)
+        finally:
+            td.cleanup()
+
+    def test_seed_reproducibility(self):
+        example_cfg = self.repo_root / "Configurations" / "examples_cfg" / "main.cfg.aj"
+        td1, root1, out_dir1, patched_cfg1, rc1, out1 = self._run_cfg_in_sandbox(
+            example_cfg,
+            fixed_template="12508433.template",
+            extra_args=["--seed", "123"],
+        )
+        try:
+            self.assertEqual(rc1, 0, msg=out1)
+            hashes1 = collect_output_hashes(out_dir1)
+        finally:
+            td1.cleanup()
+
+        td2, root2, out_dir2, patched_cfg2, rc2, out2 = self._run_cfg_in_sandbox(
+            example_cfg,
+            fixed_template="12508433.template",
+            extra_args=["--seed", "123"],
+        )
+        try:
+            self.assertEqual(rc2, 0, msg=out2)
+            hashes2 = collect_output_hashes(out_dir2)
+        finally:
+            td2.cleanup()
+
+        self.assertEqual(hashes1, hashes2)
+
+    def test_out_dir_trailing_slash(self):
+        example_cfg = self.repo_root / "Configurations" / "examples_cfg" / "main.cfg.aj"
+        patch_main_cfg = getattr(self.smoke_mod, "patch_main_cfg")
+
+        td, root = self._make_sandbox()
+        try:
+            out_dir = root / "out"
+            out_dir_str = str(out_dir) + "/"
+            patched_lines = patch_main_cfg(
+                example_cfg,
+                repo_root=self.repo_root,
+                fixed_template="12508433.template",
+                tobs_days=2.0,
+                cadence_sec=120.0,
+                nspectra=1,
+                nrealisation=1,
+                disable_plots=True,
+                disable_modelfiles=True,
+            )
+            patched_cfg = root / "main.cfg"
+            patched_cfg.write_text("".join(patched_lines), encoding="utf-8")
+
+            cmd = [
+                str(self.specsim),
+                "--main_file",
+                str(patched_cfg),
+                "--noise_file",
+                str(root / "Configurations" / "noise_Kallinger2014.cfg"),
+                "--out_dir",
+                out_dir_str,
+                "--force-create-output-dir",
+                "1",
+            ]
+            rc, out = run(cmd, cwd=root, timeout=600)
+            self.assertEqual(rc, 0, msg=out)
+            self.assertTrue((out_dir / "Combinations.txt").exists())
+            self.assertTrue((out_dir / "Spectra_ascii").is_dir())
         finally:
             td.cleanup()
 

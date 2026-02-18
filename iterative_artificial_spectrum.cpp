@@ -28,10 +28,10 @@
 #include <unordered_set>
 #include <algorithm>
 #include <cctype>
+#include <random>
 #include <cmath>
+#include <filesystem>
 #include <Eigen/Dense>
-#include <boost/random.hpp>
-#include <boost/random/normal_distribution.hpp>
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
 #include "artificial_spectrum.h"
@@ -41,6 +41,7 @@
 #include "combi.h"
 #include "stellar_models.h"
 #include "io_star_params.h"
+#include "rng.h"
 
 /**
  * @brief Creates directories and subdirectories.
@@ -564,10 +565,10 @@ void iterative_artificial_spectrum(const std::string dir_core, const std::string
 	// Ensure the temporary configuration directory exists.
 	// Several generators write into Configurations/tmp/*.cfg and will fail if the directory is missing.
 	{
-		boost::filesystem::path tmp_dir(dir_core + "Configurations/tmp");
-		if (!boost::filesystem::exists(tmp_dir)) {
+		std::filesystem::path tmp_dir(dir_core + "Configurations/tmp");
+		if (!std::filesystem::exists(tmp_dir)) {
 			try {
-				boost::filesystem::create_directories(tmp_dir);
+				std::filesystem::create_directories(tmp_dir);
 			} catch (const std::exception& e) {
 				std::cerr << "Error creating temporary directory: " << tmp_dir.string() << "\n";
 				std::cerr << "Reason: " << e.what() << std::endl;
@@ -1378,10 +1379,9 @@ void generate_random(Config_Data cfg, std::vector<std::string> param_names, std:
 
 	//  ------------ Generate the random values -----------
 	// Initialize the random generators: Uniform over [0,1]. This is used for the random parameters
-    boost::mt19937 generator(time(NULL));
-    boost::uniform_01<boost::mt19937> dist_gr(generator);
- 	boost::normal_distribution<> dist_gr_gauss(1,1); // 6Dec2023: Gaussian random number of mean=1 and std=1 
-	boost::variate_generator<boost::mt19937&, boost::normal_distribution<>> gaussian(generator, dist_gr_gauss);
+	std::mt19937& generator = global_rng();
+	std::uniform_real_distribution<double> dist_gr(0.0, 1.0);
+	std::normal_distribution<double> dist_gr_gauss(1.0, 1.0); // 6Dec2023: Gaussian random number of mean=1 and std=1 
 
 	// Generator of integers for selecting randomly a template file that contains a height and width profile
 	std::vector<std::string> template_candidates=cfg.template_files;
@@ -1422,7 +1422,7 @@ void generate_random(Config_Data cfg, std::vector<std::string> param_names, std:
 			std::cerr << "       If the used mode does not require templates, specify NONE in the dedicated field" << std::endl;
 			exit(EXIT_FAILURE);
 		}
-		boost::random::uniform_int_distribution<> dist(0, valid_templates.size()-1);
+		std::uniform_int_distribution<int> dist(0, static_cast<int>(valid_templates.size()-1));
 		template_file=templates_dir + valid_templates[dist(generator)];
 	}
 	if(template_file == ""){
@@ -1461,9 +1461,9 @@ void generate_random(Config_Data cfg, std::vector<std::string> param_names, std:
 	for(int c=0; c<cfg.forest_params[0]; c++){
 		for(int i=0; i<pos_one.size();i++){
 			if (distrib[i] == "Uniform"){
-				currentcombi(0,i)=dist_gr() * (val_max[i] - val_min[i]) + val_min[i]; // HERE allcombi HAS JUST ONE LINE
+				currentcombi(0,i)=dist_gr(generator) * (val_max[i] - val_min[i]) + val_min[i]; // HERE allcombi HAS JUST ONE LINE
 			} else if (distrib[i] == "Gaussian"){
-				currentcombi(0,i)=gaussian()*val_max[i] + val_min[i]; // In this context, val_min == mean, val_max == stddev
+				currentcombi(0,i)=dist_gr_gauss(generator)*val_max[i] + val_min[i]; // In this context, val_min == mean, val_max == stddev
 			} else{
 				std::cerr << "Error while attempting to generate random numbers in iterative_artifical_spectrum::generate_random()" << std::endl;
 				std::cerr << "     You are allowed to only have Uniform or Gaussian distributions. Found distribution: " << distrib[i] << std::endl;
@@ -1484,13 +1484,10 @@ void generate_random(Config_Data cfg, std::vector<std::string> param_names, std:
 		id0=id0+1;
 		passed=0;
 
-		// Erasing the temporary files to avoid those to be loaded at vitam eternam if an error in their generetation at step c=c_err happens
-		str_tmp="rm " + file_out_modes;	
-		const char *cmd1 = str_tmp.c_str(); 
-		system(cmd1);
-		str_tmp="rm " + file_out_noise;	
-		const char *cmd2 = str_tmp.c_str(); 
-		system(cmd2);
+	// Erasing the temporary files to avoid those to be loaded at vitam eternam if an error in their generetation at step c=c_err happens
+	std::error_code ec;
+	std::filesystem::remove(file_out_modes, ec);
+	std::filesystem::remove(file_out_noise, ec);
 	}
 
 	std::cout << "All requested tasks executed succesfully" << std::endl;
@@ -1625,12 +1622,9 @@ void generate_grid(Config_Data cfg, bool usemodels, Data_Nd models, std::vector<
 		passed=0;
 
 		// Erasing the temporary files to avoid those to be loaded at vitam eternam if an error in their generetation at step c=c_err happens
-		str_tmp="rm " + file_out_modes;	
-		const char *cmd1 = str_tmp.c_str(); 
-		system(cmd1);
-		str_tmp="rm " + file_out_noise;	
-		const char *cmd2 = str_tmp.c_str(); 
-		system(cmd2);
+		std::error_code ec;
+		std::filesystem::remove(file_out_modes, ec);
+		std::filesystem::remove(file_out_noise, ec);
 	}
 
 	std::cout << "All requested tasks executed succesfully" << std::endl;
@@ -1760,9 +1754,15 @@ bool call_model_random(std::string model_name, VectorXd input_params, std::strin
 		}
 		
 		if(file_cfg_mm != ""){
-			str="cp " + file_cfg_mm + " " + data_path + "/Spectra_info/" + strtrim(id_str) + ".global";
-			const char *command = str.c_str(); 
-			system(command);
+			std::filesystem::path src(file_cfg_mm);
+			std::filesystem::path dst = std::filesystem::path(data_path) / "Spectra_info" / (strtrim(id_str) + ".global");
+			std::error_code ec;
+			std::filesystem::copy_file(src, dst, std::filesystem::copy_options::overwrite_existing, ec);
+			if(ec){
+				std::cerr << "Warning: failed to copy mixed-mode cfg file: " << src.string() << std::endl;
+				std::cerr << "         to: " << dst.string() << std::endl;
+				std::cerr << "         reason: " << ec.message() << std::endl;
+			}
 		}
 		passed=1;
 	}
@@ -1846,34 +1846,36 @@ bool call_model_grid(std::string model_name, VectorXd input_params, Model_data i
 // Those have to be put in the extension string
 std::vector<std::string> list_dir(const std::string path, const std::string extension){
 
-	const std::string tmp_file="dir.list";
-	const std::string cmd="ls -p " + path + "| grep -v / >> " + tmp_file; // Get a list of files and store them into the temporary dir.list file
-	const std::string cmd_erase="rm " + tmp_file; // Once finished with the temporary file, we erase it
+	std::vector<std::string> files;
+	std::filesystem::path dir_path(path);
+	if(!std::filesystem::exists(dir_path)){
+		std::cout << "I/O Error: directory does not exist: " << path << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	if(!std::filesystem::is_directory(dir_path)){
+		std::cout << "I/O Error: not a directory: " << path << std::endl;
+		exit(EXIT_FAILURE);
+	}
 
-	std::vector<std::string> files, line_split;
-	std::string line;
-	std::ifstream file_in;
-
-	//std::cout << "command: " << cmd << std::endl; 
-	system(cmd.c_str());
-	
-	file_in.open(tmp_file.c_str());
-   	if (file_in.is_open()) {
-   		while(!file_in.eof()){
-   			std::getline(file_in, line);
-			line_split=strsplit(line, ".");
-			if (line_split[line_split.size()-1] == extension){
-				files.push_back(strtrim(line)); // remove any white space at the begining/end of the string
-   			} else{
-   			}
-   		}
-   		system(cmd_erase.c_str());
-   	} else{
-   		std::cout << "I/O Error for the temporary temporary file " + tmp_file + "!"  << std::endl;
-   		std::cout << "Cannot proceed. Check that you have the proper I/O rights on the root program directory..." << std::endl;
-   		exit(EXIT_FAILURE);
-   	}
-   	return files;
+	const std::string ext_lower=to_lower_copy(extension);
+	for(const auto& entry : std::filesystem::directory_iterator(dir_path)){
+		if(!entry.is_regular_file()){
+			continue;
+		}
+		const std::filesystem::path p=entry.path();
+		if(!p.has_extension()){
+			continue;
+		}
+		std::string ext=p.extension().string();
+		if(!ext.empty() && ext[0] == '.'){
+			ext=ext.substr(1);
+		}
+		if(to_lower_copy(ext) == ext_lower){
+			files.push_back(p.filename().string());
+		}
+	}
+	std::sort(files.begin(), files.end());
+    return files;
 }
 
 void showversion()
@@ -1956,15 +1958,16 @@ int main(int argc, char* argv[]){
 	boost::filesystem::path full_path( boost::filesystem::current_path() );
 
 	// -------- Options Handling ------
-    boost::program_options::options_description desc("Allowed options");
-    desc.add_options()
-        ("help,h", "produce help message")
+	boost::program_options::options_description desc("Allowed options");
+	desc.add_options()
+		("help,h", "produce help message")
 		("version,v", "show program version")
-        ("main_file,f", boost::program_options::value<std::string>()->default_value("main.cfg"), "Filename for the main configuration file. If not set, use the default filename.")
+		("main_file,f", boost::program_options::value<std::string>()->default_value("main.cfg"), "Filename for the main configuration file. If not set, use the default filename.")
 		("noise_file,n", boost::program_options::value<std::string>()->default_value("noise_Kallinger2014.cfg"), "Filename for the noise configuration file. If not set, use the default filename. Note that this is only for models with Kallinger+2014 noise at the moment.")
 		("main_dir,g", boost::program_options::value<std::string>()->default_value("Configurations/"), "Full path for the main configuration file. If not set, use the default sub-directory 'Configurations/.")
 		("out_dir,o", boost::program_options::value<boost::filesystem::path>()->default_value("Data/"), "Full path or relative path for the outputs. If not set, use the default sub-directory 'Data/.")
-		("force-create-output-dir", boost::program_options::value<bool>()->default_value(0), "If set to 1=true, it will create the output directory defined by output_dir and all the required subdirectory. If set to 0=false (default), it will not create the directories, but only check if they exist and stop the program if they do not");	
+		("force-create-output-dir", boost::program_options::value<bool>()->default_value(0), "If set to 1=true, it will create the output directory defined by output_dir and all the required subdirectory. If set to 0=false (default), it will not create the directories, but only check if they exist and stop the program if they do not")
+		("seed", boost::program_options::value<long long>()->default_value(-1), "Seed for RNG (>=0). If set, results are deterministic across runs.");	
 	boost::program_options::variables_map vm;
 	try {
         boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
@@ -1978,9 +1981,14 @@ int main(int argc, char* argv[]){
 		return 1;
 	}
 	if (vm.count("version")) {
-        showversion();
+		showversion();
 		return 1;
-    }
+	}
+	long long seed_value = vm["seed"].as<long long>();
+	if(seed_value >= 0){
+		set_global_seed(static_cast<uint64_t>(seed_value));
+		std::cout << "Using RNG seed: " << seed_value << std::endl;
+	}
 	// -------------------------------
 
 	std::string cfg_file, cfg_noise_file;

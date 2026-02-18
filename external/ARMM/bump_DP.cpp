@@ -17,6 +17,9 @@
 #include <iostream>
 #include <iomanip>
 #include <fstream>
+#include <random>
+#include <chrono>
+#include <cmath>
 #include "version_solver.h"
 #include "data_solver.h"
 #include "string_handler.h"
@@ -24,6 +27,7 @@
 #include "noise_models.h" // get the harvey_1985 function
 #include "solver_mm.h"
 #include "bump_DP.h"
+#include "rng.h"
 #ifdef _OPENMP
    #include <omp.h>
 #else
@@ -500,8 +504,7 @@ Data_rot2zone rot_2zones_v3(const long double rot_envelope, const long double ro
 long double rot_envelope(long double med, long double sigma)
 {
 	const long double var=30./sigma; // in days
-	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-	std::default_random_engine gen(seed); 
+	std::mt19937& gen = global_rng();
 	std::normal_distribution<double> distrib(med,var);
 	long double period_s=distrib(gen);
 	long double rot_s;
@@ -548,8 +551,7 @@ VectorXd dnu_rot_2zones(const VectorXd& ksi_pg, const long double rot_envelope, 
  */
 long double numax_from_stello2009(const long double Dnu_star, const long double spread)
 {
-	std::random_device rd;
-	std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+	std::mt19937& gen = global_rng();
 	
 	// Define the frequency range for the calculation by (1) getting numax from Dnu and (2) fixing a range around numax
 	const long double beta0=0.263; // according to Stello+2009, we have Dnu_p ~ 0.263*numax^0.77 (https://arxiv.org/pdf/0909.5193.pdf)
@@ -593,12 +595,9 @@ long double numax_from_stello2009(const long double Dnu_star, const long double 
  */
 Params_synthetic_star make_synthetic_asymptotic_star(Cfg_synthetic_star cfg_star, const bool legacynoise)
 {
-	std::random_device rd;
-	std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
-	std::uniform_real_distribution<double> distrib(0 , 1);
+	std::mt19937& gen = global_rng();
+	std::uniform_real_distribution<double> distrib(0.0, 1.0);
 
-	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-	std::default_random_engine gen_m(seed); 
 	std::normal_distribution<double> distrib_m(0.,cfg_star.sigma_m);
 
 
@@ -775,7 +774,7 @@ Params_synthetic_star make_synthetic_asymptotic_star(Cfg_synthetic_star cfg_star
 		nu_m_l1[i]=freqs.nu_m[posOK[i]];
 		if (cfg_star.sigma_m !=0) // If requested, we add a random gaussian qty to the mixed mode solution
 		{
-			r = distrib_m(gen_m);
+			r = distrib_m(gen);
 			nu_m_l1[i]=nu_m_l1[i]+r;
 		}
 	}

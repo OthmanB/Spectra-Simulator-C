@@ -10,6 +10,7 @@
 #include <iostream>
 #include <iomanip>
 #include <fstream>
+#include <random>
 #include <cmath>
 #include "data_solver.h"
 #include "configure_make_star.h"
@@ -17,6 +18,7 @@
 #include "string_handler.h"
 #include "solver_mm.h"
 #include "bump_DP.h"
+#include "rng.h"
 
 /**
  * @brief Main function of the "make_star" binary file. Configures the parameters for creating a synthetic star based on the input parameters.
@@ -29,9 +31,8 @@
 Cfg_synthetic_star configure_make_star(std::unordered_map<std::string, std::string> input_params){
     double xmin, xmax, nmax_spread, inc_star;
 
-	std::random_device rd;
-	std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
-	std::uniform_real_distribution<double> distrib(0 , 1);
+	std::mt19937& gen = global_rng();
+	std::uniform_real_distribution<double> distrib(0.0, 1.0);
     Cfg_synthetic_star cfg_star;
     // ---- Deploy parameters and check them ----
      //------------------    Un-used parameters  ------------------   

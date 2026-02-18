@@ -22,6 +22,8 @@ endif()
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(Boost_USE_MULTITHREADED TRUE)
 option(WITH_OPENMP "OpenMP Library" ON)
 option(BUILD_ON_DALMA "Building for NYU DALMA Supercomputer" OFF)
@@ -67,9 +69,10 @@ set(SOURCES_MAIN  #_COMMON
     io_star_params.cpp
     io_star_common.cpp
     noise_models.cpp
-    ioproc.cpp
-    random_JB.cpp
-    combi.cpp
+	    ioproc.cpp
+	    random_JB.cpp
+	    rng.cpp
+	    combi.cpp
     stellar_models.cpp
     models_database_grid.cpp
     format.cpp
@@ -160,6 +163,7 @@ endif()
 include_directories(${BOOST_INCLUDE_DIR})
 
 add_executable(${CMAKE_PROJECT_NAME}  ${SOURCES_MAIN})
+target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR})
 if(MACOS)
   find_package(Eigen3 REQUIRED NO_MODULE)
   target_compile_definitions(${CMAKE_PROJECT_NAME}  PRIVATE MACOS)

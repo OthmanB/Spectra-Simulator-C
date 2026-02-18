@@ -35,6 +35,7 @@
 #include "derivatives_handler.h"
 #include "interpol.h"
 #include "linfit.h"
+#include "rng.h"
 
 using Eigen::MatrixXd;
 using Eigen::VectorXi;
@@ -475,8 +476,7 @@ Data_eigensols solve_mm_asymptotic_O2p(const long double Dnu_p, const long doubl
 	const int Nmmax=100000; //Ngmax+Npmax;
 	const double tol=2*resol; // Tolerance while searching for double solutions of mixed modes
 	
-	unsigned seed_p = std::chrono::system_clock::now().time_since_epoch().count();
-	std::default_random_engine gen_p(seed_p); //, gen_g(seed_g);
+	std::mt19937& gen_p = global_rng();
 	std::normal_distribution<double> distrib_p(0.,sigma_p);
 	
 	bool success;
@@ -629,8 +629,7 @@ Data_eigensols solve_mm_asymptotic_O2from_l0(const VectorXd& nu_l0_in, const int
 	const bool returns_axis=true;
 	const int Nmmax=100000; //Ngmax+Npmax;
 	const double tol=2*resol; // Tolerance while searching for double solutions of mixed modes
-	unsigned seed_p = std::chrono::system_clock::now().time_since_epoch().count();
-	std::default_random_engine gen_p(seed_p); //, gen_g(seed_g);
+	std::mt19937& gen_p = global_rng();
 	std::normal_distribution<double> distrib_p(0.,sigma_p);
 	
 	int np, ng, ng_min, ng_max;//, np_min, np_max, attempts;
@@ -778,8 +777,7 @@ Data_eigensols solve_mm_asymptotic_O2from_nupl(const VectorXd& nu_p_all, const i
 	const bool returns_axis=true;
 	const int Nmmax=100000; //Ngmax+Npmax;
 	const double tol=2*resol; // Tolerance while searching for double solutions of mixed modes
-	unsigned seed_p = std::chrono::system_clock::now().time_since_epoch().count();
-	std::default_random_engine gen_p(seed_p); //, gen_g(seed_g);
+	std::mt19937& gen_p = global_rng();
 	std::normal_distribution<double> distrib_p(0.,sigma_p);
 
 	int np, ng, ng_min, ng_max;//, np_min, np_max, attempts;

@@ -27,7 +27,7 @@ The project requires:
 - CMake (recommended)
 - Boost (`system`, `filesystem`, `iostreams`, `program_options`)
 - Eigen3
-- gnuplot (required by CMake configuration)
+- gnuplot (optional at runtime; required only when `doplots=1`)
 - OpenMP (optional, enabled by default)
 
 > Linux note: the CMake file expects `EIGEN3_INCLUDE_DIR` to be available in the environment on Linux.
@@ -66,6 +66,7 @@ Main options:
 - `-g, --main_dir`: directory containing config files (default: `Configurations/`)
 - `-o, --out_dir`: output directory (default: `Data/`)
 - `--force-create-output-dir`: set to `1` to create missing output folders
+- `--seed`: set a deterministic RNG seed (>=0)
 
 When `--force-create-output-dir=1`, the program creates these subdirectories under `out_dir`:
 
@@ -112,6 +113,12 @@ A typical main configuration file contains:
    - random/grid selector line.
 5. Observation setup (`Tobs`, `Cadence`, `Naverage`, `Nrealisation`).
 6. Output behavior flags (`erase_old_files`, plots, model files, etc.).
+
+### Path resolution notes
+
+- `--main_file` is used as-is if absolute or if it contains a parent path; otherwise it is joined with `--main_dir`.
+- `--noise_file` is resolved from `--main_dir` first, then from `Configurations/`.
+- Any extra file paths inside `main.cfg` (e.g., the `.in` reference file) are interpreted relative to the current working directory if not absolute.
 
 ### Important behavior flags
 
@@ -204,4 +211,3 @@ Use this **User Guide** for workflows and configuration, and Doxygen for low-lev
 3. Change only one parameter range in the example config.
 4. Re-run and compare output distributions.
 5. Move to a different model family once the first pipeline is understood.
-

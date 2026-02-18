@@ -13,16 +13,10 @@
 #include <string>
 #include "io_star_params.h"
 #include <Eigen/Dense>
-#include <boost/random.hpp>
-#include <boost/random/normal_distribution.hpp>
+#include <random>
 #include "artificial_spectrum.h"
 #include "noise_models.h"
-#ifdef MACOS
-	#include <mach/mach_time.h>
-#endif
-#ifdef LINUX
-	#include <time.h>
-#endif
+#include "rng.h"
 
 using Eigen::VectorXd;
 using Eigen::VectorXi;
@@ -46,21 +40,10 @@ void artificial_spectrum_act_asym(const double Tobs, const double Cadence, const
 	double df, Delta, scoef1, scoef2;
 	VectorXd freq;
 
-    // Initialize the random generator
-    boost::mt19937 rng;
-	#ifdef MACOS
-		mach_timebase_info_data_t timebase;
-		mach_timebase_info(&timebase);
-		uint64_t now = mach_absolute_time();
-		rng.seed(now * timebase.numer / timebase.denom);
-	#elif LINUX
-		timespec now;
-		clock_gettime(CLOCK_MONOTONIC, &now);
-		rng.seed(now.tv_sec * 1000000000ULL + now.tv_nsec);
-	#endif
-    // Generate some random numbers
-    boost::normal_distribution<> distribution(0, 1);
-    boost::variate_generator<boost::mt19937&, boost::normal_distribution<> > dist(rng, distribution);
+	// Initialize the random generator
+	std::mt19937& rng = global_rng();
+	// Generate some random numbers
+	std::normal_distribution<double> distribution(0.0, 1.0);
 	
 
 	// Variable of the models
@@ -128,8 +111,8 @@ void artificial_spectrum_act_asym(const double Tobs, const double Cadence, const
     	for(int ns=0; ns<Nspectra; ns++){
     	    std::cout << "[" << ns << "]...";
     	    for(int i=0; i<Ndata; i++){
-    	        F1=dist();
-    	        F2=dist();
+		        F1=distribution(rng);
+		        F2=distribution(rng);
     	        stmp[i]=std::abs(F1*F1*input_spec_model[i]/2. + F2*F2*input_spec_model[i]/2.);
     	    }
     	    spec_reg=spec_reg + stmp/Nspectra;
@@ -168,21 +151,10 @@ void artificial_spectrum_a1a2a3asym(const double Tobs, const double Cadence, con
 	double df, Delta, scoef1, scoef2;
 	VectorXd freq;
 
-    // Initialize the random generator
-    boost::mt19937 rng;
-	#ifdef MACOS
-		mach_timebase_info_data_t timebase;
-		mach_timebase_info(&timebase);
-		uint64_t now = mach_absolute_time();
-		rng.seed(now * timebase.numer / timebase.denom);
-	#elif LINUX
-		timespec now;
-		clock_gettime(CLOCK_MONOTONIC, &now);
-		rng.seed(now.tv_sec * 1000000000ULL + now.tv_nsec);
-	#endif
-    // Generate some random numbers
-    boost::normal_distribution<> distribution(0, 1);
-    boost::variate_generator<boost::mt19937&, boost::normal_distribution<> > dist(rng, distribution);
+	// Initialize the random generator
+	std::mt19937& rng = global_rng();
+	// Generate some random numbers
+	std::normal_distribution<double> distribution(0.0, 1.0);
 	
 
 	// Variable of the models
@@ -250,8 +222,8 @@ void artificial_spectrum_a1a2a3asym(const double Tobs, const double Cadence, con
     	for(int ns=0; ns<Nspectra; ns++){
     	    std::cout << "[" << ns << "]...";
     	    for(int i=0; i<Ndata; i++){
-    	        F1=dist();
-    	        F2=dist();
+		        F1=distribution(rng);
+		        F2=distribution(rng);
     	        stmp[i]=std::abs(F1*F1*input_spec_model[i]/2. + F2*F2*input_spec_model[i]/2.);
     	    }
     	    spec_reg=spec_reg + stmp/Nspectra;
@@ -295,21 +267,10 @@ void artificial_spectrum_a1Alma3(const double Tobs, const double Cadence, const 
 	double df, Delta, scoef1, scoef2;
 	Data_Nd data_modes, data_noise;
 	
-    // Initialize the random generator
-    boost::mt19937 rng;
-	#ifdef MACOS
-		mach_timebase_info_data_t timebase;
-		mach_timebase_info(&timebase);
-		uint64_t now = mach_absolute_time();
-		rng.seed(now * timebase.numer / timebase.denom);
-	#elif LINUX
-		timespec now;
-		clock_gettime(CLOCK_MONOTONIC, &now);
-		rng.seed(now.tv_sec * 1000000000ULL + now.tv_nsec);
-	#endif
-    // Generate some random numbers
-    boost::normal_distribution<> distribution(0, 1);
-    boost::variate_generator<boost::mt19937&, boost::normal_distribution<> > dist(rng, distribution);
+	// Initialize the random generator
+	std::mt19937& rng = global_rng();
+	// Generate some random numbers
+	std::normal_distribution<double> distribution(0.0, 1.0);
 	
 	// Variable of the models
 	int l;
@@ -378,8 +339,8 @@ void artificial_spectrum_a1Alma3(const double Tobs, const double Cadence, const 
     	for(int ns=0; ns<Nspectra; ns++){
     	    std::cout << "[" << ns << "]...";
     	    for(int i=0; i<Ndata; i++){
-    	        F1=dist();
-    	        F2=dist();
+		        F1=distribution(rng);
+		        F2=distribution(rng);
     	        stmp[i]=std::abs(F1*F1*input_spec_model[i]/2. + F2*F2*input_spec_model[i]/2.);
     	    }
     	    spec_reg=spec_reg + stmp/Nspectra;
@@ -431,21 +392,10 @@ void artificial_spectrum_aj(const double Tobs, const double Cadence, const doubl
 	double df, Delta, scoef1, scoef2;
 	Data_Nd data_modes, data_noise;
 	
-    // Initialize the random generator
-    boost::mt19937 rng;
-	#ifdef MACOS
-		mach_timebase_info_data_t timebase;
-		mach_timebase_info(&timebase);
-		uint64_t now = mach_absolute_time();
-		rng.seed(now * timebase.numer / timebase.denom);
-	#elif LINUX
-		timespec now;
-		clock_gettime(CLOCK_MONOTONIC, &now);
-		rng.seed(now.tv_sec * 1000000000ULL + now.tv_nsec);
-	#endif
-    // Generate some random numbers
-    boost::normal_distribution<> distribution(0, 1);
-    boost::variate_generator<boost::mt19937&, boost::normal_distribution<> > dist(rng, distribution);
+	// Initialize the random generator
+	std::mt19937& rng = global_rng();
+	// Generate some random numbers
+	std::normal_distribution<double> distribution(0.0, 1.0);
 
 	// Variable of the models
 	int l;
@@ -529,8 +479,8 @@ void artificial_spectrum_aj(const double Tobs, const double Cadence, const doubl
     	for(int ns=0; ns<Nspectra; ns++){
     	    std::cout << "[" << ns << "]...";
     	    for(int i=0; i<Ndata; i++){
-    	        F1=dist();
-    	        F2=dist();
+		        F1=distribution(rng);
+		        F2=distribution(rng);
     	        stmp[i]=std::abs(F1*F1*input_spec_model[i]/2. + F2*F2*input_spec_model[i]/2.);
     	    }
     	    spec_reg=spec_reg + stmp/Nspectra;
