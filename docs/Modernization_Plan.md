@@ -160,15 +160,12 @@ Tasks:
 2) Ensure jitter cannot produce negative widths.
 3) Add a small debug/info log line summarizing applied spread (controlled by log level).
 
-Tests (plan):
+Tests (implemented):
 
-- Unit:
-  - gamma jitter loop covers all modes (no uninitialized index use)
-  - widths remain positive and finite for representative inputs
-- Property:
-  - `Gamma_spread=0` yields identical widths as before
-- Integration:
-  - MS `generate_cfg_from_synthese_file_Wscaled_aj` run completes with non-zero `Gamma_spread` and does not crash
+- Integration / property (black-box):
+  - `tests/test_specsim_phase0_integration.py` includes `test_gamma_spread_applies_per_mode`:
+    - `Gamma_spread=0` keeps widths constant (with a constant-width reference infile)
+    - `Gamma_spread>0` produces per-mode width diversity and widths remain positive
 
 
 ## Phase 3: Standardize `delta0l_percent` Convention (Kallinger2014 Preferred)

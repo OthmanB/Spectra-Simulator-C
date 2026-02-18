@@ -31,6 +31,89 @@ def parse_spectrum_file(path: Path):
     return freqs
 
 
+def parse_mode_widths_from_info_file(path: Path):
+    """Parse widths (W) from Spectra_info/*.in produced by specsim."""
+
+    widths = []
+    with path.open("r", encoding="utf-8", errors="replace") as f:
+        for line in f:
+            s = line.strip()
+            if not s:
+                continue
+            if s.startswith("#") or s.startswith("ID="):
+                continue
+            parts = s.split()
+            if len(parts) < 4:
+                continue
+            try:
+                l = int(float(parts[0]))
+            except Exception:
+                continue
+            if l not in (0, 1, 2, 3):
+                continue
+            try:
+                w = float(parts[3])
+            except Exception:
+                continue
+            widths.append(w)
+    return widths
+
+
+def rewrite_infile_widths_constant(src_in: Path, dst_in: Path, width_value: float):
+    """Create a modified *.in file with constant width for all mode lines."""
+
+    lines = src_in.read_text(encoding="utf-8", errors="replace").splitlines(True)
+    out = []
+    i = 0
+
+    # Copy initial header comments
+    while i < len(lines) and lines[i].lstrip().startswith("#"):
+        out.append(lines[i])
+        i += 1
+    if i >= len(lines):
+        raise RuntimeError(f"Unexpected format: only comments in {src_in}")
+
+    # Identifier line
+    out.append(lines[i])
+    i += 1
+
+    # Skip/copy any comment lines following the identifier
+    while i < len(lines) and lines[i].lstrip().startswith("#"):
+        out.append(lines[i])
+        i += 1
+
+    # Optional Tobs/Cadence line: 2 tokens
+    if i < len(lines):
+        toks = lines[i].split()
+        if len(toks) == 2:
+            out.append(lines[i])
+            i += 1
+            while i < len(lines) and lines[i].lstrip().startswith("#"):
+                out.append(lines[i])
+                i += 1
+
+    # Mode table until the next comment line starts the noise section
+    while i < len(lines):
+        line = lines[i]
+        if line.lstrip().startswith("#"):
+            break
+        if not line.strip():
+            out.append(line)
+            i += 1
+            continue
+        parts = line.split()
+        if len(parts) >= 4:
+            parts[3] = f"{width_value}"
+            out.append(" ".join(parts) + "\n")
+        else:
+            out.append(line)
+        i += 1
+
+    # Remainder (noise section)
+    out.extend(lines[i:])
+    dst_in.write_text("".join(out), encoding="utf-8")
+
+
 class TestSpecsimPhase0Integration(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -236,6 +319,73 @@ class TestSpecsimPhase0Integration(unittest.TestCase):
             infos = list((out_dir / "Spectra_info").glob("*.in"))
             self.assertTrue(spectra)
             self.assertTrue(infos)
+        finally:
+            td.cleanup()
+
+    def test_gamma_spread_applies_per_mode(self):
+        # Regression for generate_cfg_from_synthese_file_Wscaled_aj Gamma_spread:
+        # ensure width jitter is applied to all modes (not just one element).
+
+        src_in = self.repo_root / "Configurations" / "infiles" / "8379927.in"
+        self.assertTrue(src_in.exists())
+
+        td, root = self._make_sandbox()
+        try:
+            ref_in = root / "ref_constant_width.in"
+            rewrite_infile_widths_constant(src_in, ref_in, width_value=1.0)
+
+            def run_cfg(gamma_spread: float, out_subdir: str):
+                out_dir = root / out_subdir
+                cfg_text = "".join(
+                    [
+                        "random 1\n",
+                        f"generate_cfg_from_synthese_file_Wscaled_aj {ref_in}\n",
+                        "NONE\n",
+                        "Dnu epsilon delta0l_percent HNR a1ovGamma Gamma_at_numax a2 a3 a4 a5 a6 beta_asym i H_spread nu_spread Gamma_spread do_flat_noise\n",
+                        f"70 0.5 1 10 0.6 1 0.1 -0.1 0.15 0.2 0.05 10 60 0 0 {gamma_spread} 0\n",
+                        f"70 0.5 1 10 0.6 1 0.1 -0.1 0.15 0.2 0.05 10 60 0 0 {gamma_spread} 0\n",
+                        "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\n",
+                        "Tobs Cadence Naverage Nrealisation\n",
+                        "2 120 1 1\n",
+                        "1\n",
+                        "0\n",
+                        "0\n",
+                        "0\n",
+                        "0\n",
+                    ]
+                )
+                cfg_path = root / "main.cfg"
+                cfg_path.write_text(cfg_text, encoding="utf-8")
+
+                cmd = [
+                    str(self.specsim),
+                    "--main_file",
+                    str(cfg_path),
+                    "--noise_file",
+                    str(root / "Configurations" / "noise_Kallinger2014.cfg"),
+                    "--out_dir",
+                    str(out_dir),
+                    "--force-create-output-dir",
+                    "1",
+                ]
+                rc, out = run(cmd, cwd=root, timeout=600)
+                self.assertEqual(rc, 0, msg=out)
+
+                info_files = list((out_dir / "Spectra_info").glob("*.in"))
+                self.assertTrue(info_files)
+                widths = parse_mode_widths_from_info_file(info_files[0])
+                self.assertTrue(widths)
+                self.assertTrue(all(w > 0 for w in widths))
+                return widths
+
+            widths0 = run_cfg(0.0, "out-gamma0")
+            unique0 = set(round(w, 10) for w in widths0)
+            self.assertEqual(len(unique0), 1)
+
+            widths = run_cfg(20.0, "out-gamma20")
+            # With constant reference widths and Gamma_spread>0, most widths should differ.
+            unique = set(round(w, 10) for w in widths)
+            self.assertGreater(len(unique), int(len(widths) * 0.5))
         finally:
             td.cleanup()
 

@@ -2116,9 +2116,27 @@ void generate_cfg_from_synthese_file_Wscaled_aj(VectorXd input_params, std::stri
 	gamma_star=Gamma_coef*ref_star.mode_params.col(3); 
 	if (gamma_spread > 0)
 	{
-		xmin=gamma_star[i]*(1. - gamma_spread/100.);
-		xmax=gamma_star[i]*(1. + gamma_spread/100.);
-		gamma_star[i]=xmin + (xmax-xmin)*distrib(gen);
+		std::cout << "Applying Gamma_spread=" << gamma_spread << "% to mode widths" << std::endl;
+		for(int k=0; k<gamma_star.size(); k++){
+			xmin=gamma_star[k]*(1. - gamma_spread/100.);
+			xmax=gamma_star[k]*(1. + gamma_spread/100.);
+			if (xmin > xmax){
+				const double tmp_swap=xmin;
+				xmin=xmax;
+				xmax=tmp_swap;
+			}
+			// Ensure a non-negative and non-zero width.
+			if (xmax < 0){
+				xmax=0;
+			}
+			if (xmin < 0){
+				xmin=0;
+			}
+			gamma_star[k]=xmin + (xmax-xmin)*distrib(gen);
+			if (gamma_star[k] <= 0){
+				gamma_star[k]=1e-12;
+			}
+		}
 	}
 	
 	// Refactoring the heights
