@@ -23,6 +23,7 @@
 #include "linspace.h"
 #include "linfit.h"
 #include "rng.h"
+#include "logging.h"
 
 using Eigen::VectorXd;
 using Eigen::VectorXi;

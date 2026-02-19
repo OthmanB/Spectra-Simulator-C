@@ -36,6 +36,7 @@
 #include "interpol.h"
 #include "linfit.h"
 #include "rng.h"
+#include "logging.h"
 
 using Eigen::MatrixXd;
 using Eigen::VectorXi;

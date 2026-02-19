@@ -17,6 +17,7 @@
 #include "artificial_spectrum.h"
 #include "noise_models.h"
 #include "rng.h"
+#include "logging.h"
 
 using Eigen::VectorXd;
 using Eigen::VectorXi;

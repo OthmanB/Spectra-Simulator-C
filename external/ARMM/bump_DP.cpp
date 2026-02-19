@@ -28,6 +28,7 @@
 #include "solver_mm.h"
 #include "bump_DP.h"
 #include "rng.h"
+#include "logging.h"
 #ifdef _OPENMP
    #include <omp.h>
 #else

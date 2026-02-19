@@ -67,6 +67,7 @@ Main options:
 - `-o, --out_dir`: output directory (default: `Data/`)
 - `--force-create-output-dir`: set to `1` to create missing output folders
 - `--seed`: set a deterministic RNG seed (>=0)
+- `--log-level`: set log verbosity (`debug`, `info`, `warn`, `error`)
 
 When `--force-create-output-dir=1`, the program creates these subdirectories under `out_dir`:
 

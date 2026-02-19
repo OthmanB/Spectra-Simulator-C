@@ -21,6 +21,7 @@
 # include "ioproc.h"
 #include "linspace.h"
 #include <sstream>
+#include "logging.h"
 
 using Eigen::VectorXd;
 using Eigen::VectorXi;

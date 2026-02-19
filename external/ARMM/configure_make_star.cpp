@@ -19,6 +19,7 @@
 #include "solver_mm.h"
 #include "bump_DP.h"
 #include "rng.h"
+#include "logging.h"
 
 /**
  * @brief Main function of the "make_star" binary file. Configures the parameters for creating a synthetic star based on the input parameters.

@@ -42,6 +42,7 @@
 #include "stellar_models.h"
 #include "io_star_params.h"
 #include "rng.h"
+#include "logging.h"
 
 /**
  * @brief Creates directories and subdirectories.
@@ -222,11 +223,11 @@ bool call_model_grid(std::string model_name, VectorXd input_params, Model_data i
 std::vector<std::string> list_dir(const std::string path, const std::string filter);
 
 static void cfg_validation_fail(const std::string& cfg_file, const Config_Data& cfg, const std::string& stage, const std::string& msg){
-	std::cerr << "Configuration validation failed" << std::endl;
-	std::cerr << "  stage     : " << stage << std::endl;
-	std::cerr << "  cfg_file  : " << cfg_file << std::endl;
-	std::cerr << "  model_name: " << cfg.model_name << std::endl;
-	std::cerr << "  details   : " << msg << std::endl;
+	LOG_ERROR("Configuration validation failed");
+	LOG_ERROR("  stage     : " << stage);
+	LOG_ERROR("  cfg_file  : " << cfg_file);
+	LOG_ERROR("  model_name: " << cfg.model_name);
+	LOG_ERROR("  details   : " << msg);
 	exit(EXIT_FAILURE);
 }
 
@@ -377,13 +378,13 @@ static void warn_negative_delta0l_percent(const Config_Data& cfg, const std::str
 	for(size_t i=0; i<cfg.labels.size(); i++){
 		if(cfg.labels[i] == "delta0l_percent"){
 			if(cfg.val_min[i] < 0 || cfg.val_max[i] < 0){
-				std::cerr << "Warning: delta0l_percent is negative in cfg" << std::endl;
-				std::cerr << "  stage     : " << stage << std::endl;
-				std::cerr << "  cfg_file  : " << cfg_file << std::endl;
-				std::cerr << "  model_name: " << cfg.model_name << std::endl;
-				std::cerr << "  val_min   : " << cfg.val_min[i] << std::endl;
-				std::cerr << "  val_max   : " << cfg.val_max[i] << std::endl;
-				std::cerr << "  Note      : Convention expects a positive magnitude; values are negated internally." << std::endl;
+				LOG_WARN("Warning: delta0l_percent is negative in cfg");
+				LOG_WARN("  stage     : " << stage);
+				LOG_WARN("  cfg_file  : " << cfg_file);
+				LOG_WARN("  model_name: " << cfg.model_name);
+				LOG_WARN("  val_min   : " << cfg.val_min[i]);
+				LOG_WARN("  val_max   : " << cfg.val_max[i]);
+				LOG_WARN("  Note      : Convention expects a positive magnitude; values are negated internally.");
 			}
 			break;
 		}
@@ -570,8 +571,8 @@ void iterative_artificial_spectrum(const std::string dir_core, const std::string
 			try {
 				std::filesystem::create_directories(tmp_dir);
 			} catch (const std::exception& e) {
-				std::cerr << "Error creating temporary directory: " << tmp_dir.string() << "\n";
-				std::cerr << "Reason: " << e.what() << std::endl;
+				LOG_ERROR("Error creating temporary directory: " << tmp_dir.string());
+				LOG_ERROR("Reason: " << e.what());
 				exit(EXIT_FAILURE);
 			}
 		}
@@ -586,7 +587,7 @@ void iterative_artificial_spectrum(const std::string dir_core, const std::string
 
 	std::string dir_freqs=dir_core + "external/MESA_grid/frequencies/";
 
-	std::cout << "1. Read the configuration file..." << std::endl;
+	LOG_INFO("1. Read the configuration file...");
 
 	cfg=read_main_cfg(cfg_file);
 	validate_cfg_vector_sizes(cfg, cfg_file, "read_main_cfg");
@@ -595,11 +596,11 @@ void iterative_artificial_spectrum(const std::string dir_core, const std::string
 	validate_cfg_labels_unique(cfg, cfg_file, "read_main_cfg");
 	cfg_noise=readNoiseConfigFile(cfg_noise_file); // Used to handle models with a separate noise, essentially the Kallinger+2014 noise 
 
-	std::cout << "---------------------------------------------------------------------------------------" << std::endl;
-	std::cout << "      ATTENTION: All model configuration should be contained into models_database.cpp  " << std::endl;
-	std::cout << "                 All mode generators should be contained into build_lorentzian.cpp     " << std::endl;
-	std::cout << "                 All model generators should be contained into artificial_spectrum.cpp " << std::endl;
-	std::cout << "---------------------------------------------------------------------------------------" << std::endl;
+	LOG_INFO("---------------------------------------------------------------------------------------");
+	LOG_INFO("      ATTENTION: All model configuration should be contained into models_database.cpp  ");
+	LOG_INFO("                 All mode generators should be contained into build_lorentzian.cpp     ");
+	LOG_INFO("                 All model generators should be contained into artificial_spectrum.cpp ");
+	LOG_INFO("---------------------------------------------------------------------------------------");
 
 	passed=0;
 	if(cfg.model_name == "generate_cfg_asymptotic_act_asym_Hgauss"){
@@ -611,10 +612,10 @@ void iterative_artificial_spectrum(const std::string dir_core, const std::string
 		param_names.push_back("Hnoise2"); param_names.push_back("tau2"); param_names.push_back("p2");  
 		param_names.push_back("N0");
 		if(param_names.size() != Nmodel){
-			std::cout << "    Invalid number of parameters for model_name= 'generate_cfg_asymptotic_act_asym'" << std::endl;
-			std::cout << "    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size() << std::endl;
-			std::cout << "    Check your main configuration file" << std::endl;
-			std::cout << "    The program will exit now" << std::endl;
+			LOG_ERROR("    Invalid number of parameters for model_name= 'generate_cfg_asymptotic_act_asym'");
+			LOG_ERROR("    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size());
+			LOG_ERROR("    Check your main configuration file");
+			LOG_ERROR("    The program will exit now");
 			exit(EXIT_FAILURE);
 		}
 		passed=1;
@@ -633,10 +634,10 @@ void iterative_artificial_spectrum(const std::string dir_core, const std::string
 		param_names.push_back("beta_asym");
 		param_names.push_back("i");
 		if(param_names.size() != Nmodel){
-			std::cout << "    Invalid number of parameters for model_name= 'generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma'" << std::endl;
-			std::cout << "    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size() << std::endl;
-			std::cout << "    Check your main configuration file" << std::endl;
-			std::cout << "    The program will exit now" << std::endl;
+			LOG_ERROR("    Invalid number of parameters for model_name= 'generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma'");
+			LOG_ERROR("    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size());
+			LOG_ERROR("    Check your main configuration file");
+			LOG_ERROR("    The program will exit now");
 			exit(EXIT_FAILURE);
 		}
 		passed=1;
@@ -653,10 +654,10 @@ void iterative_artificial_spectrum(const std::string dir_core, const std::string
 		param_names.push_back("beta_asym");
 		param_names.push_back("i");
 		if(param_names.size() != Nmodel){
-			std::cout << "    Invalid number of parameters for model_name= 'generate_cfg_from_synthese_file_Wscaled_Alm'" << std::endl;
-			std::cout << "    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size() << std::endl;
-			std::cout << "    Check your main configuration file" << std::endl;
-			std::cout << "    The program will exit now" << std::endl;
+			LOG_ERROR("    Invalid number of parameters for model_name= 'generate_cfg_from_synthese_file_Wscaled_Alm'");
+			LOG_ERROR("    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size());
+			LOG_ERROR("    Check your main configuration file");
+			LOG_ERROR("    The program will exit now");
 			exit(EXIT_FAILURE);
 		}
 		passed=1;
@@ -681,10 +682,10 @@ void iterative_artificial_spectrum(const std::string dir_core, const std::string
 		param_names.push_back("Gamma_spread");
 		param_names.push_back("do_flat_noise");
 		if(param_names.size() != Nmodel){
-			std::cout << "    Invalid number of parameters for model_name= 'generate_cfg_from_synthese_file_Wscaled_aj'" << std::endl;
-			std::cout << "    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size() << std::endl;
-			std::cout << "    Check your main configuration file" << std::endl;
-			std::cout << "    The program will exit now" << std::endl;
+			LOG_ERROR("    Invalid number of parameters for model_name= 'generate_cfg_from_synthese_file_Wscaled_aj'");
+			LOG_ERROR("    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size());
+			LOG_ERROR("    Check your main configuration file");
+			LOG_ERROR("    The program will exit now");
 			exit(EXIT_FAILURE);
 		}
 		passed=1;
@@ -716,10 +717,10 @@ void iterative_artificial_spectrum(const std::string dir_core, const std::string
 		param_names.push_back("H_spread");
 		param_names.push_back("nu_spread");
 		if(param_names.size() != Nmodel){
-			std::cout << "    Invalid number of parameters for model_name= 'generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled'" << std::endl;
-			std::cout << "    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size() << std::endl;
-			std::cout << "    Check your main configuration file" << std::endl;
-			std::cout << "    The program will exit now" << std::endl;
+			LOG_ERROR("    Invalid number of parameters for model_name= 'generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled'");
+			LOG_ERROR("    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size());
+			LOG_ERROR("    Check your main configuration file");
+			LOG_ERROR("    The program will exit now");
 			exit(EXIT_FAILURE);
 		}
 		passed=1;
@@ -763,10 +764,10 @@ void iterative_artificial_spectrum(const std::string dir_core, const std::string
 		param_names.push_back("c2");
 		param_names.push_back("N0");
 		if(param_names.size() != Nmodel){
-			std::cout << "    Invalid number of parameters for model_name= 'generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled_Kallinger2014'" << std::endl;
-			std::cout << "    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size() << std::endl;
-			std::cout << "    Check your main configuration file" << std::endl;
-			std::cout << "    The program will exit now" << std::endl;
+			LOG_ERROR("    Invalid number of parameters for model_name= 'generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled_Kallinger2014'");
+			LOG_ERROR("    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size());
+			LOG_ERROR("    Check your main configuration file");
+			LOG_ERROR("    The program will exit now");
 			exit(EXIT_FAILURE);
 		}
 		passed=1;
@@ -780,10 +781,10 @@ void iterative_artificial_spectrum(const std::string dir_core, const std::string
 		param_names.push_back("beta_asym");
 		param_names.push_back("i");
 		if(param_names.size() != Nmodel){
-			std::cout << "    Invalid number of parameters for model_name= 'generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma'" << std::endl;
-			std::cout << "    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size() << std::endl;
-			std::cout << "    Check your main configuration file" << std::endl;
-			std::cout << "    The program will exit now" << std::endl;
+			LOG_ERROR("    Invalid number of parameters for model_name= 'generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma'");
+			LOG_ERROR("    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size());
+			LOG_ERROR("    Check your main configuration file");
+			LOG_ERROR("    The program will exit now");
 			exit(EXIT_FAILURE);
 		}
 		passed=1;
@@ -817,10 +818,10 @@ void iterative_artificial_spectrum(const std::string dir_core, const std::string
 		param_names.push_back("Wfactor");			
 		Nmodel=param_names.size();
 		if(param_names.size() != Nmodel){
-			std::cout << "    Invalid number of parameters for model_name= 'asymptotic_mm_v1'" << std::endl;
-			std::cout << "    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size() << std::endl;
-			std::cout << "    Check your main configuration file" << std::endl;
-			std::cout << "    The program will exit now" << std::endl;
+			LOG_ERROR("    Invalid number of parameters for model_name= 'asymptotic_mm_v1'");
+			LOG_ERROR("    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size());
+			LOG_ERROR("    Check your main configuration file");
+			LOG_ERROR("    The program will exit now");
 			exit(EXIT_FAILURE);
 		}
 		passed=1;
@@ -855,10 +856,10 @@ void iterative_artificial_spectrum(const std::string dir_core, const std::string
 		param_names.push_back("Wfactor");			
 		Nmodel=param_names.size();
 		if(param_names.size() != Nmodel){
-			std::cout << "    Invalid number of parameters for model_name= 'asymptotic_mm_v2'" << std::endl;
-			std::cout << "    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size() << std::endl;
-			std::cout << "    Check your main configuration file" << std::endl;
-			std::cout << "    The program will exit now" << std::endl;
+			LOG_ERROR("    Invalid number of parameters for model_name= 'asymptotic_mm_v2'");
+			LOG_ERROR("    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size());
+			LOG_ERROR("    Check your main configuration file");
+			LOG_ERROR("    The program will exit now");
 			exit(EXIT_FAILURE);
 		}
 		passed=1;
@@ -893,10 +894,10 @@ void iterative_artificial_spectrum(const std::string dir_core, const std::string
 		param_names.push_back("Wfactor");			
 		Nmodel=param_names.size();
 		if(param_names.size() != Nmodel){
-			std::cout << "    Invalid number of parameters for model_name= 'asymptotic_mm_v3'" << std::endl;
-			std::cout << "    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size() << std::endl;
-			std::cout << "    Check your main configuration file" << std::endl;
-			std::cout << "    The program will exit now" << std::endl;
+			LOG_ERROR("    Invalid number of parameters for model_name= 'asymptotic_mm_v3'");
+			LOG_ERROR("    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size());
+			LOG_ERROR("    Check your main configuration file");
+			LOG_ERROR("    The program will exit now");
 			exit(EXIT_FAILURE);
 		}
 		passed=1;
@@ -931,10 +932,10 @@ void iterative_artificial_spectrum(const std::string dir_core, const std::string
 		param_names.push_back("Wfactor");			
 		Nmodel=param_names.size();		
 		if(param_names.size() != Nmodel){
-			std::cout << "    Invalid number of parameters for model_name= 'asymptotic_mm_v1'" << std::endl;
-			std::cout << "    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size() << std::endl;
-			std::cout << "    Check your main configuration file" << std::endl;
-			std::cout << "    The program will exit now" << std::endl;
+			LOG_ERROR("    Invalid number of parameters for model_name= 'asymptotic_mm_v1'");
+			LOG_ERROR("    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size());
+			LOG_ERROR("    Check your main configuration file");
+			LOG_ERROR("    The program will exit now");
 			exit(EXIT_FAILURE);
 		}
 		passed=1;
@@ -980,10 +981,10 @@ void iterative_artificial_spectrum(const std::string dir_core, const std::string
 		param_names.push_back("Wfactor");			
 		Nmodel=param_names.size();		
 		if(param_names.size() != Nmodel){
-			std::cout << "    Invalid number of parameters for model_name= 'asymptotic_mm_v2'" << std::endl;
-			std::cout << "    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size() << std::endl;
-			std::cout << "    Check your main configuration file" << std::endl;
-			std::cout << "    The program will exit now" << std::endl;
+			LOG_ERROR("    Invalid number of parameters for model_name= 'asymptotic_mm_v2'");
+			LOG_ERROR("    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size());
+			LOG_ERROR("    Check your main configuration file");
+			LOG_ERROR("    The program will exit now");
 			exit(EXIT_FAILURE);
 		}
 		passed=1;
@@ -1028,10 +1029,10 @@ void iterative_artificial_spectrum(const std::string dir_core, const std::string
 		param_names.push_back("Wfactor");			
 		Nmodel=param_names.size();		
 		if(param_names.size() != Nmodel){
-			std::cout << "    Invalid number of parameters for model_name= 'asymptotic_mm_v3'" << std::endl;
-			std::cout << "    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size() << std::endl;
-			std::cout << "    Check your main configuration file" << std::endl;
-			std::cout << "    The program will exit now" << std::endl;
+			LOG_ERROR("    Invalid number of parameters for model_name= 'asymptotic_mm_v3'");
+			LOG_ERROR("    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size());
+			LOG_ERROR("    Check your main configuration file");
+			LOG_ERROR("    The program will exit now");
 			exit(EXIT_FAILURE);
 		}
 		passed=1;
@@ -1088,10 +1089,10 @@ void iterative_artificial_spectrum(const std::string dir_core, const std::string
 		param_names.push_back("Hfactor");
 		param_names.push_back("Wfactor");	
 		if(param_names.size() != Nmodel_modes+Nmodel_noise){
-			std::cout << "    Invalid number of parameters for model_name= 'generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled_Kallinger2014'" << std::endl;
-			std::cout << "    Expecting " << Nmodel_modes + Nmodel_noise << " parameters, but found " << cfg.val_min.size() << std::endl;
-			std::cout << "    Check your main configuration file" << std::endl;
-			std::cout << "    The program will exit now" << std::endl;
+			LOG_ERROR("    Invalid number of parameters for model_name= 'generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled_Kallinger2014'");
+			LOG_ERROR("    Expecting " << Nmodel_modes + Nmodel_noise << " parameters, but found " << cfg.val_min.size());
+			LOG_ERROR("    Check your main configuration file");
+			LOG_ERROR("    The program will exit now");
 			exit(EXIT_FAILURE);
 		}
 		passed=1;
@@ -1107,13 +1108,13 @@ void iterative_artificial_spectrum(const std::string dir_core, const std::string
 		param_names.push_back("N0");
 		Nmodel=param_names.size();
 		if(param_names.size() != Nmodel){
-			std::cout << "    Invalid number of parameters for model_name= 'generate_cfg_asymptotic_act_asym'" << std::endl;
-			std::cout << "    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size() << std::endl;
-			std::cout << "    Check your main configuration file" << std::endl;
-			std::cout << "    The program will exit now" << std::endl;
+			LOG_ERROR("    Invalid number of parameters for model_name= 'generate_cfg_asymptotic_act_asym'");
+			LOG_ERROR("    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size());
+			LOG_ERROR("    Check your main configuration file");
+			LOG_ERROR("    The program will exit now");
 			exit(EXIT_FAILURE);
 		}
-		std::cout << " 	   - reading models from model file (requires for setting frequencies)..." << std::endl;
+		LOG_INFO(" 	   - reading models from model file (requires for setting frequencies)...");
 		models=read_data_ascii_Ncols(model_file, delimiter, verbose_data);
 		usemodels=1;
 		passed=1;
@@ -1126,21 +1127,21 @@ void iterative_artificial_spectrum(const std::string dir_core, const std::string
 		param_names.push_back("N0");
 		Nmodel=param_names.size();
 		if(param_names.size() != Nmodel){
-			std::cout << "    Invalid number of parameters for model_name= 'generate_cfg_asymptotic_act_asym'" << std::endl;
-			std::cout << "    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size() << std::endl;
-			std::cout << "    Check your main configuration file" << std::endl;
-			std::cout << "    The program will exit now" << std::endl;
+			LOG_ERROR("    Invalid number of parameters for model_name= 'generate_cfg_asymptotic_act_asym'");
+			LOG_ERROR("    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size());
+			LOG_ERROR("    Check your main configuration file");
+			LOG_ERROR("    The program will exit now");
 			exit(EXIT_FAILURE);
 		}
-		std::cout << " 	   - reading models from model file (requires for setting frequencies)..." << std::endl;
+		LOG_INFO(" 	   - reading models from model file (requires for setting frequencies)...");
 		models=read_data_ascii_Ncols(model_file, delimiter, verbose_data);
 		usemodels=1;
 		passed=1;
 	}
  	if(passed == 0){
-		std::cout << "    model_name= " << cfg.model_name << " is not a recognized keyword for models" << std::endl;
-		std::cout << "    Check models_database.h to see the available model names" << std::endl;
-		std::cout << "    The program will exit now" << std::endl;
+		LOG_INFO("    model_name= " << cfg.model_name << " is not a recognized keyword for models");
+		LOG_INFO("    Check models_database.h to see the available model names");
+		LOG_ERROR("    The program will exit now");
 		exit(EXIT_FAILURE);
 	}
 
@@ -1157,20 +1158,20 @@ void iterative_artificial_spectrum(const std::string dir_core, const std::string
 	warn_negative_delta0l_percent(cfg, cfg_file, "post_model_selection");
 	Nmodel=static_cast<int>(param_names.size());
 
-	std::cout << "2. Generating the models using the subroutine " << cfg.model_name << " of model_database.cpp..." << std::endl;
+	LOG_INFO("2. Generating the models using the subroutine " << cfg.model_name << " of model_database.cpp...");
 	if(cfg.forest_type == "random"){
-		std::cout << "   Values are randomly generated into a uniform range defined in the main configuration file" << std::endl;
+		LOG_INFO("   Values are randomly generated into a uniform range defined in the main configuration file");
 		generate_random(cfg, param_names, dir_core, file_out_modes, file_out_noise, file_out_combi, Nmodel, file_cfg_mm, external_path, templates_dir, data_path);
 
 	}
 	if(cfg.forest_type == "grid"){
-		std::cout << "   Values are generated over a grid using all possible combinations according to inputs in the main configuration file" << std::endl;
+		LOG_INFO("   Values are generated over a grid using all possible combinations according to inputs in the main configuration file");
 		generate_grid(cfg, usemodels, models, param_names, dir_core, dir_freqs, file_out_modes, file_out_noise, file_out_combi, Nmodel,data_path);
 	}
 	if(cfg.forest_type != "random" && cfg.forest_type != "grid"){ 
-		std::cout << " Problem in the main configuration file. It is expected that the forest type parameters is either random OR grid" << std::endl;
-		std::cout << " Check your main configuration file" << std::endl;
-		std::cout << " The program will exit now" << std::endl;
+		LOG_INFO(" Problem in the main configuration file. It is expected that the forest type parameters is either random OR grid");
+		LOG_ERROR(" Check your main configuration file");
+		LOG_ERROR(" The program will exit now");
 		exit(EXIT_FAILURE);
 	}
 
@@ -1182,23 +1183,23 @@ void check_params(Config_Data cfg, const int N_model){
 	while(neg == 0 && (ii < N_model)){
 		if( (cfg.distrib[ii] == "Uniform") && (cfg.val_max[ii] - cfg.val_min[ii]) < 0){ 
 			neg=1;
-			std::cout << "List of the parameters and values :" << std::endl;
+			LOG_INFO("List of the parameters and values :");
 			for (int i=0;i<cfg.labels.size();i++){
-				std::cout << "[" << i << "] " << std::setw(20) << cfg.labels[i] << std::setw(12)<< cfg.val_min[i] << std::setw(12) << cfg.val_max[i] << std::endl;
+				LOG_INFO("[" << i << "] " << std::setw(20) << cfg.labels[i] << std::setw(12)<< cfg.val_min[i] << std::setw(12) << cfg.val_max[i]);
 			}
-			std::cout << " ------- " << std::endl;
-			std::cout << "       ii = " << ii << std::endl;
-			std::cout << "       name:    " << cfg.labels[ii] << std::endl;
-			std::cout << "       val_max =" << cfg.val_max[ii] << std::endl;
-			std::cout << "       val_min =" << cfg.val_min[ii] << std::endl;
+			LOG_INFO(" ------- ");
+			LOG_INFO("       ii = " << ii);
+			LOG_INFO("       name:    " << cfg.labels[ii]);
+			LOG_INFO("       val_max =" << cfg.val_max[ii]);
+			LOG_INFO("       val_min =" << cfg.val_min[ii]);
 		}
 		ii=ii+1;
 	}
 	if(neg == 1){
-		std::cout << "     Warning: val_max < val_min for some of the parameters while a uniform distribution is requested!" << std::endl;
-		std::cout << "     This is not permitted" << std::endl;
-		std::cout << "     Check your main configuration file" << std::endl;
-		std::cout << "     The program will exit now" << std::endl;
+		LOG_WARN("     Warning: val_max < val_min for some of the parameters while a uniform distribution is requested!");
+		LOG_INFO("     This is not permitted");
+		LOG_ERROR("     Check your main configuration file");
+		LOG_ERROR("     The program will exit now");
 		exit(EXIT_FAILURE);
 	}
 }
@@ -1206,7 +1207,7 @@ void check_params(Config_Data cfg, const int N_model){
 Config_Data update_cfg(Config_Data cfg_target, const Config_Data cfg_source, const int priority4common){
 	bool pass=false;
 	if (priority4common <-1 || priority4common >1){
-		std::cerr << "Error: Invalid pririty4common value. Set it to -1, 0 or 1." << std::endl;
+		LOG_ERROR("Error: Invalid pririty4common value. Set it to -1, 0 or 1.");
 		exit(EXIT_FAILURE);		
 	}
 	// Case where there is no priority... then we check that common variables in cfg_target and cfg_source are the
@@ -1227,20 +1228,20 @@ Config_Data update_cfg(Config_Data cfg_target, const Config_Data cfg_source, con
 			cfg_target.Nrealisation != cfg_source.Nrealisation ||
 			cfg_target.forest_type != cfg_source.forest_type)
 			{
-				std::cerr << "Error: Common variables in cfg_target and cfg_source are not the same." << std::endl;
+				LOG_ERROR("Error: Common variables in cfg_target and cfg_source are not the same.");
 				exit(EXIT_FAILURE);
 			}
 	    // Check each element of the template_files vector
     	for (size_t i = 0; i < cfg_target.template_files.size(); i++) {
 			if (cfg_target.template_files[i] != cfg_source.template_files[i]) {
-				std::cerr << "Error: template_files in cfg_target and cfg_source are not the same." << std::endl;
+				LOG_ERROR("Error: template_files in cfg_target and cfg_source are not the same.");
 				exit(EXIT_FAILURE);
 			}
 		}
 		// Check each element of the forest_params vector
     	for (size_t i = 0; i < cfg_target.forest_params.size(); i++) {
 			if (cfg_target.forest_params[i] != cfg_source.forest_params[i]) {
-				std::cerr << "Error: forest_params in cfg_target and cfg_source are not the same." << std::endl;
+				LOG_ERROR("Error: forest_params in cfg_target and cfg_source are not the same.");
 				exit(EXIT_FAILURE);
 			}
 		}
@@ -1299,10 +1300,10 @@ Config_Data agregate_maincfg_noisecfg(Config_Data cfg_main, Config_Noise cfg_noi
 				cfg.val_max.push_back(cfg_noise.x2_random[i]);
 				cfg.step.push_back(0);
 			} else{
-				std::cerr << "Error in iterative_artificial_spectrum::agregate_maincfg_noisecfg():" << std::endl;
-				std::cerr << "    In random mode and when agregation of a main.cfg with a noise.cfg is requested, only Gaussian, Fix and Uniform is a valid entry for the distribution parameter" << std::endl;
-				std::cerr << "    Check the content of the used noise configuration file." << std::endl;
-				std::cerr << "    The program will exit now" << std::endl;
+				LOG_ERROR("Error in iterative_artificial_spectrum::agregate_maincfg_noisecfg():");
+				LOG_ERROR("    In random mode and when agregation of a main.cfg with a noise.cfg is requested, only Gaussian, Fix and Uniform is a valid entry for the distribution parameter");
+				LOG_ERROR("    Check the content of the used noise configuration file.");
+				LOG_ERROR("    The program will exit now");
 				exit(EXIT_FAILURE);
 			}
 		}
@@ -1317,10 +1318,10 @@ Config_Data agregate_maincfg_noisecfg(Config_Data cfg_main, Config_Noise cfg_noi
 			if (cfg_noise.distrib_grid[i] == "Fix"){
 				cfg.step.push_back(0);
 			} else if (cfg_noise.distrib_grid[i] != "Uniform"){
-					std::cerr << "Error in iterative_artificial_spectrum::agregate_maincfg_noisecfg():" << std::endl;
-					std::cerr << "    In grid mode and when agregation of a main.cfg with a noise.cfg is requested, only Fix and Uniform is a valid entry for the distribution parameter" << std::endl;
-					std::cerr << "    Check the content of the used noise configuration file." << std::endl;
-					std::cerr << "    The program will exit now" << std::endl;
+					LOG_ERROR("Error in iterative_artificial_spectrum::agregate_maincfg_noisecfg():");
+					LOG_ERROR("    In grid mode and when agregation of a main.cfg with a noise.cfg is requested, only Fix and Uniform is a valid entry for the distribution parameter");
+					LOG_ERROR("    Check the content of the used noise configuration file.");
+					LOG_ERROR("    The program will exit now");
 					exit(EXIT_FAILURE);
 			} else{ // In the uniform case, the kerror_grid is used to set the step
 				cfg.step.push_back(cfg_noise.kerror_grid[i]);
@@ -1329,8 +1330,8 @@ Config_Data agregate_maincfg_noisecfg(Config_Data cfg_main, Config_Noise cfg_noi
 		pass=true;
 	}
 	if (pass == false){
-		std::cerr << "Error in iterative_artificial_spectrum::agregate_maincfg_noisecfg():" << std::endl;
-		std::cerr << "      Wrong argument found for forest_type while agregating noise and main cfg files" << std::endl;
+		LOG_ERROR("Error in iterative_artificial_spectrum::agregate_maincfg_noisecfg():");
+		LOG_ERROR("      Wrong argument found for forest_type while agregating noise and main cfg files");
 		exit(EXIT_FAILURE);
 	}
 	return cfg;
@@ -1369,13 +1370,19 @@ void generate_random(Config_Data cfg, std::vector<std::string> param_names, std:
 		cte_names.push_back(cfg.labels[pos_zero[i]]);
 		cte_params[i]=cfg.val_min[pos_zero[i]];
 	}
-	std::cout << "Constants: ";
-	for(int i=0; i<cte_names.size(); i++){ std::cout << cte_names[i] << "  ";}
-	std::cout << std::endl;
+	{
+		std::ostringstream oss;
+		oss << "Constants: ";
+		for(int i=0; i<cte_names.size(); i++){ oss << cte_names[i] << "  ";}
+		LOG_INFO(oss.str());
+	}
 
-	std::cout << "Variables: ";
-	for(int i=0; i<var_names.size(); i++){ std::cout << var_names[i] << "  ";}
-	std::cout << std::endl;
+	{
+		std::ostringstream oss;
+		oss << "Variables: ";
+		for(int i=0; i<var_names.size(); i++){ oss << var_names[i] << "  ";}
+		LOG_INFO(oss.str());
+	}
 
 	//  ------------ Generate the random values -----------
 	// Initialize the random generators: Uniform over [0,1]. This is used for the random parameters
@@ -1386,7 +1393,7 @@ void generate_random(Config_Data cfg, std::vector<std::string> param_names, std:
 	// Generator of integers for selecting randomly a template file that contains a height and width profile
 	std::vector<std::string> template_candidates=cfg.template_files;
 	if(template_candidates.size() == 0){
-		std::cout << "Error: The template_file cannot be empty. If not used, please set it to NONE" << std::endl;
+		LOG_ERROR("Error: The template_file cannot be empty. If not used, please set it to NONE");
 		exit(EXIT_SUCCESS);
 	}
 	if(template_candidates.size() == 1 && is_none_token(template_candidates[0])){
@@ -1396,9 +1403,9 @@ void generate_random(Config_Data cfg, std::vector<std::string> param_names, std:
 			template_candidates=list_dir(templates_dir, "template");
 		}
 		if (template_candidates.size() == 0){
-			std::cout << "Could not find the template file in the expected directory" << std::endl;
-			std::cout << "Be sure to have it in Configurations/templates/ " << std::endl;
-			std::cout << "If the used mode does not require templates, specify NONE in the dedicated field " << std::endl;
+			LOG_INFO("Could not find the template file in the expected directory");
+			LOG_INFO("Be sure to have it in Configurations/templates/ ");
+			LOG_INFO("If the used mode does not require templates, specify NONE in the dedicated field ");
 			exit(EXIT_FAILURE);
 		}
 		std::vector<std::string> valid_templates;
@@ -1412,48 +1419,48 @@ void generate_random(Config_Data cfg, std::vector<std::string> param_names, std:
 			if(validate_template_file(full_path, &reason)){
 				valid_templates.push_back(candidate);
 			} else{
-				std::cerr << "Warning: Skipping invalid template file: " << full_path << std::endl;
-				std::cerr << "         Reason: " << reason << std::endl;
+				LOG_ERROR("Warning: Skipping invalid template file: " << full_path);
+				LOG_ERROR("         Reason: " << reason);
 			}
 		}
 		if(valid_templates.size() == 0){
-			std::cerr << "Error: No valid template files found after validation" << std::endl;
-			std::cerr << "       Check templates in: " << templates_dir << std::endl;
-			std::cerr << "       If the used mode does not require templates, specify NONE in the dedicated field" << std::endl;
+			LOG_ERROR("Error: No valid template files found after validation");
+			LOG_ERROR("       Check templates in: " << templates_dir);
+			LOG_ERROR("       If the used mode does not require templates, specify NONE in the dedicated field");
 			exit(EXIT_FAILURE);
 		}
 		std::uniform_int_distribution<int> dist(0, static_cast<int>(valid_templates.size()-1));
 		template_file=templates_dir + valid_templates[dist(generator)];
 	}
 	if(template_file == ""){
-		std::cout << "Selected template file: NONE" << std::endl;
+		LOG_INFO("Selected template file: NONE");
 	} else{
-		std::cout << "Selected template file: " << template_file << std::endl;
+		LOG_INFO("Selected template file: " << template_file);
 	}
- 	std::cout << " -----------------------------------------------------" << std::endl;
-	std::cout << " List of all combinations written iteratively into " << std::endl;
-	std::cout << "       " <<  file_out_combi << std::endl; 
-	std::cout << " -----------------------------------------------------" << std::endl;
+ 	LOG_INFO(" -----------------------------------------------------");
+	LOG_INFO(" List of all combinations written iteratively into ");
+	LOG_INFO("       " <<  file_out_combi);
+	LOG_INFO(" -----------------------------------------------------");
 
 	if(cfg.erase_old_files == 0){
 		if(file_exists(file_out_combi) == 1){
-			std::cout << "                 erase_old_files=0..." << std::endl;
-			std::cout << "                 ...Older combinatory file found!" << std::endl;
-			std::cout << "                 Name of the found file: " << file_out_combi << std::endl;
-			std::cout << "                 Reading the combinatory file in order to determince the last value of the samples..." << std::endl;
+			LOG_INFO("                 erase_old_files=0...");
+			LOG_INFO("                 ...Older combinatory file found!");
+			LOG_INFO("                 Name of the found file: " << file_out_combi);
+			LOG_INFO("                 Reading the combinatory file in order to determince the last value of the samples...");
 			lastid=read_id_allcombi(file_out_combi);
 		} else{
 			lastid=0; // If no Combi file while erase_old_files is set to 1
-			std::cout << "                 erase_old_files=0..."<< std::endl;
-			std::cout << "                 ... but no older combi file was found" << std::endl;
-			std::cout << "                 The program will therefore behave as if erase_old_files=1" << std::endl;
+			LOG_INFO("                 erase_old_files=0...");
+			LOG_INFO("                 ... but no older combi file was found");
+			LOG_INFO("                 The program will therefore behave as if erase_old_files=1");
 		}
 	} else {
 		lastid=0; // If no Combi file while erase_old_files is set to 1
-		std::cout << "                 erase_old_files=1..."<< std::endl;
-		std::cout << "                 Note that no deleting action is performed by this program" << std::endl;
-		std::cout << "                 But any older file might be overwritten!" << std::endl;
-		std::cout << "                 Be sure to have no important previous results in the Data directory and subdirectories!" << std::endl;
+		LOG_INFO("                 erase_old_files=1...");
+		LOG_INFO("                 Note that no deleting action is performed by this program");
+		LOG_INFO("                 But any older file might be overwritten!");
+		LOG_INFO("                 Be sure to have no important previous results in the Data directory and subdirectories!");
 	}
 	id0=lastid+1;
 
@@ -1465,20 +1472,20 @@ void generate_random(Config_Data cfg, std::vector<std::string> param_names, std:
 			} else if (distrib[i] == "Gaussian"){
 				currentcombi(0,i)=dist_gr_gauss(generator)*val_max[i] + val_min[i]; // In this context, val_min == mean, val_max == stddev
 			} else{
-				std::cerr << "Error while attempting to generate random numbers in iterative_artifical_spectrum::generate_random()" << std::endl;
-				std::cerr << "     You are allowed to only have Uniform or Gaussian distributions. Found distribution: " << distrib[i] << std::endl;
+				LOG_ERROR("Error while attempting to generate random numbers in iterative_artifical_spectrum::generate_random()");
+				LOG_ERROR("     You are allowed to only have Uniform or Gaussian distributions. Found distribution: " << distrib[i]);
 			}
 		}
 		id_str=write_allcombi(currentcombi, cte_params, cfg, file_out_combi, cfg.erase_old_files, c, id0, cte_names, var_names,  param_names); // update/write the combination file
-		std::cout << "Combination number: " << id_str << std::endl;
+		LOG_INFO("Combination number: " << id_str);
 
 		input_params=order_input_params(cte_params, currentcombi.row(0), cte_names, var_names, param_names);
 
 		passed=call_model_random(cfg.model_name, input_params, file_out_modes, file_out_noise,  file_cfg_mm, dir_core, id_str, cfg, external_path, template_file, data_path);
 		if(passed == 0){
-			std::cout << "Warning: The function call_model did not generate any configuration file!" << std::endl;
-			std::cout << "         It is very likely that you tried to start a model in 'random mode' while this model is not available for the random approach" << std::endl;
-			std::cout << "         The program will stop now" << std::endl;
+			LOG_WARN("Warning: The function call_model did not generate any configuration file!");
+			LOG_INFO("         It is very likely that you tried to start a model in 'random mode' while this model is not available for the random approach");
+			LOG_INFO("         The program will stop now");
 			exit(EXIT_FAILURE);
 		}
 		id0=id0+1;
@@ -1490,7 +1497,7 @@ void generate_random(Config_Data cfg, std::vector<std::string> param_names, std:
 	std::filesystem::remove(file_out_noise, ec);
 	}
 
-	std::cout << "All requested tasks executed succesfully" << std::endl;
+	LOG_INFO("All requested tasks executed succesfully");
 	
 }
 
@@ -1519,9 +1526,9 @@ void generate_grid(Config_Data cfg, bool usemodels, Data_Nd models, std::vector<
 
 	Nvals.resize(pos_one.size());
 	for(int ii=0; ii<pos_one.size();ii++){
-		//std::cout << pos_one[ii] << std::endl;
+		//LOG_INFO(pos_one[ii]);
 		Nvals[ii]=delta[pos_one[ii]]/cfg.step[pos_one[ii]] + 1e-15; // 1d-15 here because floor bugs sometimes due to round-off
-		//std::cout << "Nvals["<< ii << "]=" << Nvals[ii] << std::endl; //Nvals=Nvals.floor();
+		//LOG_INFO("Nvals["<< ii << "]=" << Nvals[ii] ; //Nvals=Nvals.floor());
 	}
 	val_min.resize(pos_one.size());
 	val_max.resize(pos_one.size());
@@ -1543,50 +1550,56 @@ void generate_grid(Config_Data cfg, bool usemodels, Data_Nd models, std::vector<
 		cte_names.push_back(cfg.labels[pos_zero[i]]);
 		cte_params[i]=cfg.val_min[pos_zero[i]];
 	}
-	std::cout << "Constants: ";
-	for(int i=0; i<cte_names.size(); i++){ std::cout << cte_names[i] << "  ";}
-	std::cout << std::endl;
+	{
+		std::ostringstream oss;
+		oss << "Constants: ";
+		for(int i=0; i<cte_names.size(); i++){ oss << cte_names[i] << "  ";}
+		LOG_INFO(oss.str());
+	}
 
-	std::cout << "Variables: ";
-	Nvar_params=var_names.size();
-	for(int i=0; i<Nvar_params; i++){ std::cout << var_names[i] << "  ";}
-	std::cout << std::endl;
+	{
+		std::ostringstream oss;
+		oss << "Variables: ";
+		Nvar_params=var_names.size();
+		for(int i=0; i<Nvar_params; i++){ oss << var_names[i] << "  ";}
+		LOG_INFO(oss.str());
+	}
 
 	//  ------------ Generate the grid -----------
-	std::cout << "       - Generating all the requested combinations. This may take a while..." << std::endl;
+	LOG_INFO("       - Generating all the requested combinations. This may take a while...");
 	var_params.transposeInPlace();
 	allcombi=define_all_combinations(var_params, Nvals, Nvar_params);
 	Ncombi=allcombi.rows();
-	std::cout << allcombi << std::endl;
+	LOG_INFO(allcombi);
 
-	std::cout << "Ncombi = " << Ncombi << std::endl;
-	std::cout << " -----------------------------------------------------" << std::endl;
-	std::cout << " List of all combinations written iteratively into " << std::endl;
-	std::cout << "       " <<  file_out_combi << std::endl; 
-	std::cout << " -----------------------------------------------------" << std::endl;
+	LOG_INFO("Ncombi = " << Ncombi);
+	LOG_INFO(" -----------------------------------------------------");
+	LOG_INFO(" List of all combinations written iteratively into ");
+	LOG_INFO("       " <<  file_out_combi);
+	LOG_INFO(" -----------------------------------------------------");
 
 	if(cfg.erase_old_files == 0){
 		if(file_exists(file_out_combi) == 1){
-			std::cout << "                 erase_old_files=0..." << std::endl;
-			std::cout << "                 ...Older combinatory file found!" << std::endl;
-			std::cout << "                 Name of the found file: " << file_out_combi << std::endl;
-			std::cout << "                 Reading the combinatory file in order to determince the last value of the samples..." << std::endl;
+			LOG_INFO("                 erase_old_files=0...");
+			LOG_INFO("                 ...Older combinatory file found!");
+			LOG_INFO("                 Name of the found file: " << file_out_combi);
+			LOG_INFO("                 Reading the combinatory file in order to determince the last value of the samples...");
 			lastid=read_id_allcombi(file_out_combi);
 
 			//exit(EXIT_SUCCESS);
 
 		} else{
 			lastid=-1; // If no Combi file while erase_old_files is set to 1
-			std::cout << "                 erase_old_files=0..."<< std::endl;
-			std::cout << "                 ... but no older combi file was found" << std::endl;
-			std::cout << "                 The program will therefore behave as if erase_old_files=0" << std::endl;
+			LOG_INFO("                 erase_old_files=0...");
+			LOG_INFO("                 ... but no older combi file was found");
+			LOG_INFO("                 The program will therefore behave as if erase_old_files=0");
 		}
 	} else {
 		lastid=-1; // If no Combi file while erase_old_files is set to 1
-		std::cout << "                 erase_old_files=1..."<< std::endl;
-		std::cout << "                 Note that no deleting action is performed by this program" << std::endl;
-		std::cout << "                 But any older file might be overwritten!" << std::endl;
-		std::cout << "                 Be sure to have no important previous results in the Data directory and subdirectories!" << std::endl;
+		LOG_INFO("                 erase_old_files=1...");
+		LOG_INFO("                 Note that no deleting action is performed by this program");
+		LOG_INFO("                 But any older file might be overwritten!");
+		LOG_INFO("                 Be sure to have no important previous results in the Data directory and subdirectories!");
 	}
 	id0=lastid+1;
 	//id0=1; // DEBUG ONLY
@@ -1597,25 +1610,25 @@ void generate_grid(Config_Data cfg, bool usemodels, Data_Nd models, std::vector<
 			currentcombi.row(0)=allcombi.row(id0); // HERE currentcombi HAS JUST ONE LINE
 		}
 		id_str=write_allcombi(currentcombi, cte_params, cfg, file_out_combi, cfg.erase_old_files, c, id0, cte_names, var_names,  param_names); // update/write the combination file
-		std::cout << "Combination number: " << id_str  << "  (last is: " << Ncombi-1 << ")" << std::endl;
+		LOG_INFO("Combination number: " << id_str  << "  (last is: " << Ncombi-1 << ")");
 	
 		input_params=order_input_params(cte_params, currentcombi.row(0), cte_names, var_names, param_names);
 		if(usemodels == 1){
 			pos=where_strXi(param_names, "Model_i"); // Look for the position where Model_i is given (should be 0)	
-			//std::cout << pos << std::endl;
+			//LOG_INFO(pos);
 			if(pos[0] !=-1){
 				input_model=get_model_param(models, input_params[pos[0]], dir_freqs);
 			} else{
-				std::cout << "Could not find the column that contains the 'Model_i' (model index)" << std::endl;
-				std::cout << "Debug required. The program will exit now" << std::endl;
+				LOG_INFO("Could not find the column that contains the 'Model_i' (model index)");
+				LOG_ERROR("Debug required. The program will exit now");
 				exit(EXIT_SUCCESS);
 			}
 		}
 		passed=call_model_grid(cfg.model_name, input_params, input_model, file_out_modes, file_out_noise, dir_core, id_str, cfg, data_path);
 		if(passed == 0){
-			std::cout << "Warning: The function call_model_grid did not generate any configuration file!" << std::endl;
-			std::cout << "         It is very likely that you tried to start a model in 'grid mode' while this model is not available for the grid approach" << std::endl;
-			std::cout << "         The program will stop now" << std::endl;
+			LOG_WARN("Warning: The function call_model_grid did not generate any configuration file!");
+			LOG_INFO("         It is very likely that you tried to start a model in 'grid mode' while this model is not available for the grid approach");
+			LOG_INFO("         The program will stop now");
 			exit(EXIT_FAILURE);
 		}
 		id0=id0+1;
@@ -1627,7 +1640,7 @@ void generate_grid(Config_Data cfg, bool usemodels, Data_Nd models, std::vector<
 		std::filesystem::remove(file_out_noise, ec);
 	}
 
-	std::cout << "All requested tasks executed succesfully" << std::endl;
+	LOG_INFO("All requested tasks executed succesfully");
 //exit(EXIT_SUCCESS);	
 }
 
@@ -1747,9 +1760,9 @@ bool call_model_random(std::string model_name, VectorXd input_params, std::strin
 			subpassed=1;
 		}
 		if(subpassed == 0){
-			std::cout << "Warning: The function call_model did not generate any configuration file!" << std::endl;
-			std::cout << "         Debug required in the section handling the models asymptotic_mm_vX" << std::endl;
-			std::cout << "         The program will stop now" << std::endl;
+			LOG_WARN("Warning: The function call_model did not generate any configuration file!");
+			LOG_INFO("         Debug required in the section handling the models asymptotic_mm_vX");
+			LOG_INFO("         The program will stop now");
 			exit(EXIT_FAILURE);
 		}
 		
@@ -1759,9 +1772,9 @@ bool call_model_random(std::string model_name, VectorXd input_params, std::strin
 			std::error_code ec;
 			std::filesystem::copy_file(src, dst, std::filesystem::copy_options::overwrite_existing, ec);
 			if(ec){
-				std::cerr << "Warning: failed to copy mixed-mode cfg file: " << src.string() << std::endl;
-				std::cerr << "         to: " << dst.string() << std::endl;
-				std::cerr << "         reason: " << ec.message() << std::endl;
+				LOG_ERROR("Warning: failed to copy mixed-mode cfg file: " << src.string());
+				LOG_ERROR("         to: " << dst.string());
+				LOG_ERROR("         reason: " << ec.message());
 			}
 		}
 		passed=1;
@@ -1849,11 +1862,11 @@ std::vector<std::string> list_dir(const std::string path, const std::string exte
 	std::vector<std::string> files;
 	std::filesystem::path dir_path(path);
 	if(!std::filesystem::exists(dir_path)){
-		std::cout << "I/O Error: directory does not exist: " << path << std::endl;
+		LOG_INFO("I/O Error: directory does not exist: " << path);
 		exit(EXIT_FAILURE);
 	}
 	if(!std::filesystem::is_directory(dir_path)){
-		std::cout << "I/O Error: not a directory: " << path << std::endl;
+		LOG_INFO("I/O Error: not a directory: " << path);
 		exit(EXIT_FAILURE);
 	}
 
@@ -1880,31 +1893,34 @@ std::vector<std::string> list_dir(const std::string path, const std::string exte
 
 void showversion()
 {
-    std::cout << APP_NAME " " APP_VERSION "\n built on " __DATE__ << std::endl;
+	std::ostringstream oss;
+	oss << APP_NAME << " " << APP_VERSION << "\n built on " << __DATE__;
 
 #   if defined(__clang__)
-    	printf(" with clang " __clang_version__);
+	oss << " with clang " << __clang_version__;
 #   elif defined(__GNUC__)
-    	printf(" with GCC");
-    	printf(" %d.%d.%d", __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__);
+	oss << " with GCC";
+	oss << " " << __GNUC__ << "." << __GNUC_MINOR__ << "." << __GNUC_PATCHLEVEL__;
 #   elif defined(_MSC_VER)
-    	printf(" with MSVC");
-    	printf(" %d", MSVC_VERSION);
+	oss << " with MSVC";
+	oss << " " << MSVC_VERSION;
 #   else
-    printf(" unknown compiler");
+	oss << " unknown compiler";
 #   endif
 
-    std::cout << "\n features:";
+	oss << "\n features:";
 #   if defined(__i386__) || defined(_M_IX86)
-    std::cout << " i386" << std::endl;
+	oss << " i386";
 #   elif defined(__x86_64__) || defined(_M_AMD64)
-    std::cout << " x86_64" << std::endl;
+	oss << " x86_64";
 #	elif (defined(__arm64__) && defined(__APPLE__)) || defined(__aarch64__)
-		std::cout << " arm64 / Apple" << std::endl;
-#   elif 
-		std::cout << " Unknown" << std::endl;
+	oss << " arm64 / Apple";
+#   else
+	oss << " Unknown";
 #   endif
-    std::cout << " Author: " << APP_COPYRIGHT << std::endl;
+
+	oss << "\n Author: " << APP_COPYRIGHT;
+	LOG_INFO(oss.str());
 }
 
 
@@ -1914,12 +1930,12 @@ bool createDirectories(const std::string& output_dir, bool force_mkdir) {
         try {
             boost::filesystem::create_directory(out_dir);
         } catch (const std::exception& e) {
-            std::cerr << "Error creating directory: " << e.what() << std::endl;
+            LOG_ERROR("Error creating directory: " << e.what());
             return false;
         }
     } else {
         if (!boost::filesystem::exists(out_dir)) {
-            std::cerr << "Error: Output directory does not exist." << std::endl;
+            LOG_ERROR("Error: Output directory does not exist.");
             return false;
         }
     }
@@ -1930,12 +1946,12 @@ bool createDirectories(const std::string& output_dir, bool force_mkdir) {
             try {
                 boost::filesystem::create_directory(subdirectory_path);
             } catch (const std::exception& e) {
-                std::cerr << "Error creating subdirectory: " << e.what() << std::endl;
+                LOG_ERROR("Error creating subdirectory: " << e.what());
                 return false;
             }
         } else {
             if (!boost::filesystem::exists(subdirectory_path)) {
-                std::cerr << "Error: Subdirectory '" << subdirectory << "' does not exist." << std::endl;
+                LOG_ERROR("Error: Subdirectory '" << subdirectory << "' does not exist.");
                 return false;
             }
         }
@@ -1967,27 +1983,41 @@ int main(int argc, char* argv[]){
 		("main_dir,g", boost::program_options::value<std::string>()->default_value("Configurations/"), "Full path for the main configuration file. If not set, use the default sub-directory 'Configurations/.")
 		("out_dir,o", boost::program_options::value<boost::filesystem::path>()->default_value("Data/"), "Full path or relative path for the outputs. If not set, use the default sub-directory 'Data/.")
 		("force-create-output-dir", boost::program_options::value<bool>()->default_value(0), "If set to 1=true, it will create the output directory defined by output_dir and all the required subdirectory. If set to 0=false (default), it will not create the directories, but only check if they exist and stop the program if they do not")
+		("log-level", boost::program_options::value<std::string>()->default_value("info"), "Log level: debug, info, warn, error")
 		("seed", boost::program_options::value<long long>()->default_value(-1), "Seed for RNG (>=0). If set, results are deterministic across runs.");	
 	boost::program_options::variables_map vm;
 	try {
         boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
         boost::program_options::notify(vm);
-    } catch (const std::exception& ex) {
-        std::cerr << ex.what() << std::endl;
-        return -1;
-    }
+	} catch (const std::exception& ex) {
+		std::cerr << ex.what() << std::endl;
+		return -1;
+	}
+
+	LogLevel log_level = LogLevel::info;
+	std::string log_level_str = vm["log-level"].as<std::string>();
+	if (!try_parse_log_level(log_level_str, &log_level)) {
+		std::cerr << "Invalid --log-level value: " << log_level_str << std::endl;
+		std::cerr << "Valid values: debug, info, warn, error" << std::endl;
+		return -1;
+	}
+	init_logging(log_level);
+	LOG_INFO("Log level set to " << log_level_str);
+
 	if (vm.count("help")) {
-		std::cout << desc << std::endl;
+		set_log_level(LogLevel::info);
+		LOG_INFO(desc);
 		return 1;
 	}
 	if (vm.count("version")) {
+		set_log_level(LogLevel::info);
 		showversion();
 		return 1;
 	}
 	long long seed_value = vm["seed"].as<long long>();
 	if(seed_value >= 0){
 		set_global_seed(static_cast<uint64_t>(seed_value));
-		std::cout << "Using RNG seed: " << seed_value << std::endl;
+		LOG_INFO("Using RNG seed: " << seed_value);
 	}
 	// -------------------------------
 
@@ -2025,17 +2055,17 @@ int main(int argc, char* argv[]){
         out_dir = full_path;
     }
     if (force_mkdir == true){
-		std::cout << "           --force-create-output-dir = 1, Create the directories at the destination whenever possible: " << std::endl;
-		std::cout << "          " << out_dir.string() << "..." << std::endl;
-		std::cout << std::endl;
+		LOG_INFO("           --force-create-output-dir = 1, Create the directories at the destination whenever possible: ");
+		LOG_INFO("          " << out_dir.string() << "...");
+		LOG_INFO("");
 	} else{
-		std::cout << "            --force-create-output-dir = 0, Checking if the directories at " << out_dir.string() << "  do already exist. The process will fail they don't... " << std::endl;
-		std::cout << std::endl;
+		LOG_INFO("            --force-create-output-dir = 0, Checking if the directories at " << out_dir.string() << "  do already exist. The process will fail they don't... ");
+		LOG_INFO("");
 	}
 	if (createDirectories(out_dir.string(), force_mkdir)) {
-		std::cout << "Directories created successfully." << std::endl;
+		LOG_INFO("Directories created successfully.");
 	} else {
-		std::cerr << "Error creating directories." << std::endl;
+		LOG_ERROR("Error creating directories.");
 		exit(EXIT_FAILURE);
 	}
 	iterative_artificial_spectrum(full_path.string() + "/", cfg_file, cfg_noise_file, out_dir.string());

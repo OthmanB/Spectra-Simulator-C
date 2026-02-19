@@ -665,6 +665,19 @@ class TestSpecsimPhase0Integration(unittest.TestCase):
         finally:
             td.cleanup()
 
+    def test_invalid_log_level(self):
+        example_cfg = self.repo_root / "Configurations" / "examples_cfg" / "main.cfg.aj"
+        td, root, out_dir, patched_cfg, rc, out = self._run_cfg_in_sandbox(
+            example_cfg,
+            fixed_template="12508433.template",
+            extra_args=["--log-level", "bogus"],
+        )
+        try:
+            self.assertNotEqual(rc, 0)
+            self.assertIn("Invalid --log-level", out)
+        finally:
+            td.cleanup()
+
     def test_template_validation_skips_invalid(self):
         valid_template = (
             self.repo_root / "Configurations" / "templates" / "12508433.template"

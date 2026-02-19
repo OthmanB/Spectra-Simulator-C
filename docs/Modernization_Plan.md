@@ -287,17 +287,12 @@ Tests (implemented):
 
 User requirement: add a proper logging system; stop scattering raw `std::cout` everywhere.
 
-Recommended approach:
+Implemented approach:
 
-- Introduce a thin project wrapper API (`logging.h/.cpp`) with macros/functions:
+- Added a lightweight project logger (`logging.h/.cpp`) with macros:
   - `LOG_DEBUG(...)`, `LOG_INFO(...)`, `LOG_WARN(...)`, `LOG_ERROR(...)`
-- Back the wrapper with a dedicated logging library.
-
-Library choice notes:
-
-- Recommended: `spdlog` (widely used, easy levels/sinks/formatting).
-  - Due to `cmake_minimum_required(VERSION 3.5)`, prefer a vendored header-only integration under `external/`.
-- Alternative: `Boost.Log` (already using Boost, but adds link complexity).
+- Added a stream redirection adapter so legacy `std::cout`/`std::cerr` are captured and leveled.
+- The logger is dependency-free for now; if desired, it can be swapped to `spdlog` later.
 
 Deliverables:
 
@@ -305,25 +300,18 @@ Deliverables:
 - Default log level `info`.
 - Conversion strategy that does not require a single giant refactor.
 
-Tasks:
+Tasks (implemented):
 
-1) Add wrapper and minimal initialization (set level, set format, optional file sink).
-2) Convert critical paths first:
-   - configuration parsing/validation
-   - template selection
-   - model registry selection
-   - fatal errors -> `LOG_ERROR` + controlled exit
-3) Convert remaining files gradually.
+1) Add wrapper and minimal initialization (set level, set format).
+2) Add stream redirection for legacy `std::cout`/`std::cerr` output.
+3) Convert critical paths first (config validation, template selection, model selection errors).
 4) Keep user-facing progress messages at `info`.
-5) Use `debug` for verbose internal dumps currently printed unconditionally.
 
-Tests (plan):
+Tests (implemented):
 
-- Unit:
-  - `--log-level` parsing (invalid level fails with helpful message)
-  - log filtering: `debug` messages suppressed at `info`
-- Integration:
-  - a known error path emits `error`-level log and non-zero exit code
+- Integration / property (black-box):
+  - `tests/test_specsim_phase0_integration.py` includes:
+    - `test_invalid_log_level` (invalid `--log-level` fails with a clear message)
 
 
 ## Phase 7: Model Switching Refactor (Single Registry)

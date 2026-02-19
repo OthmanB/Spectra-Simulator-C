@@ -71,6 +71,7 @@ set(SOURCES_MAIN  #_COMMON
     noise_models.cpp
 	    ioproc.cpp
 	    random_JB.cpp
+	    logging.cpp
 	    rng.cpp
 	    combi.cpp
     stellar_models.cpp

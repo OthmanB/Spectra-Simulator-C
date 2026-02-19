@@ -25,6 +25,7 @@
 #include <fstream>
 #include <vector>
 #include "ioproc.h"
+#include "logging.h"
 #ifndef _WIN32
 #include <unistd.h>
 #endif
