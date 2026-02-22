@@ -47,7 +47,7 @@ Cfg_synthetic_star configure_make_star(std::unordered_map<std::string, std::stri
 	cfg_star.q_star=str_to_dbl(input_params["q_star"]);
 	cfg_star.alpha_g_star=str_to_dbl(input_params["epsilon_g"]);
 	cfg_star.epsilon_star=str_to_dbl(input_params["epsilon_p"]);    
-	cfg_star.delta0l_percent_star=-std::abs(str_to_dbl(input_params["delta0l_percent"]));
+	cfg_star.delta0l_percent_star=str_to_dbl(input_params["delta0l_percent"]);
     // ------------------   Rotation  ------------------   
 	cfg_star.rot_env_input=str_to_dbl(input_params["rot_env"]);
     if (input_params["rot_core"] == "None" && input_params["rot_ratio"] == "None"){

@@ -796,6 +796,55 @@ class TestSpecsimPhase0Integration(unittest.TestCase):
         finally:
             td.cleanup()
 
+    def test_list_models(self):
+        rc, out = run([str(self.specsim), "--list-models"], cwd=self.repo_root, timeout=60)
+        self.assertEqual(rc, 0, msg=out)
+        for name in (
+            "generate_cfg_from_synthese_file_Wscaled_Alm",
+            "generate_cfg_from_synthese_file_Wscaled_aj",
+            "generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled_Kallinger2014",
+            "asymptotic_mm_freeDp_numaxspread_curvepmodes_v3_GRANscaled_Kallinger2014",
+        ):
+            self.assertIn(name, out)
+
+    def test_describe_model(self):
+        name = "generate_cfg_from_synthese_file_Wscaled_aj"
+        rc, out = run(
+            [str(self.specsim), "--describe-model", name],
+            cwd=self.repo_root,
+            timeout=60,
+        )
+        self.assertEqual(rc, 0, msg=out)
+        self.assertIn(f"Model: {name}", out)
+        self.assertIn("Parameter order", out)
+        self.assertIn("delta0l_percent", out)
+
+    def test_registry_rejects_unknown_model(self):
+        cfg_text = "".join(
+            [
+                "random 1\n",
+                "unknown_model\n",
+                "NONE\n",
+                "Dnu epsilon delta0l_percent HNR a1ovGamma Gamma_at_numax a2 a3 a4 a5 a6 beta_asym i H_spread nu_spread Gamma_spread do_flat_noise\n",
+                "70 0.5 1 10 0.6 1 0.1 -0.1 0.15 0.2 0.05 10 60 0 0 0 0\n",
+                "70 0.5 1 10 0.6 1 0.1 -0.1 0.15 0.2 0.05 10 60 0 0 0 0\n",
+                "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\n",
+                "Tobs Cadence Naverage Nrealisation\n",
+                "2 120 1 1\n",
+                "1\n",
+                "0\n",
+                "0\n",
+                "0\n",
+                "0\n",
+            ]
+        )
+        td, root, out_dir, cfg_path, rc, out = self._run_cfg_text_in_sandbox(cfg_text)
+        try:
+            self.assertNotEqual(rc, 0)
+            self.assertIn("registry-only mode", out)
+        finally:
+            td.cleanup()
+
 
 if __name__ == "__main__":
     unittest.main()

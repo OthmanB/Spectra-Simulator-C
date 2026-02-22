@@ -40,3 +40,5 @@ build-*/
 Data/
 Configurations/tmp/
 dir.list
+site/
+docs/html/

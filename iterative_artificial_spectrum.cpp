@@ -37,6 +37,7 @@
 #include "artificial_spectrum.h"
 #include "models_database.h"
 #include "models_database_grid.h"
+#include "models_registry.h"
 #include "version.h"
 #include "combi.h"
 #include "stellar_models.h"
@@ -139,8 +140,8 @@ Config_Data update_cfg(Config_Data cfg_target, const Config_Data cfg_source, con
 *
 * This function generates random models based on a given configuration file. It takes several input parameters including the configuration file, directory path, and file paths for output files. The function generates a series of random values for the parameters specified in the configuration file and uses them to generate the models. It also selects a template file containing height and width profiles for the models.
 *
-* @param cfg The configuration data.
-* @param param_names The names of the parameters.
+ * @param cfg The configuration data.
+ * @param model_spec The model registry entry.
 * @param dir_core The directory path where the generated models will be saved.
 * @param file_out_modes The file path for the output modes.
 * @param file_out_noise The file path for the output noise.
@@ -150,8 +151,8 @@ Config_Data update_cfg(Config_Data cfg_target, const Config_Data cfg_source, con
 * @param external_path The external path.
 * @param templates_dir The directory path for the template files. 
 */
-void generate_random(Config_Data cfg, std::vector<std::string> param_names, std::string dir_core, std::string file_out_modes, 
-		std::string file_out_noise, std::string file_out_combi, int N_model, std::string file_cfg_mm, std::string external_path,  std::string templates_dir, std::string data_path);
+void generate_random(const Config_Data& cfg, const ModelSpec& model_spec, std::string dir_core, std::string file_out_modes,
+		std::string file_out_noise, std::string file_out_combi, int N_model, std::string file_cfg_mm, std::string external_path, std::string templates_dir, std::string data_path);
 
 /**
  * @brief Generate a grid of combinations based on a configuration file.
@@ -161,7 +162,7 @@ void generate_random(Config_Data cfg, std::vector<std::string> param_names, std:
  * @param cfg The configuration data.
  * @param usemodels Whether to use models.
  * @param models The models data.
- * @param param_names The names of the parameters.
+ * @param model_spec The model registry entry.
  * @param dir_core The directory path where the generated models will be saved.
  * @param dir_freqs The directory path for the frequency files.
  * @param file_out_modes The file path for the output modes.
@@ -169,7 +170,7 @@ void generate_random(Config_Data cfg, std::vector<std::string> param_names, std:
  * @param file_out_combi The file path for the output combinations.
  * @param N_model The number of models.
  */
-void generate_grid(Config_Data cfg, bool usemodels, Data_Nd models, std::vector<std::string> param_names, std::string dir_core, std::string dir_freqs, std::string file_out_modes, 
+void generate_grid(const Config_Data& cfg, bool usemodels, Data_Nd models, const ModelSpec& model_spec, std::string dir_core, std::string dir_freqs, std::string file_out_modes,
 		std::string file_out_noise, std::string file_out_combi, int N_model, std::string data_path);
 
 
@@ -602,554 +603,16 @@ void iterative_artificial_spectrum(const std::string dir_core, const std::string
 	LOG_INFO("                 All model generators should be contained into artificial_spectrum.cpp ");
 	LOG_INFO("---------------------------------------------------------------------------------------");
 
-	passed=0;
-	if(cfg.model_name == "generate_cfg_asymptotic_act_asym_Hgauss"){
-		Nmodel=21;
-		param_names.push_back("numax"); param_names.push_back("Dnu"); param_names.push_back("epsilon"); param_names.push_back("D0"); param_names.push_back("maxH"); 
-		param_names.push_back("Gamma"); param_names.push_back("lmax"); param_names.push_back("Nmax"); param_names.push_back("a1"); param_names.push_back("a3"); 
-		param_names.push_back("b"); param_names.push_back("alfa"); param_names.push_back("beta"); param_names.push_back("i"); 
-		param_names.push_back("Hnoise1"); param_names.push_back("tau1"); param_names.push_back("p1");
-		param_names.push_back("Hnoise2"); param_names.push_back("tau2"); param_names.push_back("p2");  
-		param_names.push_back("N0");
-		if(param_names.size() != Nmodel){
-			LOG_ERROR("    Invalid number of parameters for model_name= 'generate_cfg_asymptotic_act_asym'");
-			LOG_ERROR("    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size());
-			LOG_ERROR("    Check your main configuration file");
-			LOG_ERROR("    The program will exit now");
-			exit(EXIT_FAILURE);
-		}
-		passed=1;
-	}
-	if(cfg.model_name == "generate_cfg_from_synthese_file_Wscaled_a1a2a3asymovGamma"){
-		Nmodel=11;
-		param_names.push_back("HNR"); 
-		param_names.push_back("a1ovGamma"); 
-		param_names.push_back("Gamma_at_numax"); 
-		param_names.push_back("a2_0"); 
-		param_names.push_back("a2_1"); 
-		param_names.push_back("a2_2"); 
-		param_names.push_back("a3_0"); 
-		param_names.push_back("a3_1"); 
-		param_names.push_back("a3_2"); 
-		param_names.push_back("beta_asym");
-		param_names.push_back("i");
-		if(param_names.size() != Nmodel){
-			LOG_ERROR("    Invalid number of parameters for model_name= 'generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma'");
-			LOG_ERROR("    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size());
-			LOG_ERROR("    Check your main configuration file");
-			LOG_ERROR("    The program will exit now");
-			exit(EXIT_FAILURE);
-		}
-		passed=1;
-	}
-	if(cfg.model_name == "generate_cfg_from_synthese_file_Wscaled_Alm"){
-		Nmodel=9;
-		param_names.push_back("HNR"); 
-		param_names.push_back("a1ovGamma"); 
-		param_names.push_back("Gamma_at_numax"); 
-		param_names.push_back("epsilon_nl"); 
-		param_names.push_back("theta0"); 
-		param_names.push_back("delta"); 
-		param_names.push_back("a3"); 
-		param_names.push_back("beta_asym");
-		param_names.push_back("i");
-		if(param_names.size() != Nmodel){
-			LOG_ERROR("    Invalid number of parameters for model_name= 'generate_cfg_from_synthese_file_Wscaled_Alm'");
-			LOG_ERROR("    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size());
-			LOG_ERROR("    Check your main configuration file");
-			LOG_ERROR("    The program will exit now");
-			exit(EXIT_FAILURE);
-		}
-		passed=1;
-	}
-	if(cfg.model_name == "generate_cfg_from_synthese_file_Wscaled_aj"){
-		Nmodel=17;
-		param_names.push_back("Dnu");
-		param_names.push_back("epsilon"); 
-		param_names.push_back("delta0l_percent"); 
-		param_names.push_back("HNR"); 
-		param_names.push_back("a1ovGamma"); 
-		param_names.push_back("Gamma_at_numax"); 
-		param_names.push_back("a2"); 
-		param_names.push_back("a3"); 
-		param_names.push_back("a4"); 
-		param_names.push_back("a5"); 
-		param_names.push_back("a6"); 
-		param_names.push_back("beta_asym");
-		param_names.push_back("i");
-		param_names.push_back("H_spread");
-		param_names.push_back("nu_spread");
-		param_names.push_back("Gamma_spread");
-		param_names.push_back("do_flat_noise");
-		if(param_names.size() != Nmodel){
-			LOG_ERROR("    Invalid number of parameters for model_name= 'generate_cfg_from_synthese_file_Wscaled_aj'");
-			LOG_ERROR("    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size());
-			LOG_ERROR("    Check your main configuration file");
-			LOG_ERROR("    The program will exit now");
-			exit(EXIT_FAILURE);
-		}
-		passed=1;
-	}
-	if(cfg.model_name == "generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled"){
-		Nmodel=24;
-		param_names.push_back("Dnu");
-		param_names.push_back("epsilon"); 
-		param_names.push_back("delta0l_percent"); 
-		param_names.push_back("HNR"); 
-		param_names.push_back("a1ovGamma"); 
-		param_names.push_back("Gamma_at_numax"); 
-		param_names.push_back("a2"); 
-		param_names.push_back("a3"); 
-		param_names.push_back("a4"); 
-		param_names.push_back("a5"); 
-		param_names.push_back("a6"); 
-		param_names.push_back("beta_asym");
-		param_names.push_back("i");
-		param_names.push_back("A_Pgran"); // Coefficients for scaling the noise with numax. See Karoff 2010 or Kallinger 2014.
-		param_names.push_back("B_Pgran");	
-		param_names.push_back("C_Pgran");	
-		param_names.push_back("A_taugran");	
-		param_names.push_back("B_taugran");	
-		param_names.push_back("C_taugran");	
-		param_names.push_back("P");	
-		param_names.push_back("N0");
-		param_names.push_back("numax_spread"); // Add a spread to numax to avoid to have a noise that stricly follow the Karoff et al. 2010 relation
-		param_names.push_back("H_spread");
-		param_names.push_back("nu_spread");
-		if(param_names.size() != Nmodel){
-			LOG_ERROR("    Invalid number of parameters for model_name= 'generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled'");
-			LOG_ERROR("    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size());
-			LOG_ERROR("    Check your main configuration file");
-			LOG_ERROR("    The program will exit now");
-			exit(EXIT_FAILURE);
-		}
-		passed=1;
-	}
-	if(cfg.model_name == "generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled_Kallinger2014"){
-		// Warning: This model uses the file noise_Kallinger2014.cfg to set the noise parameters
-		const int Nmodel_modes=16;
-		const int Nmodel_noise=14; // 6 Dec 2023: Many of these parameters are in fact generated according to a Gaussian 
-		Nmodel=Nmodel_modes+Nmodel_noise;
-		// Agregate the old configuration with the noise configuration
-		cfg=agregate_maincfg_noisecfg(cfg, cfg_noise);	
-		param_names.push_back("Dnu");
-		param_names.push_back("epsilon"); 
-		param_names.push_back("delta0l_percent"); 
-		param_names.push_back("HNR"); 
-		param_names.push_back("a1ovGamma"); 
-		param_names.push_back("Gamma_at_numax"); 
-		param_names.push_back("a2"); 
-		param_names.push_back("a3"); 
-		param_names.push_back("a4"); 
-		param_names.push_back("a5"); 
-		param_names.push_back("a6"); 
-		param_names.push_back("beta_asym");
-		param_names.push_back("i");
-		param_names.push_back("numax_spread"); // Add a spread to numax to avoid to have a noise that stricly follow the Karoff et al. 2010 relation
-		param_names.push_back("H_spread");
-		param_names.push_back("nu_spread");
-		//k_Agran         s_Agran         k_taugran       s_taugran       c0              ka              ks              k1              s1              c1              k2              s2              c2              N0
-		param_names.push_back("k_Agran");
-		param_names.push_back("s_Agran");
-		param_names.push_back("k_taugran");
-		param_names.push_back("s_taugran");
-		param_names.push_back("c0");
-		param_names.push_back("ka");
-		param_names.push_back("ks");
-		param_names.push_back("k1");
-		param_names.push_back("s1");
-		param_names.push_back("c1");
-		param_names.push_back("k2");
-		param_names.push_back("s2");
-		param_names.push_back("c2");
-		param_names.push_back("N0");
-		if(param_names.size() != Nmodel){
-			LOG_ERROR("    Invalid number of parameters for model_name= 'generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled_Kallinger2014'");
-			LOG_ERROR("    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size());
-			LOG_ERROR("    Check your main configuration file");
-			LOG_ERROR("    The program will exit now");
-			exit(EXIT_FAILURE);
-		}
-		passed=1;
-	}
-	if(cfg.model_name == "generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma"){
-		Nmodel=6;
-		param_names.push_back("HNR"); 
-		param_names.push_back("a1ovGamma"); 
-		param_names.push_back("Gamma_at_numax"); 
-		param_names.push_back("a3"); 
-		param_names.push_back("beta_asym");
-		param_names.push_back("i");
-		if(param_names.size() != Nmodel){
-			LOG_ERROR("    Invalid number of parameters for model_name= 'generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma'");
-			LOG_ERROR("    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size());
-			LOG_ERROR("    Check your main configuration file");
-			LOG_ERROR("    The program will exit now");
-			exit(EXIT_FAILURE);
-		}
-		passed=1;
-	}
-	if(cfg.model_name == "asymptotic_mm_v1"){
-		//Nmodel=7;
-		param_names.push_back("Teff"); 
-		param_names.push_back("Dnu"); 
-		param_names.push_back("epsilon"); 
-		param_names.push_back("delta0l_percent"); 
-		param_names.push_back("beta_p_star"); 
-		param_names.push_back("nmax_spread"); 
-		param_names.push_back("DP_var_percent"); 
-		param_names.push_back("alpha"); 
-		param_names.push_back("q");
-		param_names.push_back("SNR");
-		param_names.push_back("maxGamma");
-		param_names.push_back("Vl1");
-		param_names.push_back("Vl2");
-		param_names.push_back("Vl3");
-		param_names.push_back("H0_spread");
-		param_names.push_back("A_Pgran");	
-		param_names.push_back("B_Pgran");	
-		param_names.push_back("C_Pgran");	
-		param_names.push_back("A_taugran");	
-		param_names.push_back("B_taugran");	
-		param_names.push_back("C_taugran");	
-		param_names.push_back("P");	
-		param_names.push_back("N0");
-		param_names.push_back("Hfactor");
-		param_names.push_back("Wfactor");			
-		Nmodel=param_names.size();
-		if(param_names.size() != Nmodel){
-			LOG_ERROR("    Invalid number of parameters for model_name= 'asymptotic_mm_v1'");
-			LOG_ERROR("    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size());
-			LOG_ERROR("    Check your main configuration file");
-			LOG_ERROR("    The program will exit now");
-			exit(EXIT_FAILURE);
-		}
-		passed=1;
-	}
-	if(cfg.model_name == "asymptotic_mm_v2"){
-		//Nmodel=12;
-		param_names.push_back("nurot_env"); 
-		param_names.push_back("nurot_ratio"); 
-		param_names.push_back("Dnu"); 
-		param_names.push_back("epsilon"); 
-		param_names.push_back("delta0l_percent"); 
-		param_names.push_back("beta_p_star"); 
-		param_names.push_back("nmax_spread"); 
-		param_names.push_back("DP_var_percent"); 
-		param_names.push_back("alpha"); 
-		param_names.push_back("q");
-		param_names.push_back("SNR");
-		param_names.push_back("maxGamma");
-		param_names.push_back("Vl1");
-		param_names.push_back("Vl2");
-		param_names.push_back("Vl3");
-		param_names.push_back("H0_spread");	
-		param_names.push_back("A_Pgran");	
-		param_names.push_back("B_Pgran");	
-		param_names.push_back("C_Pgran");	
-		param_names.push_back("A_taugran");	
-		param_names.push_back("B_taugran");	
-		param_names.push_back("C_taugran");	
-		param_names.push_back("P");	
-		param_names.push_back("N0");
-		param_names.push_back("Hfactor");
-		param_names.push_back("Wfactor");			
-		Nmodel=param_names.size();
-		if(param_names.size() != Nmodel){
-			LOG_ERROR("    Invalid number of parameters for model_name= 'asymptotic_mm_v2'");
-			LOG_ERROR("    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size());
-			LOG_ERROR("    Check your main configuration file");
-			LOG_ERROR("    The program will exit now");
-			exit(EXIT_FAILURE);
-		}
-		passed=1;
-	}
-	if(cfg.model_name == "asymptotic_mm_v3"){
-		//Nmodel=12;
-		param_names.push_back("nurot_env"); 
-		param_names.push_back("nurot_core"); 
-		param_names.push_back("Dnu"); 
-		param_names.push_back("epsilon"); 
-		param_names.push_back("delta0l_percent"); 
-		param_names.push_back("beta_p_star"); 
-		param_names.push_back("nmax_spread"); 
-		param_names.push_back("DP_var_percent"); 
-		param_names.push_back("alpha"); 
-		param_names.push_back("q");
-		param_names.push_back("SNR");
-		param_names.push_back("maxGamma");
-		param_names.push_back("Vl1");
-		param_names.push_back("Vl2");
-		param_names.push_back("Vl3");
-		param_names.push_back("H0_spread");	
-		param_names.push_back("A_Pgran");	
-		param_names.push_back("B_Pgran");	
-		param_names.push_back("C_Pgran");	
-		param_names.push_back("A_taugran");	
-		param_names.push_back("B_taugran");	
-		param_names.push_back("C_taugran");	
-		param_names.push_back("P");	
-		param_names.push_back("N0");
-		param_names.push_back("Hfactor");
-		param_names.push_back("Wfactor");			
-		Nmodel=param_names.size();
-		if(param_names.size() != Nmodel){
-			LOG_ERROR("    Invalid number of parameters for model_name= 'asymptotic_mm_v3'");
-			LOG_ERROR("    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size());
-			LOG_ERROR("    Check your main configuration file");
-			LOG_ERROR("    The program will exit now");
-			exit(EXIT_FAILURE);
-		}
-		passed=1;
-	}
-	if(cfg.model_name == "asymptotic_mm_freeDp_numaxspread_curvepmodes_v1"){
-		//Nmodel=12;
-		param_names.push_back("Teff"); 
-		param_names.push_back("Dnu"); 
-		param_names.push_back("epsilon"); 
-		param_names.push_back("delta0l_percent"); 
-		param_names.push_back("beta_p_star"); 
-		param_names.push_back("nmax_spread"); 
-		param_names.push_back("DP1"); 
-		param_names.push_back("alpha"); 
-		param_names.push_back("q");
-		param_names.push_back("SNR");
-		param_names.push_back("maxGamma");
-		param_names.push_back("numax_spread");
-		param_names.push_back("Vl1");
-		param_names.push_back("Vl2");
-		param_names.push_back("Vl3");
-		param_names.push_back("H0_spread");	
-		param_names.push_back("A_Pgran");	
-		param_names.push_back("B_Pgran");	
-		param_names.push_back("C_Pgran");	
-		param_names.push_back("A_taugran");	
-		param_names.push_back("B_taugran");	
-		param_names.push_back("C_taugran");	
-		param_names.push_back("P");	
-		param_names.push_back("N0");
-		param_names.push_back("Hfactor");
-		param_names.push_back("Wfactor");			
-		Nmodel=param_names.size();		
-		if(param_names.size() != Nmodel){
-			LOG_ERROR("    Invalid number of parameters for model_name= 'asymptotic_mm_v1'");
-			LOG_ERROR("    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size());
-			LOG_ERROR("    Check your main configuration file");
-			LOG_ERROR("    The program will exit now");
-			exit(EXIT_FAILURE);
-		}
-		passed=1;
-	}
-	if(cfg.model_name == "asymptotic_mm_freeDp_numaxspread_curvepmodes_v2"){
-		//Nmodel=13;
-		param_names.push_back("nurot_env"); 
-		param_names.push_back("nurot_ratio"); 
-		param_names.push_back("a2_l1_core"); 
-		param_names.push_back("a2_l1_env"); 
-		param_names.push_back("a2_l2_env"); 
-		param_names.push_back("a2_l3_env"); 
-		param_names.push_back("a3_l2_env"); 
-		param_names.push_back("a3_l3_env"); 
-		param_names.push_back("a4_l2_env"); 
-		param_names.push_back("a4_l3_env"); 
-		param_names.push_back("a5_l3_env"); 
-		param_names.push_back("a6_l3_env"); 
-		param_names.push_back("Dnu"); 
-		param_names.push_back("epsilon");
-		param_names.push_back("delta0l_percent"); 
-		param_names.push_back("beta_p_star"); 
-		param_names.push_back("nmax_spread"); 
-		param_names.push_back("DP1"); 
-		param_names.push_back("alpha"); 
-		param_names.push_back("q");
-		param_names.push_back("SNR");
-		param_names.push_back("maxGamma");
-		param_names.push_back("numax_spread");
-		param_names.push_back("Vl1");
-		param_names.push_back("Vl2");
-		param_names.push_back("Vl3");
-		param_names.push_back("H0_spread");	
-		param_names.push_back("A_Pgran");	
-		param_names.push_back("B_Pgran");	
-		param_names.push_back("C_Pgran");	
-		param_names.push_back("A_taugran");	
-		param_names.push_back("B_taugran");	
-		param_names.push_back("C_taugran");	
-		param_names.push_back("P");	
-		param_names.push_back("N0");
-		param_names.push_back("Hfactor");
-		param_names.push_back("Wfactor");			
-		Nmodel=param_names.size();		
-		if(param_names.size() != Nmodel){
-			LOG_ERROR("    Invalid number of parameters for model_name= 'asymptotic_mm_v2'");
-			LOG_ERROR("    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size());
-			LOG_ERROR("    Check your main configuration file");
-			LOG_ERROR("    The program will exit now");
-			exit(EXIT_FAILURE);
-		}
-		passed=1;
-	}
-	if(cfg.model_name == "asymptotic_mm_freeDp_numaxspread_curvepmodes_v3"){
-		param_names.push_back("nurot_env"); 
-		param_names.push_back("nurot_core"); 
-		param_names.push_back("a2_l1_core"); 
-		param_names.push_back("a2_l1_env"); 
-		param_names.push_back("a2_l2_env"); 
-		param_names.push_back("a2_l3_env"); 
-		param_names.push_back("a3_l2_env"); 
-		param_names.push_back("a3_l3_env"); 
-		param_names.push_back("a4_l2_env"); 
-		param_names.push_back("a4_l3_env"); 
-		param_names.push_back("a5_l3_env"); 
-		param_names.push_back("a6_l3_env");
-		param_names.push_back("Dnu"); 
-		param_names.push_back("epsilon");
-		param_names.push_back("delta0l_percent"); 
-		param_names.push_back("beta_p_star"); 
-		param_names.push_back("nmax_spread"); 
-		param_names.push_back("DP1");  
-		param_names.push_back("alpha"); 
-		param_names.push_back("q");
-		param_names.push_back("SNR");
-		param_names.push_back("maxGamma");
-		param_names.push_back("numax_spread");	
-		param_names.push_back("Vl1");
-		param_names.push_back("Vl2");
-		param_names.push_back("Vl3");
-		param_names.push_back("H0_spread");	
-		param_names.push_back("A_Pgran");	
-		param_names.push_back("B_Pgran");	
-		param_names.push_back("C_Pgran");	
-		param_names.push_back("A_taugran");	
-		param_names.push_back("B_taugran");	
-		param_names.push_back("C_taugran");	
-		param_names.push_back("P");	
-		param_names.push_back("N0");
-		param_names.push_back("Hfactor");
-		param_names.push_back("Wfactor");			
-		Nmodel=param_names.size();		
-		if(param_names.size() != Nmodel){
-			LOG_ERROR("    Invalid number of parameters for model_name= 'asymptotic_mm_v3'");
-			LOG_ERROR("    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size());
-			LOG_ERROR("    Check your main configuration file");
-			LOG_ERROR("    The program will exit now");
-			exit(EXIT_FAILURE);
-		}
-		passed=1;
-	}
-
-	if(cfg.model_name == "asymptotic_mm_freeDp_numaxspread_curvepmodes_v3_GRANscaled_Kallinger2014"){
-		// Warning: This model uses the file noise_Kallinger2014.cfg to set the noise parameters
-		const int Nmodel_modes=29;
-		const int Nmodel_noise=14; // 6 Dec 2023: Many of these parameters are in fact generated according to a Gaussian 
-		// Agregate the old configuration with the noise configuration
-		cfg=agregate_maincfg_noisecfg(cfg, cfg_noise);	
-		param_names.push_back("nurot_env"); 
-		param_names.push_back("nurot_core"); 
-		param_names.push_back("a2_l1_core"); 
-		param_names.push_back("a2_l1_env"); 
-		param_names.push_back("a2_l2_env"); 
-		param_names.push_back("a2_l3_env"); 
-		param_names.push_back("a3_l2_env"); 
-		param_names.push_back("a3_l3_env"); 
-		param_names.push_back("a4_l2_env"); 
-		param_names.push_back("a4_l3_env"); 
-		param_names.push_back("a5_l3_env"); 
-		param_names.push_back("a6_l3_env");
-		param_names.push_back("Dnu"); 
-		param_names.push_back("epsilon");
-		param_names.push_back("delta0l_percent"); 
-		param_names.push_back("beta_p_star"); 
-		param_names.push_back("nmax_spread"); 
-		param_names.push_back("DP1");  
-		param_names.push_back("alpha"); 
-		param_names.push_back("q");
-		param_names.push_back("SNR");
-		param_names.push_back("maxGamma");
-		param_names.push_back("numax_spread");	
-		param_names.push_back("Vl1");
-		param_names.push_back("Vl2");
-		param_names.push_back("Vl3");
-		param_names.push_back("H0_spread");	
-		//k_Agran         s_Agran         k_taugran       s_taugran       c0              ka              ks              k1              s1              c1              k2              s2              c2              N0
-		param_names.push_back("k_Agran");
-		param_names.push_back("s_Agran");
-		param_names.push_back("k_taugran");
-		param_names.push_back("s_taugran");
-		param_names.push_back("c0");
-		param_names.push_back("ka");
-		param_names.push_back("ks");
-		param_names.push_back("k1");
-		param_names.push_back("s1");
-		param_names.push_back("c1");
-		param_names.push_back("k2");
-		param_names.push_back("s2");
-		param_names.push_back("c2");
-		param_names.push_back("N0");
-		param_names.push_back("Hfactor");
-		param_names.push_back("Wfactor");	
-		if(param_names.size() != Nmodel_modes+Nmodel_noise){
-			LOG_ERROR("    Invalid number of parameters for model_name= 'generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled_Kallinger2014'");
-			LOG_ERROR("    Expecting " << Nmodel_modes + Nmodel_noise << " parameters, but found " << cfg.val_min.size());
-			LOG_ERROR("    Check your main configuration file");
-			LOG_ERROR("    The program will exit now");
-			exit(EXIT_FAILURE);
-		}
-		passed=1;
-	}
-	// -----------------------------------------------------------
-	// ----- Models available only with the grid approach -----
-	// -----------------------------------------------------------
-	if(cfg.model_name == "generate_cfg_from_refstar_HWscaled"){
-		//Nmodel=12;
-		param_names.push_back("Model_i"); param_names.push_back("maxHNR"); param_names.push_back("Gamma_maxHNR"); param_names.push_back("a1"); param_names.push_back("i"); 
-		param_names.push_back("Hnoise1"); param_names.push_back("tau1"); param_names.push_back("p1");
-		param_names.push_back("Hnoise2"); param_names.push_back("tau2"); param_names.push_back("p2");  
-		param_names.push_back("N0");
-		Nmodel=param_names.size();
-		if(param_names.size() != Nmodel){
-			LOG_ERROR("    Invalid number of parameters for model_name= 'generate_cfg_asymptotic_act_asym'");
-			LOG_ERROR("    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size());
-			LOG_ERROR("    Check your main configuration file");
-			LOG_ERROR("    The program will exit now");
-			exit(EXIT_FAILURE);
-		}
-		LOG_INFO(" 	   - reading models from model file (requires for setting frequencies)...");
-		models=read_data_ascii_Ncols(model_file, delimiter, verbose_data);
-		usemodels=1;
-		passed=1;
-	}
-	if(cfg.model_name == "generate_cfg_from_refstar_HWscaled_GRANscaled"){
-		//Nmodel=12;
-		param_names.push_back("Model_i"); param_names.push_back("maxHNR"); param_names.push_back("Gamma_maxHNR"); param_names.push_back("a1"); param_names.push_back("i"); 
-		param_names.push_back("A_Pgran"); param_names.push_back("B_Pgran"); param_names.push_back("C_Pgran");
-		param_names.push_back("A_taugran"); param_names.push_back("B_taugran"); param_names.push_back("C_taugran");  
-		param_names.push_back("N0");
-		Nmodel=param_names.size();
-		if(param_names.size() != Nmodel){
-			LOG_ERROR("    Invalid number of parameters for model_name= 'generate_cfg_asymptotic_act_asym'");
-			LOG_ERROR("    Expecting " << Nmodel << " parameters, but found " << cfg.val_min.size());
-			LOG_ERROR("    Check your main configuration file");
-			LOG_ERROR("    The program will exit now");
-			exit(EXIT_FAILURE);
-		}
-		LOG_INFO(" 	   - reading models from model file (requires for setting frequencies)...");
-		models=read_data_ascii_Ncols(model_file, delimiter, verbose_data);
-		usemodels=1;
-		passed=1;
-	}
- 	if(passed == 0){
-		LOG_INFO("    model_name= " << cfg.model_name << " is not a recognized keyword for models");
-		LOG_INFO("    Check models_database.h to see the available model names");
-		LOG_ERROR("    The program will exit now");
+	const ModelSpec* model_spec = find_model_spec(cfg.model_name);
+	if (model_spec == nullptr) {
+		LOG_ERROR("    model_name= " << cfg.model_name << " is not a recognized keyword for models (registry-only mode)");
+		LOG_ERROR("    Use --list-models to see supported model names");
 		exit(EXIT_FAILURE);
 	}
-
-	// -----------------------------------------------------------
-	// -----------------------------------------------------------
-	// -----------------------------------------------------------
-
-
+	if (model_spec->needs_noise_cfg) {
+		cfg = agregate_maincfg_noisecfg(cfg, cfg_noise);
+	}
+	param_names = model_spec->param_names;
 	// Validate cfg after any model-specific augmentation (e.g. noise cfg aggregation).
 	validate_cfg_vector_sizes(cfg, cfg_file, "post_model_selection");
 	validate_cfg_forest_params(cfg, cfg_file, "post_model_selection");
@@ -1161,12 +624,20 @@ void iterative_artificial_spectrum(const std::string dir_core, const std::string
 	LOG_INFO("2. Generating the models using the subroutine " << cfg.model_name << " of model_database.cpp...");
 	if(cfg.forest_type == "random"){
 		LOG_INFO("   Values are randomly generated into a uniform range defined in the main configuration file");
-		generate_random(cfg, param_names, dir_core, file_out_modes, file_out_noise, file_out_combi, Nmodel, file_cfg_mm, external_path, templates_dir, data_path);
+		if (!model_supports_random(*model_spec)) {
+			LOG_ERROR("Error: model_name= " << cfg.model_name << " does not support forest_type=random");
+			exit(EXIT_FAILURE);
+		}
+		generate_random(cfg, *model_spec, dir_core, file_out_modes, file_out_noise, file_out_combi, Nmodel, file_cfg_mm, external_path, templates_dir, data_path);
 
 	}
 	if(cfg.forest_type == "grid"){
 		LOG_INFO("   Values are generated over a grid using all possible combinations according to inputs in the main configuration file");
-		generate_grid(cfg, usemodels, models, param_names, dir_core, dir_freqs, file_out_modes, file_out_noise, file_out_combi, Nmodel,data_path);
+		if (!model_supports_grid(*model_spec)) {
+			LOG_ERROR("Error: model_name= " << cfg.model_name << " does not support forest_type=grid");
+			exit(EXIT_FAILURE);
+		}
+		generate_grid(cfg, usemodels, models, *model_spec, dir_core, dir_freqs, file_out_modes, file_out_noise, file_out_combi, Nmodel, data_path);
 	}
 	if(cfg.forest_type != "random" && cfg.forest_type != "grid"){ 
 		LOG_INFO(" Problem in the main configuration file. It is expected that the forest type parameters is either random OR grid");
@@ -1337,8 +808,8 @@ Config_Data agregate_maincfg_noisecfg(Config_Data cfg_main, Config_Noise cfg_noi
 	return cfg;
 }
 
-void generate_random(Config_Data cfg, std::vector<std::string> param_names, std::string dir_core, std::string file_out_modes, 
-		std::string file_out_noise, std::string file_out_combi, int N_model,  std::string file_cfg_mm, std::string external_path, std::string templates_dir, std::string data_path){
+void generate_random(const Config_Data& cfg, const ModelSpec& model_spec, std::string dir_core, std::string file_out_modes,
+		std::string file_out_noise, std::string file_out_combi, int N_model, std::string file_cfg_mm, std::string external_path, std::string templates_dir, std::string data_path){
 
 	bool neg=0, passed=0;
 	int i;
@@ -1349,6 +820,7 @@ void generate_random(Config_Data cfg, std::vector<std::string> param_names, std:
 	MatrixXd currentcombi, allcombi;
 	std::vector<double> pos_zero, pos_one;	
 	std::vector<std::string> var_names, cte_names, distrib;
+	const std::vector<std::string>& param_names = model_spec.param_names;
 	// We first check that the cfg file has a coherent setup
 	check_params(cfg, N_model);
 
@@ -1437,7 +909,20 @@ void generate_random(Config_Data cfg, std::vector<std::string> param_names, std:
 	} else{
 		LOG_INFO("Selected template file: " << template_file);
 	}
- 	LOG_INFO(" -----------------------------------------------------");
+	ModelRuntime ctx;
+	ctx.file_out_modes = file_out_modes;
+	ctx.file_out_noise = file_out_noise;
+	ctx.file_cfg_mm = file_cfg_mm;
+	ctx.dir_core = dir_core;
+	ctx.data_path = data_path;
+	ctx.external_path = external_path;
+	ctx.template_file = template_file;
+	ctx.cfg = &cfg;
+	if (model_spec.run_random == nullptr) {
+		LOG_ERROR("Error: Model registry has no random runner for model_name= " << model_spec.name);
+		exit(EXIT_FAILURE);
+	}
+	LOG_INFO(" -----------------------------------------------------");
 	LOG_INFO(" List of all combinations written iteratively into ");
 	LOG_INFO("       " <<  file_out_combi);
 	LOG_INFO(" -----------------------------------------------------");
@@ -1481,7 +966,7 @@ void generate_random(Config_Data cfg, std::vector<std::string> param_names, std:
 
 		input_params=order_input_params(cte_params, currentcombi.row(0), cte_names, var_names, param_names);
 
-		passed=call_model_random(cfg.model_name, input_params, file_out_modes, file_out_noise,  file_cfg_mm, dir_core, id_str, cfg, external_path, template_file, data_path);
+		passed=model_spec.run_random(input_params, ctx, id_str);
 		if(passed == 0){
 			LOG_WARN("Warning: The function call_model did not generate any configuration file!");
 			LOG_INFO("         It is very likely that you tried to start a model in 'random mode' while this model is not available for the random approach");
@@ -1501,7 +986,7 @@ void generate_random(Config_Data cfg, std::vector<std::string> param_names, std:
 	
 }
 
-void generate_grid(Config_Data cfg, bool usemodels, Data_Nd models, std::vector<std::string> param_names, std::string dir_core, std::string dir_freqs, std::string file_out_modes, 
+void generate_grid(const Config_Data& cfg, bool usemodels, Data_Nd models, const ModelSpec& model_spec, std::string dir_core, std::string dir_freqs, std::string file_out_modes,
 		std::string file_out_noise, std::string file_out_combi, int N_model, std::string data_path){
 
 	bool passed=0;
@@ -1513,12 +998,26 @@ void generate_grid(Config_Data cfg, bool usemodels, Data_Nd models, std::vector<
 	MatrixXd var_params, currentcombi, allcombi;
 	std::vector<double> pos_zero, pos_one;	
 	std::vector<std::string> var_names, cte_names;
+	const std::vector<std::string>& param_names = model_spec.param_names;
 
 	Model_data input_model;
 
 	// We first check that the cfg file has a coherent setup
 	delta.resize(N_model);
 	check_params(cfg, N_model);
+	ModelRuntime ctx;
+	ctx.file_out_modes = file_out_modes;
+	ctx.file_out_noise = file_out_noise;
+	ctx.file_cfg_mm = "";
+	ctx.dir_core = dir_core;
+	ctx.data_path = data_path;
+	ctx.external_path = "";
+	ctx.template_file = "";
+	ctx.cfg = &cfg;
+	if (model_spec.run_grid == nullptr) {
+		LOG_ERROR("Error: Model registry has no grid runner for model_name= " << model_spec.name);
+		exit(EXIT_FAILURE);
+	}
 
 	//  Define variables and constants
 	pos_one=where(cfg.step, "!=", 0, 0); // All positions of cfg.step that are not equal to 0. Return position (last parameter is 0)
@@ -1624,7 +1123,7 @@ void generate_grid(Config_Data cfg, bool usemodels, Data_Nd models, std::vector<
 				exit(EXIT_SUCCESS);
 			}
 		}
-		passed=call_model_grid(cfg.model_name, input_params, input_model, file_out_modes, file_out_noise, dir_core, id_str, cfg, data_path);
+		passed=model_spec.run_grid(input_params, ctx, id_str, input_model);
 		if(passed == 0){
 			LOG_WARN("Warning: The function call_model_grid did not generate any configuration file!");
 			LOG_INFO("         It is very likely that you tried to start a model in 'grid mode' while this model is not available for the grid approach");
@@ -1983,6 +1482,8 @@ int main(int argc, char* argv[]){
 		("main_dir,g", boost::program_options::value<std::string>()->default_value("Configurations/"), "Full path for the main configuration file. If not set, use the default sub-directory 'Configurations/.")
 		("out_dir,o", boost::program_options::value<boost::filesystem::path>()->default_value("Data/"), "Full path or relative path for the outputs. If not set, use the default sub-directory 'Data/.")
 		("force-create-output-dir", boost::program_options::value<bool>()->default_value(0), "If set to 1=true, it will create the output directory defined by output_dir and all the required subdirectory. If set to 0=false (default), it will not create the directories, but only check if they exist and stop the program if they do not")
+		("list-models", "List supported (non-obsolete) models")
+		("describe-model", boost::program_options::value<std::string>(), "Describe a model by name")
 		("log-level", boost::program_options::value<std::string>()->default_value("info"), "Log level: debug, info, warn, error")
 		("seed", boost::program_options::value<long long>()->default_value(-1), "Seed for RNG (>=0). If set, results are deterministic across runs.");	
 	boost::program_options::variables_map vm;
@@ -2013,6 +1514,26 @@ int main(int argc, char* argv[]){
 		set_log_level(LogLevel::info);
 		showversion();
 		return 1;
+	}
+	if (vm.count("list-models")) {
+		set_log_level(LogLevel::info);
+		const auto specs = list_model_specs();
+		for (const auto* spec : specs) {
+			LOG_INFO(spec->name << " (" << forest_support_to_string(spec->forest_support) << ")");
+		}
+		return 0;
+	}
+	if (vm.count("describe-model")) {
+		set_log_level(LogLevel::info);
+		const std::string name = vm["describe-model"].as<std::string>();
+		const ModelSpec* spec = find_model_spec(name);
+		if (spec == nullptr) {
+			LOG_ERROR("Unknown model: " << name);
+			LOG_ERROR("Use --list-models to see supported model names");
+			return -1;
+		}
+		LOG_INFO(describe_model(*spec));
+		return 0;
 	}
 	long long seed_value = vm["seed"].as<long long>();
 	if(seed_value >= 0){
