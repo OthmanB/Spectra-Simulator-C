@@ -21,7 +21,7 @@ The noise parameters are appended automatically from `noise_Kallinger2014.cfg` a
 |---|-------|-----------------|
 | 1 | Dnu | Large separation (uHz). |
 | 2 | epsilon | Asymptotic phase term. |
-| 3 | delta0l_percent | Small separation in percent (input magnitude; internal sign is negative). |
+| 3 | delta0l_percent | Small separation in percent (input sign is flipped internally). |
 | 4 | HNR | Target max height-to-noise ratio relative to the reference star. |
 | 5 | a1ovGamma | Target ratio `a1 / Gamma` at `numax`. |
 | 6 | Gamma_at_numax | Mode width at `numax`. |
@@ -56,7 +56,7 @@ Note: `Tobs` and `Cadence` are appended internally for the Kallinger noise conve
 
 - Frequencies follow the asymptotic p-mode relation:
   - `nu(n,l) = (n + epsilon + l/2) * Dnu - l(l+1) * d0l`
-  - `d0l = delta0l_percent * Dnu / 100` (internal sign is negative)
+- `d0l = -(delta0l_percent * Dnu / 100)` (legacy sign flip)
 - `numax` is derived from `Dnu` (Stello 2009 relation) with an optional `numax_spread`.
 - Granulation noise follows Kallinger+2014 and is converted to Harvey-like terms internally.
 
@@ -80,5 +80,5 @@ Note: `Tobs` and `Cadence` are appended internally for the Kallinger noise conve
 
 - `extra_params` must point to a valid reference `.in` file.
 - Ensure `noise_Kallinger2014.cfg` is available and readable.
-- `delta0l_percent` is treated as a magnitude; negative values will be flipped internally.
+- `delta0l_percent` is negated internally for this model (legacy convention).
 - Spreads (`numax_spread`, `H_spread`, `nu_spread`) are percentages (0-100).

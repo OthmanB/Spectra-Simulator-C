@@ -10,6 +10,7 @@
 #include <map>
 #include <random>
 #include <string>
+#include <vector>
 
 namespace fs = std::filesystem;
 
@@ -97,6 +98,102 @@ static Eigen::VectorXd kallinger_noise_means_from_cfg(const fs::path& noise_cfg_
 	return v;
 }
 
+static std::vector<double> sorted_freqs_for_l(const Eigen::MatrixXd& m, int l) {
+	std::vector<double> nus;
+	nus.reserve(static_cast<size_t>(m.rows()));
+	for (int i = 0; i < m.rows(); i++) {
+		const int li = static_cast<int>(std::llround(m(i, 0)));
+		if (li == l) {
+			nus.push_back(m(i, 1));
+		}
+	}
+	std::sort(nus.begin(), nus.end());
+	return nus;
+}
+
+static void check_delta0l_shift(const Eigen::MatrixXd& pos, const Eigen::MatrixXd& neg, double expected_shift) {
+	for (int l = 1; l <= 3; l++) {
+		const std::vector<double> pos_nu = sorted_freqs_for_l(pos, l);
+		const std::vector<double> neg_nu = sorted_freqs_for_l(neg, l);
+		REQUIRE(pos_nu.size() == neg_nu.size());
+		for (size_t i = 0; i < pos_nu.size(); i++) {
+			const double diff = pos_nu[i] - neg_nu[i];
+			CHECK_NEAR(diff, expected_shift, 1e-6, 1e-10);
+		}
+	}
+}
+
+static Eigen::MatrixXd run_aj_modes(const fs::path& out_dir, const fs::path& infile, double dnu, double delta0l_percent, const std::string& tag) {
+	const fs::path modes_out = out_dir / ("modes_aj_" + tag + ".cfg");
+	const fs::path noise_out = out_dir / ("noise_aj_" + tag + ".cfg");
+
+	Eigen::VectorXd p(17);
+	// Dnu, epsilon, delta0l_percent, HNR, a1ovGamma, Gamma_at_numax, a2..a6, beta_asym, i, H_spread, nu_spread, Gamma_spread, do_flat_noise
+	p << dnu, 0.5, delta0l_percent, 10.0, 0.6, 1.0,
+		0.1, -0.1, 0.15, 0.2, 0.05,
+		10.0, 60.0,
+		0.0, 0.0, 0.0, 0.0;
+
+	set_global_seed(123);
+	generate_cfg_from_synthese_file_Wscaled_aj(p, modes_out.string(), noise_out.string(), infile.string());
+	const Data_Nd modes = read_data_ascii_Ncols(modes_out.string(), " ", false);
+	return modes.data;
+}
+
+static Eigen::MatrixXd run_aj_granscaled_modes(const fs::path& out_dir, const fs::path& infile, double dnu, double delta0l_percent, const std::string& tag) {
+	const fs::path modes_out = out_dir / ("modes_aj_gran_" + tag + ".cfg");
+	const fs::path noise_out = out_dir / ("noise_aj_gran_" + tag + ".cfg");
+
+	Eigen::VectorXd p(24);
+	// Dnu, epsilon, delta0l_percent, HNR, a1ovGamma, Gamma_at_numax, a2..a6, beta_asym, i,
+	// A_Pgran, B_Pgran, C_Pgran, A_taugran, B_taugran, C_taugran, p, N0, numax_spread, H_spread, nu_spread
+	p << dnu, 0.5, delta0l_percent, 10.0, 0.6, 1.0,
+		0.0, 0.0, 0.0, 0.0, 0.0,
+		0.0, 60.0,
+		1e-4, -2.0, 0.0,
+		1.0, -1.0, 0.0,
+		2.0, 0.1,
+		0.0, 0.0, 0.0;
+
+	set_global_seed(123);
+	generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled(p, modes_out.string(), noise_out.string(), infile.string());
+	const Data_Nd modes = read_data_ascii_Ncols(modes_out.string(), " ", false);
+	return modes.data;
+}
+
+static Eigen::MatrixXd run_aj_kallinger_modes(const fs::path& out_dir, const fs::path& infile, const Eigen::VectorXd& noise_means,
+		double dnu, double delta0l_percent, const std::string& tag) {
+	const fs::path modes_out = out_dir / ("modes_aj_kall_" + tag + ".cfg");
+	const fs::path noise_out = out_dir / ("noise_aj_kall_" + tag + ".cfg");
+
+	Eigen::VectorXd p(32);
+	p.setZero();
+	p[0] = dnu;
+	p[1] = 0.5;
+	p[2] = delta0l_percent;
+	p[3] = 30.0;
+	p[4] = 0.6;
+	p[5] = 1.0;
+	p[6] = 0.0;
+	p[7] = 0.0;
+	p[8] = 0.0;
+	p[9] = 0.0;
+	p[10] = 0.0;
+	p[11] = 0.0;
+	p[12] = 55.0;
+	p[13] = 0.0; // numax_spread
+	p[14] = 0.0; // H_spread
+	p[15] = 0.0; // nu_spread
+	p.segment(16, 14) = noise_means;
+	p[30] = 100.0; // Tobs
+	p[31] = 120.0; // Cadence
+
+	set_global_seed(123);
+	generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled_Kallinger2014(p, modes_out.string(), noise_out.string(), infile.string());
+	const Data_Nd modes = read_data_ascii_Ncols(modes_out.string(), " ", false);
+	return modes.data;
+}
+
 static double urand(double a, double b) {
 	std::mt19937& gen = global_rng();
 	std::uniform_real_distribution<double> d(a, b);
@@ -129,6 +226,57 @@ TEST_CASE("generate_cfg_from_synthese_file_Wscaled_aj outputs sane") {
 	const Data_Nd modes = read_data_ascii_Ncols(modes_out.string(), " ", false);
 	check_mode_table_basic(modes.data);
 	CHECK(modes.data.cols() == 16);
+}
+
+TEST_CASE("generate_cfg_from_synthese_file_Wscaled_aj preserves delta0l sign") {
+	const fs::path root = repo_root();
+	const fs::path infile = root / "Configurations" / "infiles" / "8379927.in";
+	REQUIRE(fs::exists(infile));
+
+	const fs::path tmp = make_temp_dir("specsim-aj-sign-");
+	fs::current_path(tmp);
+
+	const double dnu = 70.0;
+	const double delta = 1.0;
+	const Eigen::MatrixXd pos = run_aj_modes(tmp, infile, dnu, delta, "pos");
+	const Eigen::MatrixXd neg = run_aj_modes(tmp, infile, dnu, -delta, "neg");
+	const double expected_shift = 2.0 * delta * dnu / 100.0;
+	check_delta0l_shift(pos, neg, expected_shift);
+}
+
+TEST_CASE("generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled flips delta0l sign") {
+	const fs::path root = repo_root();
+	const fs::path infile = root / "Configurations" / "infiles" / "8379927.in";
+	REQUIRE(fs::exists(infile));
+
+	const fs::path tmp = make_temp_dir("specsim-aj-gran-sign-");
+	fs::current_path(tmp);
+
+	const double dnu = 70.0;
+	const double delta = 1.0;
+	const Eigen::MatrixXd pos = run_aj_granscaled_modes(tmp, infile, dnu, delta, "pos");
+	const Eigen::MatrixXd neg = run_aj_granscaled_modes(tmp, infile, dnu, -delta, "neg");
+	const double expected_shift = -2.0 * delta * dnu / 100.0;
+	check_delta0l_shift(pos, neg, expected_shift);
+}
+
+TEST_CASE("generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled_Kallinger2014 flips delta0l sign") {
+	const fs::path root = repo_root();
+	const fs::path infile = root / "Configurations" / "infiles" / "12069424.in";
+	REQUIRE(fs::exists(infile));
+	const fs::path noise_cfg = root / "Configurations" / "noise_Kallinger2014.cfg";
+	REQUIRE(fs::exists(noise_cfg));
+	const Eigen::VectorXd noise_means = kallinger_noise_means_from_cfg(noise_cfg);
+
+	const fs::path tmp = make_temp_dir("specsim-aj-kall-sign-");
+	fs::current_path(tmp);
+
+	const double dnu = 100.0;
+	const double delta = 1.0;
+	const Eigen::MatrixXd pos = run_aj_kallinger_modes(tmp, infile, noise_means, dnu, delta, "pos");
+	const Eigen::MatrixXd neg = run_aj_kallinger_modes(tmp, infile, noise_means, dnu, -delta, "neg");
+	const double expected_shift = -2.0 * delta * dnu / 100.0;
+	check_delta0l_shift(pos, neg, expected_shift);
 }
 
 TEST_CASE("asymptotic_mm_freeDp_numaxspread_curvepmodes_v3_GRANscaled_Kallinger2014 always succeeds in safe range") {
@@ -169,7 +317,7 @@ TEST_CASE("asymptotic_mm_freeDp_numaxspread_curvepmodes_v3_GRANscaled_Kallinger2
 		p[11] = urand(-0.05, 0.05); // a6_l3_env
 		p[12] = urand(20.0, 30.0);  // Dnu
 		p[13] = urand(0.0, 1.0);    // epsilon
-		p[14] = urand(0.0, 0.5);    // delta0l_percent (keep non-negative)
+		p[14] = urand(-0.5, 3.0);   // delta0l_percent
 		p[15] = urand(0.0, 0.10);   // beta_p_star
 		p[16] = 5.0;                // nmax_spread
 		p[17] = urand(75.0, 400.0); // DP1

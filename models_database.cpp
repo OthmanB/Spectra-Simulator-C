@@ -1960,7 +1960,8 @@ void generate_cfg_from_synthese_file_Wscaled_aj(VectorXd input_params, std::stri
 // ---- Deploy the parameters -----
 	Dnu=input_params[0];
 	epsilon=input_params[1];
-	delta0l_percent=std::abs(input_params[2]);
+	// Sign convention: delta0l_percent is used as provided (positive or negative).
+	delta0l_percent=input_params[2];
 	HNR=input_params[3];
 	a1_ov_Gamma=input_params[4];
 	Gamma_at_numax=input_params[5];
@@ -2224,7 +2225,8 @@ void generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled(VectorXd input_params
 // ---- Deploy the parameters -----
 	Dnu=input_params[0];
 	epsilon=input_params[1];
-	delta0l_percent=-std::abs(input_params[2]);  // Convention: internal negative small separation; input treated as magnitude
+	// Sign convention: historical behavior flips the input sign for this model.
+	delta0l_percent=-1*input_params[2];
 	HNR=input_params[3];
 	a1_ov_Gamma=input_params[4];
 	Gamma_at_numax=input_params[5];
@@ -2474,7 +2476,8 @@ void generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled_Kallinger2014(VectorX
 // ---- Deploy the mode parameters -----
 	Dnu=input_params[0];
 	epsilon=input_params[1];
-	delta0l_percent=-std::abs(input_params[2]); // Convention: internal negative small separation; input treated as magnitude
+	// Sign convention: historical behavior flips the input sign for this model.
+	delta0l_percent=-1*input_params[2];
 	HNR=input_params[3];
 	a1_ov_Gamma=input_params[4];
 	Gamma_at_numax=input_params[5];

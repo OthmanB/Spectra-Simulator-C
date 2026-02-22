@@ -19,7 +19,7 @@ Example config: `Configurations/examples_cfg/main.cfg.aj`
 |---|-------|-----------------|
 | 1 | Dnu | Large separation (uHz). |
 | 2 | epsilon | Asymptotic phase term. |
-| 3 | delta0l_percent | Small separation in percent (input magnitude; internal sign is negative). |
+| 3 | delta0l_percent | Small separation in percent (sign is respected). |
 | 4 | HNR | Target max height-to-noise ratio relative to the reference star. |
 | 5 | a1ovGamma | Target ratio `a1 / Gamma` at `numax`. |
 | 6 | Gamma_at_numax | Mode width at `numax`. |
@@ -39,7 +39,7 @@ Example config: `Configurations/examples_cfg/main.cfg.aj`
 
 - Frequencies are rescaled from the reference star using the asymptotic relation:
   - `nu(n,l) = (n + epsilon + l/2) * Dnu - l(l+1) * d0l`
-  - `d0l = delta0l_percent * Dnu / 100` (internal sign is negative)
+- `d0l = delta0l_percent * Dnu / 100` (sign as provided)
 - Heights are rescaled to match `HNR` relative to the reference star.
 - Widths are scaled to match `Gamma_at_numax` and `a1 = a1ovGamma * Gamma_at_numax`.
 
@@ -62,5 +62,5 @@ Example config: `Configurations/examples_cfg/main.cfg.aj`
 
 - `extra_params` must point to a valid reference `.in` file.
 - Set `template_files` to `NONE` (required by the parser even if unused).
-- `delta0l_percent` is treated as a magnitude; negative values will be flipped internally.
+- `delta0l_percent` sign is used as provided (positive and negative values are allowed).
 - Spreads (`H_spread`, `nu_spread`, `Gamma_spread`) are percentages (0-100).

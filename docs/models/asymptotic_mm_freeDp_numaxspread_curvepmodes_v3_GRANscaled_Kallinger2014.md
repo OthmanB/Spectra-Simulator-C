@@ -37,7 +37,7 @@ Noise parameters are appended automatically from `noise_Kallinger2014.cfg` and a
 | 12 | a6_l3_env | Higher-order coefficient for l=3. |
 | 13 | Dnu | Large separation (uHz). |
 | 14 | epsilon | Asymptotic phase term. |
-| 15 | delta0l_percent | Small separation in percent (input magnitude; internal sign is negative). |
+| 15 | delta0l_percent | Small separation in percent (sign is respected). |
 | 16 | beta_p_star | P-mode coupling parameter. |
 | 17 | nmax_spread | Spread on radial order around `numax`. |
 | 18 | DP1 | Dipole period spacing (seconds). |
