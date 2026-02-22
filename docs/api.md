@@ -2,7 +2,7 @@
 
 The generated API reference is published alongside these docs.
 
-- Open the Doxygen site at [api/index.html](api/index.html) once the docs site is built.
+- Open `api/index.html` under the published site once the docs build completes.
 
 If you are building locally:
 

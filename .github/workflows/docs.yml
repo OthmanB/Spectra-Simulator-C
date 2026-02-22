@@ -29,7 +29,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y doxygen
           python -m pip install --upgrade pip
-          python -m pip install mkdocs mkdocs-material
+          python -m pip install -r docs/requirements.txt
 
       - name: Build Doxygen HTML
         run: |
