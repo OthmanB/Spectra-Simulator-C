@@ -2,9 +2,10 @@ name: CI
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "master", "modernization/phase0" ]
   pull_request:
-    branches: [ "master" ]
+    branches: [ "master", "modernization/phase0" ]
+  workflow_dispatch:
 
 env:
   BUILD_TYPE: Release
