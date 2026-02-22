@@ -1,6 +1,6 @@
 # Documentation
 
-There are now two complementary documentation entry points:
+There are two complementary documentation entry points:
 
 1. **User guide (recommended for day-to-day usage)**
    - File: `docs/User_Guide.md`

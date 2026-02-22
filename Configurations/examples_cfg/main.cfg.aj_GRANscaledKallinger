@@ -11,7 +11,7 @@
 # This is a template with a Noise described by Kallinger relations and three Harvey-like.
 # The configuration for the noise in Kallinger is given by an ANOTHER file: noise_Kallinger2014.cfg. See that file for more details
 random 1 # forest_type, followed by the forest_params. If forest_type=random, then forest_params is a single value that corresponds to the Number of samples
-generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled_Kallinger2014   /Users/obenomar/Work/dev/Spectra-Simulator-C/Configurations/infiles/12069424.in      
+generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled_Kallinger2014   Configurations/infiles/12069424.in      
 NONE		        # Used template(s) name(s). If several, randomly select one/iteration. If set to 'all', will use all *.template files in Configuration/templates 
 Dnu  epsilon    delta0l_percent    HNR   a1ovGamma  Gamma_at_numax      a2      a3         a4      a5     a6      beta_asym        i       	numax_spread      H_spread     nu_spread #Variable names 
 100    0.5         5.              30        0.5         1.             0.     0.0        0.0      0     0.0       0           55.0    	0                  0           0.0     #val_min

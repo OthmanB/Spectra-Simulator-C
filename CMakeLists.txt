@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.10)
 
 project(specsim VERSION 1.1)
 
@@ -21,6 +21,8 @@ if(NOT CMAKE_COMPILER_IS_GNUCXX AND NOT MACOS)
 endif()
 
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(Boost_USE_MULTITHREADED TRUE)
 option(WITH_OPENMP "OpenMP Library" ON)
@@ -52,9 +54,9 @@ else()
 endif()
 
 
-#Bring the core program sources into the project
-set(SOURCES_MAIN  #_COMMON
-	iterative_artificial_spectrum.cpp
+### Sources
+# Keep the CLI entry point separate so we can link core code into tests.
+set(SOURCES_CORE
 	artificial_spectrum.cpp
     models_database.cpp
     derivatives_handler.cpp
@@ -67,9 +69,12 @@ set(SOURCES_MAIN  #_COMMON
     io_star_params.cpp
     io_star_common.cpp
     noise_models.cpp
-    ioproc.cpp
-    random_JB.cpp
-    combi.cpp
+	    ioproc.cpp
+	    random_JB.cpp
+	    logging.cpp
+	    rng.cpp
+	    models_registry.cpp
+	    combi.cpp
     stellar_models.cpp
     models_database_grid.cpp
     format.cpp
@@ -80,7 +85,11 @@ set(SOURCES_MAIN  #_COMMON
     external/rescale/rescale_freqs.cpp
     external/rescale/decompose_nu.cpp
     external/rescale/data.h
-    )
+)
+
+set(SOURCES_CLI
+	iterative_artificial_spectrum.cpp
+)
 
 set(SOURCES_TEST_LORENTZIAN
     test_fct/lorentzian_tests.cpp
@@ -94,9 +103,12 @@ set(SOURCES_TEST_LORENTZIAN
 
 
 # Check and Load dependencies
-find_package(Gnuplot REQUIRED)
+# NOTE: gnuplot is only required at *runtime* when plots are requested (doplots=1).
+# Some environments (CI, minimal containers) can build and run the simulator with doplots=0
+# without having the gnuplot executable installed. Therefore, we do not hard-require it here.
+find_package(Gnuplot)
 if(NOT GNUPLOT_FOUND)
-	message(FATAL_ERROR "Gnuplot is required for rendering. Cannot pursue. Please install gnuplot")
+	message(WARNING "Gnuplot executable not found. Plotting will fail if doplots=1. Install gnuplot or run with doplots=0")
 endif()
 
 if (WITH_OPENMP)
@@ -116,20 +128,153 @@ endif()
 include_directories()
 
 
-#Dependencies that are not portable (BOOST)
-set(Boost_USE_MULTITHREADED=OFF)
-find_package(Boost COMPONENTS system filesystem iostreams program_options REQUIRED)
-include_directories(${Boost_INCLUDE_DIRS})
-link_directories(${Boost_LIBRARY_DIRS})
+# Dependencies that are not portable (BOOST)
+#
+# Note: CMake >= 4 removed FindBoost. Some Boost distributions (e.g. Homebrew)
+# ship only `BoostConfig.cmake` without per-component `boost_<component>Config.cmake`
+# files. In that case, `find_package(Boost COMPONENTS ...)` fails.
+#
+# To keep builds working across environments, we locate Boost headers and the
+# required component libraries manually.
 
-add_executable(${CMAKE_PROJECT_NAME}  ${SOURCES_MAIN})
+find_path(BOOST_INCLUDE_DIR boost/filesystem.hpp)
+if(NOT BOOST_INCLUDE_DIR)
+	message(FATAL_ERROR "Boost headers not found (expected boost/filesystem.hpp). Install Boost or set CMAKE_PREFIX_PATH.")
+endif()
+
+# Prefer libraries from the same Boost root when available.
+set(BOOST_LIBRARY_DIRS "")
+if(DEFINED BOOST_LIBRARYDIR)
+	list(APPEND BOOST_LIBRARY_DIRS "${BOOST_LIBRARYDIR}")
+endif()
+if(DEFINED ENV{BOOST_LIBRARYDIR})
+	list(APPEND BOOST_LIBRARY_DIRS "$ENV{BOOST_LIBRARYDIR}")
+endif()
+set(BOOST_ROOT_DIR "${BOOST_INCLUDE_DIR}")
+if(EXISTS "${BOOST_INCLUDE_DIR}/boost")
+	set(BOOST_ROOT_DIR "${BOOST_INCLUDE_DIR}")
+else()
+	get_filename_component(BOOST_ROOT_DIR "${BOOST_INCLUDE_DIR}" DIRECTORY)
+endif()
+if(EXISTS "${BOOST_ROOT_DIR}/stage/lib")
+	list(APPEND BOOST_LIBRARY_DIRS "${BOOST_ROOT_DIR}/stage/lib")
+endif()
+if(EXISTS "${BOOST_ROOT_DIR}/lib")
+	list(APPEND BOOST_LIBRARY_DIRS "${BOOST_ROOT_DIR}/lib")
+endif()
+list(REMOVE_DUPLICATES BOOST_LIBRARY_DIRS)
+
+unset(BOOST_FILESYSTEM_LIBRARY CACHE)
+find_library(BOOST_FILESYSTEM_LIBRARY NAMES boost_filesystem PATHS ${BOOST_LIBRARY_DIRS} NO_DEFAULT_PATH)
+if(NOT BOOST_FILESYSTEM_LIBRARY)
+	find_library(BOOST_FILESYSTEM_LIBRARY NAMES boost_filesystem)
+endif()
+unset(BOOST_PROGRAM_OPTIONS_LIBRARY CACHE)
+find_library(BOOST_PROGRAM_OPTIONS_LIBRARY NAMES boost_program_options PATHS ${BOOST_LIBRARY_DIRS} NO_DEFAULT_PATH)
+if(NOT BOOST_PROGRAM_OPTIONS_LIBRARY)
+	find_library(BOOST_PROGRAM_OPTIONS_LIBRARY NAMES boost_program_options)
+endif()
+unset(BOOST_IOSTREAMS_LIBRARY CACHE)
+find_library(BOOST_IOSTREAMS_LIBRARY NAMES boost_iostreams PATHS ${BOOST_LIBRARY_DIRS} NO_DEFAULT_PATH)
+if(NOT BOOST_IOSTREAMS_LIBRARY)
+	find_library(BOOST_IOSTREAMS_LIBRARY NAMES boost_iostreams)
+endif()
+unset(BOOST_SYSTEM_LIBRARY CACHE)
+find_library(BOOST_SYSTEM_LIBRARY NAMES boost_system PATHS ${BOOST_LIBRARY_DIRS} NO_DEFAULT_PATH)
+if(NOT BOOST_SYSTEM_LIBRARY)
+	find_library(BOOST_SYSTEM_LIBRARY NAMES boost_system)
+endif()
+
+if(NOT BOOST_FILESYSTEM_LIBRARY)
+	message(FATAL_ERROR "Boost.Filesystem library not found (libboost_filesystem).")
+endif()
+if(NOT BOOST_PROGRAM_OPTIONS_LIBRARY)
+	message(FATAL_ERROR "Boost.ProgramOptions library not found (libboost_program_options).")
+endif()
+if(NOT BOOST_IOSTREAMS_LIBRARY)
+	message(FATAL_ERROR "Boost.Iostreams library not found (libboost_iostreams).")
+endif()
+
+set(BOOST_LIBRARIES
+	${BOOST_FILESYSTEM_LIBRARY}
+	${BOOST_PROGRAM_OPTIONS_LIBRARY}
+	${BOOST_IOSTREAMS_LIBRARY}
+)
+if(BOOST_SYSTEM_LIBRARY)
+	list(APPEND BOOST_LIBRARIES ${BOOST_SYSTEM_LIBRARY})
+endif()
+
+include_directories(${BOOST_INCLUDE_DIR})
+
+add_library(specsim_core_obj OBJECT ${SOURCES_CORE})
+target_include_directories(specsim_core_obj PRIVATE ${CMAKE_SOURCE_DIR})
+
+# Apple SDKs deprecate sprintf(), which Boost may use internally (e.g. lexical_cast).
+# Silence third-party deprecation noise on macOS/Clang.
+if(APPLE AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  target_compile_options(specsim_core_obj PRIVATE -Wno-deprecated-declarations -Wno-deprecated-builtins)
+endif()
+
+add_executable(${CMAKE_PROJECT_NAME} ${SOURCES_CLI} $<TARGET_OBJECTS:specsim_core_obj>)
+target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR})
+if(APPLE AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE -Wno-deprecated-declarations -Wno-deprecated-builtins)
+endif()
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE BOOST_NO_CXX98_FUNCTION_BASE)
+  if(EXISTS "/opt/homebrew/opt/llvm/lib/c++/libc++.dylib")
+    target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE /opt/homebrew/opt/llvm/lib/c++)
+    target_link_options(${CMAKE_PROJECT_NAME} PRIVATE -Wl,-rpath,/opt/homebrew/opt/llvm/lib/c++)
+  endif()
+  foreach(dir IN LISTS BOOST_LIBRARY_DIRS)
+    target_link_options(${CMAKE_PROJECT_NAME} PRIVATE -Wl,-rpath,${dir})
+  endforeach()
+endif()
 if(MACOS)
   find_package(Eigen3 REQUIRED NO_MODULE)
+  target_compile_definitions(specsim_core_obj PRIVATE MACOS)
+  target_link_libraries(specsim_core_obj PUBLIC Eigen3::Eigen)
   target_compile_definitions(${CMAKE_PROJECT_NAME}  PRIVATE MACOS)
-  target_link_libraries(${CMAKE_PROJECT_NAME}  Eigen3::Eigen  ${Boost_LIBRARIES} "-framework CoreFoundation")
+  target_link_libraries(${CMAKE_PROJECT_NAME}  Eigen3::Eigen  ${BOOST_LIBRARIES} "-framework CoreFoundation")
 elseif(LINUX)
   #Look for eigen and explicitly specify to use it. EIGEN3_INCLUDE_DIR Must be specified in the bashrc
   include_directories( "$ENV{EIGEN3_INCLUDE_DIR}" )
+  target_compile_definitions(specsim_core_obj PRIVATE LINUX)
   target_compile_definitions(${CMAKE_PROJECT_NAME}  PRIVATE LINUX)
-  target_link_libraries(${CMAKE_PROJECT_NAME}  ${Boost_LIBRARIES}  rt)
+  target_link_libraries(${CMAKE_PROJECT_NAME}  ${BOOST_LIBRARIES}  rt)
+endif()
+
+### C++ unit/property tests (single binary)
+option(BUILD_TESTS "Build C++ unit/property tests" ON)
+if(BUILD_TESTS)
+  enable_testing()
+  add_executable(specsim_tests
+    tests/cpp/specsim_tests_main.cpp
+    tests/cpp/test_function_rot.cpp
+    tests/cpp/test_build_lorentzian.cpp
+    tests/cpp/test_mode_generators.cpp
+  	$<TARGET_OBJECTS:specsim_core_obj>
+  )
+  target_include_directories(specsim_tests PRIVATE ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/tests/cpp)
+  if(APPLE AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    target_compile_options(specsim_tests PRIVATE -Wno-deprecated-declarations -Wno-deprecated-builtins)
+  endif()
+  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    target_compile_definitions(specsim_tests PRIVATE BOOST_NO_CXX98_FUNCTION_BASE)
+    if(EXISTS "/opt/homebrew/opt/llvm/lib/c++/libc++.dylib")
+      target_link_directories(specsim_tests PRIVATE /opt/homebrew/opt/llvm/lib/c++)
+      target_link_options(specsim_tests PRIVATE -Wl,-rpath,/opt/homebrew/opt/llvm/lib/c++)
+    endif()
+    foreach(dir IN LISTS BOOST_LIBRARY_DIRS)
+      target_link_options(specsim_tests PRIVATE -Wl,-rpath,${dir})
+    endforeach()
+  endif()
+  if(MACOS)
+    target_compile_definitions(specsim_tests PRIVATE MACOS)
+    target_link_libraries(specsim_tests Eigen3::Eigen ${BOOST_LIBRARIES} "-framework CoreFoundation")
+  elseif(LINUX)
+    target_compile_definitions(specsim_tests PRIVATE LINUX)
+    target_link_libraries(specsim_tests ${BOOST_LIBRARIES} rt)
+  endif()
+  add_test(NAME specsim_tests COMMAND specsim_tests)
 endif()

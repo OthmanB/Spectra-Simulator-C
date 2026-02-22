@@ -30,3 +30,15 @@
 *.exe
 *.out
 *.app
+
+# Python bytecode
+__pycache__/
+
+# Build and runtime outputs
+build/
+build-*/
+Data/
+Configurations/tmp/
+dir.list
+site/
+docs/html/

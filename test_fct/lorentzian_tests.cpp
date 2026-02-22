@@ -1,5 +1,6 @@
 //#include <math.h>
 #include <Eigen/Dense>
+#include <filesystem>
 #include <iostream>
 #include <iomanip>
 #include "../build_lorentzian.h"
@@ -34,7 +35,7 @@ int main(int argc, char* argv[]){
 	
 		//Model_def model_list;
 		// Set the current path variables
-		std::string cpath=getcwd(NULL, 0);
+		std::string cpath=std::filesystem::current_path().string();
 		std::string file_out = cpath + "/model.out";
 		std::string model_name;
 
@@ -268,4 +269,3 @@ void usage(int argc, char* argv[]){
 		}
 	
 }
-

@@ -27,7 +27,7 @@ The project requires:
 - CMake (recommended)
 - Boost (`system`, `filesystem`, `iostreams`, `program_options`)
 - Eigen3
-- gnuplot (required by CMake configuration)
+- gnuplot (optional at runtime; required only when `doplots=1`)
 - OpenMP (optional, enabled by default)
 
 > Linux note: the CMake file expects `EIGEN3_INCLUDE_DIR` to be available in the environment on Linux.
@@ -66,6 +66,8 @@ Main options:
 - `-g, --main_dir`: directory containing config files (default: `Configurations/`)
 - `-o, --out_dir`: output directory (default: `Data/`)
 - `--force-create-output-dir`: set to `1` to create missing output folders
+- `--seed`: set a deterministic RNG seed (>=0)
+- `--log-level`: set log verbosity (`debug`, `info`, `warn`, `error`)
 
 When `--force-create-output-dir=1`, the program creates these subdirectories under `out_dir`:
 
@@ -113,6 +115,12 @@ A typical main configuration file contains:
 5. Observation setup (`Tobs`, `Cadence`, `Naverage`, `Nrealisation`).
 6. Output behavior flags (`erase_old_files`, plots, model files, etc.).
 
+### Path resolution notes
+
+- `--main_file` is used as-is if absolute or if it contains a parent path; otherwise it is joined with `--main_dir`.
+- `--noise_file` is resolved from `--main_dir` first, then from `Configurations/`.
+- Any extra file paths inside `main.cfg` (e.g., the `.in` reference file) are interpreted relative to the current working directory if not absolute.
+
 ### Important behavior flags
 
 - `erase_old_files = 1`: restarts identifiers and overwrites combination/history outputs.
@@ -134,24 +142,23 @@ For random mode, the final line acts as a Gaussian uncertainty scaling coefficie
 
 ---
 
-## 8) Common model names
+## 8) Models and manuals
 
-The simulator currently handles model names such as:
+Use the model chooser in `docs/models/README.md` for supported (non-obsolete) models. You can also run:
 
-- `generate_cfg_asymptotic_act_asym_Hgauss`
-- `generate_cfg_from_refstar_HWscaled`
-- `generate_cfg_from_refstar_HWscaled_GRANscaled`
-- `generate_cfg_from_synthese_file_Wscaled_act_asym_a1ovGamma`
-- `generate_cfg_from_synthese_file_Wscaled_a1a2a3asymovGamma`
+```bash
+./build/specsim --list-models
+./build/specsim --describe-model <name>
+```
+
+Supported (non-obsolete) models:
+
 - `generate_cfg_from_synthese_file_Wscaled_Alm`
 - `generate_cfg_from_synthese_file_Wscaled_aj`
-- `generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled`
 - `generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled_Kallinger2014`
-- `asymptotic_mm_v1`, `asymptotic_mm_v2`, `asymptotic_mm_v3`
-- `asymptotic_mm_freeDp_numaxspread_curvepmodes_v1`
-- `asymptotic_mm_freeDp_numaxspread_curvepmodes_v2`
-- `asymptotic_mm_freeDp_numaxspread_curvepmodes_v3`
 - `asymptotic_mm_freeDp_numaxspread_curvepmodes_v3_GRANscaled_Kallinger2014`
+
+Legacy/obsolete model notes are available in `docs/legacy_models.md`.
 
 If you are unsure which one to use, start from an existing file in `Configurations/examples_cfg/` and adjust parameters incrementally.
 
@@ -191,7 +198,7 @@ Use this **User Guide** for workflows and configuration, and Doxygen for low-lev
 - **CMake cannot find Eigen on Linux**:
   - Export/include `EIGEN3_INCLUDE_DIR` before configuring.
 - **gnuplot not found**:
-  - Install gnuplot; CMake treats it as required.
+  - Install gnuplot if you need plots; CMake only warns and runs with `doplots=0` are fine.
 - **Unexpected overwrite behavior**:
   - Verify `erase_old_files` in your main config.
 
@@ -204,4 +211,3 @@ Use this **User Guide** for workflows and configuration, and Doxygen for low-lev
 3. Change only one parameter range in the example config.
 4. Re-run and compare output distributions.
 5. Move to a different model family once the first pipeline is understood.
-

@@ -1,0 +1,25 @@
+site_name: Spectra-Simulator-C
+docs_dir: docs
+site_dir: site
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - content.code.copy
+
+nav:
+  - Home: index.md
+  - User Guide: User_Guide.md
+  - Models:
+      - Overview: models/README.md
+      - generate_cfg_from_synthese_file_Wscaled_Alm: models/generate_cfg_from_synthese_file_Wscaled_Alm.md
+      - generate_cfg_from_synthese_file_Wscaled_aj: models/generate_cfg_from_synthese_file_Wscaled_aj.md
+      - generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled_Kallinger2014: models/generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled_Kallinger2014.md
+      - asymptotic_mm_freeDp_numaxspread_curvepmodes_v3_GRANscaled_Kallinger2014: models/asymptotic_mm_freeDp_numaxspread_curvepmodes_v3_GRANscaled_Kallinger2014.md
+  - Legacy Models: legacy_models.md
+  - API Reference:
+      - Overview: api.md
+      - Doxygen Readme: Readme.md

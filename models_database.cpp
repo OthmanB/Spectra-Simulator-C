@@ -13,6 +13,7 @@
 # include <iomanip>
 #include <fstream>
 # include <string>
+#include <filesystem>
 # include <Eigen/Dense>
 #include <random>
 #include "models_database.h"
@@ -21,23 +22,19 @@
 #include "external/ARMM/bump_DP.h"
 #include "linspace.h"
 #include "linfit.h"
+#include "rng.h"
+#include "logging.h"
 
 using Eigen::VectorXd;
 using Eigen::VectorXi;
 using Eigen::MatrixXd;
 
 
-double *r8vec_normal_01 ( int n, int *seed );
-
-
 bool asymptotic_mm_v1(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string file_cfg_mm, std::string external_path, std::string template_file){
 
-	int seed=(unsigned)time(NULL);
-	srand(seed);
-
-	std::random_device rd;
-	std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
-	std::uniform_real_distribution<double> distrib(0 , 1);
+	std::mt19937& gen = global_rng();
+	std::uniform_real_distribution<double> distrib(0.0, 1.0);
+	std::normal_distribution<double> dist_norm(0.0, 1.0);
 
 	// ----- Constants ------
 	const double PI = 3.141592653589793238462643;
@@ -49,7 +46,7 @@ bool asymptotic_mm_v1(VectorXd input_params, std::string file_out_modes, std::st
 	const double M_sun=1.98855e30;
 	const double rho_sun=M_sun*1e3/(4*PI*pow(R_sun*1e5,3)/3);
 	// ----------------------
-	const std::string cpath=getcwd(NULL, 0);
+	const std::string cpath=std::filesystem::current_path().string();
 	
 	const std::string file_range=cpath + "/external/ARMM-solver/star_params.range";
 	const double lmax=3;
@@ -95,8 +92,8 @@ bool asymptotic_mm_v1(VectorXd input_params, std::string file_out_modes, std::st
 	cfg_star.beta_p_star=input_params[4];
 	
 	DP=a*pow(cfg_star.Dnu_star, 2) + b*cfg_star.Dnu_star + c;
-	double *r = r8vec_normal_01 ( 1, &seed );
-	DP=DP +  *r*DP*DP_var_percent/100.; // Inject a gaussian random error of DP_var_percent
+	const double r = dist_norm(gen);
+	DP=DP +  r*DP*DP_var_percent/100.; // Inject a gaussian random error of DP_var_percent
 	// -----------
 	cfg_star.DPl_star=DP;                
 	cfg_star.alpha_g_star=input_params[7];
@@ -189,12 +186,9 @@ bool asymptotic_mm_v1(VectorXd input_params, std::string file_out_modes, std::st
 
 bool asymptotic_mm_v2(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string file_cfg_mm, std::string external_path, std::string template_file){
 
-	int seed=(unsigned)time(NULL);
-	srand(seed);
-
-	std::random_device rd;
-	std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
-	std::uniform_real_distribution<double> distrib(0 , 1);
+	std::mt19937& gen = global_rng();
+	std::uniform_real_distribution<double> distrib(0.0, 1.0);
+	std::normal_distribution<double> dist_norm(0.0, 1.0);
 	
 	// ----- Constants ------
 	const double PI = 3.141592653589793238462643;
@@ -206,7 +200,7 @@ bool asymptotic_mm_v2(VectorXd input_params, std::string file_out_modes, std::st
 	const double M_sun=1.98855e30;
 	const double rho_sun=M_sun*1e3/(4*PI*pow(R_sun*1e5,3)/3);
 	// ----------------------
-	const std::string cpath=getcwd(NULL, 0);
+	const std::string cpath=std::filesystem::current_path().string();
 	
 	const std::string file_range=cpath + "/external/ARMM-solver/star_params.range";
 	const double lmax=3;
@@ -257,8 +251,8 @@ bool asymptotic_mm_v2(VectorXd input_params, std::string file_out_modes, std::st
 	cfg_star.beta_p_star=input_params[5];
 	
 	DP=a*pow(cfg_star.Dnu_star, 2) + b*cfg_star.Dnu_star + c;
-	double *r = r8vec_normal_01 ( 1, &seed );
-	DP=DP +  *r*DP*DP_var_percent/100.; // Inject a gaussian random error of DP_var_percent
+	const double r = dist_norm(gen);
+	DP=DP +  r*DP*DP_var_percent/100.; // Inject a gaussian random error of DP_var_percent
 	// -----------
 	cfg_star.DPl_star=DP;                
 	cfg_star.alpha_g_star=input_params[8];
@@ -354,12 +348,9 @@ bool asymptotic_mm_v2(VectorXd input_params, std::string file_out_modes, std::st
 
 bool asymptotic_mm_v3(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string file_cfg_mm, std::string external_path, std::string template_file){
 
-	int seed=(unsigned)time(NULL);
-	srand(seed);
-
-	std::random_device rd;
-	std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
-	std::uniform_real_distribution<double> distrib(0 , 1);
+	std::mt19937& gen = global_rng();
+	std::uniform_real_distribution<double> distrib(0.0, 1.0);
+	std::normal_distribution<double> dist_norm(0.0, 1.0);
 	
 	// ----- Constants ------
 	const double PI = 3.141592653589793238462643;
@@ -371,7 +362,7 @@ bool asymptotic_mm_v3(VectorXd input_params, std::string file_out_modes, std::st
 	const double M_sun=1.98855e30;
 	const double rho_sun=M_sun*1e3/(4*PI*pow(R_sun*1e5,3)/3);
 	// ----------------------
-	const std::string cpath=getcwd(NULL, 0);
+	const std::string cpath=std::filesystem::current_path().string();
 	
 	const std::string file_range=cpath + "/external/ARMM-solver/star_params.range";
 	const double lmax=3;
@@ -422,8 +413,8 @@ bool asymptotic_mm_v3(VectorXd input_params, std::string file_out_modes, std::st
 	cfg_star.beta_p_star=input_params[5];
 	
 	DP=a*pow(cfg_star.Dnu_star, 2) + b*cfg_star.Dnu_star + c;
-	double *r = r8vec_normal_01 ( 1, &seed );
-	DP=DP +  *r*DP*DP_var_percent/100.; // Inject a gaussian random error of DP_var_percent
+	const double r = dist_norm(gen);
+	DP=DP +  r*DP*DP_var_percent/100.; // Inject a gaussian random error of DP_var_percent
 	// -----------
 	cfg_star.DPl_star=DP;                
 	cfg_star.alpha_g_star=input_params[8];
@@ -516,12 +507,8 @@ bool asymptotic_mm_v3(VectorXd input_params, std::string file_out_modes, std::st
 
 bool asymptotic_mm_freeDp_numaxspread_curvepmodes_v1(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string file_cfg_mm, std::string external_path, std::string template_file){
 
-	int seed=(unsigned)time(NULL);
-	srand(seed);
-
-	std::random_device rd;
-	std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
-	std::uniform_real_distribution<double> distrib(0 , 1);
+	std::mt19937& gen = global_rng();
+	std::uniform_real_distribution<double> distrib(0.0, 1.0);
 	
 	// ----- Constants ------
 	const double PI = 3.141592653589793238462643;
@@ -533,7 +520,7 @@ bool asymptotic_mm_freeDp_numaxspread_curvepmodes_v1(VectorXd input_params, std:
 	const double M_sun=1.98855e30;
 	const double rho_sun=M_sun*1e3/(4*PI*pow(R_sun*1e5,3)/3);
 	// ----------------------
-	const std::string cpath=getcwd(NULL, 0);
+	const std::string cpath=std::filesystem::current_path().string();
 	
 	const std::string file_range=cpath + "/external/ARMM-solver/star_params.range";
 	const double lmax=3;
@@ -672,12 +659,8 @@ bool asymptotic_mm_freeDp_numaxspread_curvepmodes_v1(VectorXd input_params, std:
 
 bool asymptotic_mm_freeDp_numaxspread_curvepmodes_v2(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string file_cfg_mm, std::string external_path, std::string template_file){
 	
-	int seed=(unsigned)time(NULL);
-	srand(seed);
-
-	std::random_device rd;
-	std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
-	std::uniform_real_distribution<double> distrib(0 , 1);
+	std::mt19937& gen = global_rng();
+	std::uniform_real_distribution<double> distrib(0.0, 1.0);
 	
 	// ----- Constants ------
 	const double PI = 3.141592653589793238462643;
@@ -689,7 +672,7 @@ bool asymptotic_mm_freeDp_numaxspread_curvepmodes_v2(VectorXd input_params, std:
 	const double M_sun=1.98855e30;
 	const double rho_sun=M_sun*1e3/(4*PI*pow(R_sun*1e5,3)/3);
 	// ----------------------
-	const std::string cpath=getcwd(NULL, 0);
+	const std::string cpath=std::filesystem::current_path().string();
 	
 	const std::string file_range=cpath + "/external/ARMM-solver/star_params.range";
 	const double lmax=3;
@@ -862,12 +845,8 @@ bool asymptotic_mm_freeDp_numaxspread_curvepmodes_v2(VectorXd input_params, std:
 
 bool asymptotic_mm_freeDp_numaxspread_curvepmodes_v3(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string file_cfg_mm, std::string external_path, std::string template_file){
 
-	int seed=(unsigned)time(NULL);
-	srand(seed);
-
-	std::random_device rd;
-	std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
-	std::uniform_real_distribution<double> distrib(0 , 1);
+	std::mt19937& gen = global_rng();
+	std::uniform_real_distribution<double> distrib(0.0, 1.0);
 	
 	// ----- Constants ------
 	const double PI = 3.141592653589793238462643;
@@ -879,7 +858,7 @@ bool asymptotic_mm_freeDp_numaxspread_curvepmodes_v3(VectorXd input_params, std:
 	const double M_sun=1.98855e30;
 	const double rho_sun=M_sun*1e3/(4*PI*pow(R_sun*1e5,3)/3);
 	// ----------------------
-	const std::string cpath=getcwd(NULL, 0);
+	const std::string cpath=std::filesystem::current_path().string();
 	
 	const std::string file_range=cpath + "/external/ARMM-solver/star_params.range";
 	const double lmax=3;
@@ -1119,12 +1098,8 @@ bool asymptotic_mm_freeDp_numaxspread_curvepmodes_v3(VectorXd input_params, std:
 
 bool asymptotic_mm_freeDp_numaxspread_curvepmodes_v3_GRANscaled_Kallinger2014(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string file_cfg_mm, std::string external_path, std::string template_file){
 
-	int seed=(unsigned)time(NULL);
-	srand(seed);
-
-	std::random_device rd;
-	std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
-	std::uniform_real_distribution<double> distrib(0 , 1);
+	std::mt19937& gen = global_rng();
+	std::uniform_real_distribution<double> distrib(0.0, 1.0);
 	
 	// ----- Constants ------
 	const double PI = 3.141592653589793238462643;
@@ -1136,7 +1111,7 @@ bool asymptotic_mm_freeDp_numaxspread_curvepmodes_v3_GRANscaled_Kallinger2014(Ve
 	const double M_sun=1.98855e30;
 	const double rho_sun=M_sun*1e3/(4*PI*pow(R_sun*1e5,3)/3);
 	// ----------------------
-	const std::string cpath=getcwd(NULL, 0);
+	const std::string cpath=std::filesystem::current_path().string();
 	
 	const std::string file_range=cpath + "/external/ARMM-solver/star_params.range";
 	const double lmax=3;
@@ -1958,9 +1933,8 @@ void generate_cfg_from_synthese_file_Wscaled_Alm(VectorXd input_params, std::str
 */
 void generate_cfg_from_synthese_file_Wscaled_aj(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string extra){
 
-	std::random_device rd;
-	std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
-	std::uniform_real_distribution<double> distrib(0 , 1);
+	std::mt19937& gen = global_rng();
+	std::uniform_real_distribution<double> distrib(0.0, 1.0);
 
 	int i;
 	double HNR, a1_ov_Gamma, a2, a3, a4, a5, a6, beta_asym, inc, 
@@ -1986,6 +1960,7 @@ void generate_cfg_from_synthese_file_Wscaled_aj(VectorXd input_params, std::stri
 // ---- Deploy the parameters -----
 	Dnu=input_params[0];
 	epsilon=input_params[1];
+	// Sign convention: delta0l_percent is used as provided (positive or negative).
 	delta0l_percent=input_params[2];
 	HNR=input_params[3];
 	a1_ov_Gamma=input_params[4];
@@ -2116,9 +2091,27 @@ void generate_cfg_from_synthese_file_Wscaled_aj(VectorXd input_params, std::stri
 	gamma_star=Gamma_coef*ref_star.mode_params.col(3); 
 	if (gamma_spread > 0)
 	{
-		xmin=gamma_star[i]*(1. - gamma_spread/100.);
-		xmax=gamma_star[i]*(1. + gamma_spread/100.);
-		gamma_star[i]=xmin + (xmax-xmin)*distrib(gen);
+		std::cout << "Applying Gamma_spread=" << gamma_spread << "% to mode widths" << std::endl;
+		for(int k=0; k<gamma_star.size(); k++){
+			xmin=gamma_star[k]*(1. - gamma_spread/100.);
+			xmax=gamma_star[k]*(1. + gamma_spread/100.);
+			if (xmin > xmax){
+				const double tmp_swap=xmin;
+				xmin=xmax;
+				xmax=tmp_swap;
+			}
+			// Ensure a non-negative and non-zero width.
+			if (xmax < 0){
+				xmax=0;
+			}
+			if (xmin < 0){
+				xmin=0;
+			}
+			gamma_star[k]=xmin + (xmax-xmin)*distrib(gen);
+			if (gamma_star[k] <= 0){
+				gamma_star[k]=1e-12;
+			}
+		}
 	}
 	
 	// Refactoring the heights
@@ -2213,9 +2206,8 @@ void generate_cfg_from_synthese_file_Wscaled_aj(VectorXd input_params, std::stri
 */
 void generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string extra){
 
-	std::random_device rd;
-	std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
-	std::uniform_real_distribution<double> distrib(0 , 1);
+	std::mt19937& gen = global_rng();
+	std::uniform_real_distribution<double> distrib(0.0, 1.0);
 
 	int i;
 	double HNR, a1_ov_Gamma, a2, a3, a4, a5, a6, beta_asym, inc, 
@@ -2233,7 +2225,8 @@ void generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled(VectorXd input_params
 // ---- Deploy the parameters -----
 	Dnu=input_params[0];
 	epsilon=input_params[1];
-	delta0l_percent=-1*input_params[2];  // Convention changed on 28Feb2024... negative value of delta0l are default
+	// Sign convention: historical behavior flips the input sign for this model.
+	delta0l_percent=-1*input_params[2];
 	HNR=input_params[3];
 	a1_ov_Gamma=input_params[4];
 	Gamma_at_numax=input_params[5];
@@ -2464,9 +2457,8 @@ void generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled(VectorXd input_params
 */
 void generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled_Kallinger2014(VectorXd input_params, std::string file_out_modes, std::string file_out_noise, std::string extra){
 
-	std::random_device rd;
-	std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
-	std::uniform_real_distribution<double> distrib(0 , 1);
+	std::mt19937& gen = global_rng();
+	std::uniform_real_distribution<double> distrib(0.0, 1.0);
 
 	int i;
 	double HNR, a1_ov_Gamma, a2, a3, a4, a5, a6, beta_asym, inc, 
@@ -2484,7 +2476,8 @@ void generate_cfg_from_synthese_file_Wscaled_aj_GRANscaled_Kallinger2014(VectorX
 // ---- Deploy the mode parameters -----
 	Dnu=input_params[0];
 	epsilon=input_params[1];
-	delta0l_percent=-1*input_params[2]; // Convention changed on 28Feb2024... negative value of delta0l are default
+	// Sign convention: historical behavior flips the input sign for this model.
+	delta0l_percent=-1*input_params[2];
 	HNR=input_params[3];
 	a1_ov_Gamma=input_params[4];
 	Gamma_at_numax=input_params[5];
