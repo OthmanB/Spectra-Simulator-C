@@ -9,6 +9,7 @@ Tests for MacOS and Linux:
 
 ### Documentation ###
 
+* Online docs (MkDocs): https://othmanb.github.io/Spectra-Simulator-C/
 * User Guide: `docs/User_Guide.md`
 * Model manuals (non-obsolete): `docs/models/README.md`
 * Legacy model notes (obsolete): `docs/legacy_models.md`
