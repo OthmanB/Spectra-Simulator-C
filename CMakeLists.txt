@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.10)
 
 project(specsim VERSION 1.1)
 
@@ -54,9 +54,9 @@ else()
 endif()
 
 
-#Bring the core program sources into the project
-set(SOURCES_MAIN  #_COMMON
-	iterative_artificial_spectrum.cpp
+### Sources
+# Keep the CLI entry point separate so we can link core code into tests.
+set(SOURCES_CORE
 	artificial_spectrum.cpp
     models_database.cpp
     derivatives_handler.cpp
@@ -85,7 +85,11 @@ set(SOURCES_MAIN  #_COMMON
     external/rescale/rescale_freqs.cpp
     external/rescale/decompose_nu.cpp
     external/rescale/data.h
-    )
+)
+
+set(SOURCES_CLI
+	iterative_artificial_spectrum.cpp
+)
 
 set(SOURCES_TEST_LORENTZIAN
     test_fct/lorentzian_tests.cpp
@@ -202,8 +206,20 @@ endif()
 
 include_directories(${BOOST_INCLUDE_DIR})
 
-add_executable(${CMAKE_PROJECT_NAME}  ${SOURCES_MAIN})
+add_library(specsim_core_obj OBJECT ${SOURCES_CORE})
+target_include_directories(specsim_core_obj PRIVATE ${CMAKE_SOURCE_DIR})
+
+# Apple SDKs deprecate sprintf(), which Boost may use internally (e.g. lexical_cast).
+# Silence third-party deprecation noise on macOS/Clang.
+if(APPLE AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  target_compile_options(specsim_core_obj PRIVATE -Wno-deprecated-declarations -Wno-deprecated-builtins)
+endif()
+
+add_executable(${CMAKE_PROJECT_NAME} ${SOURCES_CLI} $<TARGET_OBJECTS:specsim_core_obj>)
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR})
+if(APPLE AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE -Wno-deprecated-declarations -Wno-deprecated-builtins)
+endif()
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE BOOST_NO_CXX98_FUNCTION_BASE)
   if(EXISTS "/opt/homebrew/opt/llvm/lib/c++/libc++.dylib")
@@ -216,11 +232,49 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 if(MACOS)
   find_package(Eigen3 REQUIRED NO_MODULE)
+  target_compile_definitions(specsim_core_obj PRIVATE MACOS)
+  target_link_libraries(specsim_core_obj PUBLIC Eigen3::Eigen)
   target_compile_definitions(${CMAKE_PROJECT_NAME}  PRIVATE MACOS)
   target_link_libraries(${CMAKE_PROJECT_NAME}  Eigen3::Eigen  ${BOOST_LIBRARIES} "-framework CoreFoundation")
 elseif(LINUX)
   #Look for eigen and explicitly specify to use it. EIGEN3_INCLUDE_DIR Must be specified in the bashrc
   include_directories( "$ENV{EIGEN3_INCLUDE_DIR}" )
+  target_compile_definitions(specsim_core_obj PRIVATE LINUX)
   target_compile_definitions(${CMAKE_PROJECT_NAME}  PRIVATE LINUX)
   target_link_libraries(${CMAKE_PROJECT_NAME}  ${BOOST_LIBRARIES}  rt)
+endif()
+
+### C++ unit/property tests (single binary)
+option(BUILD_TESTS "Build C++ unit/property tests" ON)
+if(BUILD_TESTS)
+  enable_testing()
+  add_executable(specsim_tests
+    tests/cpp/specsim_tests_main.cpp
+    tests/cpp/test_function_rot.cpp
+    tests/cpp/test_build_lorentzian.cpp
+    tests/cpp/test_mode_generators.cpp
+  	$<TARGET_OBJECTS:specsim_core_obj>
+  )
+  target_include_directories(specsim_tests PRIVATE ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/tests/cpp)
+  if(APPLE AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    target_compile_options(specsim_tests PRIVATE -Wno-deprecated-declarations -Wno-deprecated-builtins)
+  endif()
+  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    target_compile_definitions(specsim_tests PRIVATE BOOST_NO_CXX98_FUNCTION_BASE)
+    if(EXISTS "/opt/homebrew/opt/llvm/lib/c++/libc++.dylib")
+      target_link_directories(specsim_tests PRIVATE /opt/homebrew/opt/llvm/lib/c++)
+      target_link_options(specsim_tests PRIVATE -Wl,-rpath,/opt/homebrew/opt/llvm/lib/c++)
+    endif()
+    foreach(dir IN LISTS BOOST_LIBRARY_DIRS)
+      target_link_options(specsim_tests PRIVATE -Wl,-rpath,${dir})
+    endforeach()
+  endif()
+  if(MACOS)
+    target_compile_definitions(specsim_tests PRIVATE MACOS)
+    target_link_libraries(specsim_tests Eigen3::Eigen ${BOOST_LIBRARIES} "-framework CoreFoundation")
+  elseif(LINUX)
+    target_compile_definitions(specsim_tests PRIVATE LINUX)
+    target_link_libraries(specsim_tests ${BOOST_LIBRARIES} rt)
+  endif()
+  add_test(NAME specsim_tests COMMAND specsim_tests)
 endif()
