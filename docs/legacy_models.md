@@ -1,6 +1,6 @@
 # Legacy model notes (obsolete)
 
-This document contains legacy model descriptions moved from `README.md`. These models are considered obsolete and are not covered by the current modernization scope. For supported models, see `docs/models/README.md`.
+This document contains legacy model descriptions moved from `README.md`. These models are obsolete and are not supported as of specsim v1.60. For supported models, see `docs/models/README.md`.
 
 ## General model description
 

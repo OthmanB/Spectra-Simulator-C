@@ -1,5 +1,11 @@
 # Version history #
 
+### v1.60 ###
+	* Documentation refresh: add per-model manuals for supported models and reorganize legacy notes under `docs/legacy_models.md`
+	* Model selection improvements: supported models are now registry-driven, with `--list-models` and `--describe-model` helpers
+	* Reproducibility helper: add `--seed` option and a model-only parity comparison script (`scripts/compare_versions.py`)
+	* Build/CI improvements: update GitHub Actions workflows and add a documentation site build/deploy workflow
+
 ### v1.56 ###
 	* Bug Fix in asymptotic_mm_freeDp_numaxspread_curvepmodes_v3_GRANscaled_Kallinger2014:
 	  The model was set with legacynoise=true instead of legacynoise=false, leading to completely wrong noise backgrounds

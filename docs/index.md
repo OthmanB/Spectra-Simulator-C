@@ -10,7 +10,6 @@ Welcome. This site combines the practical user docs with model manuals and links
 ## Reference
 
 - API reference (Doxygen): [docs/api.md](api.md)
-- Modernization plan: [docs/Modernization_Plan.md](Modernization_Plan.md)
 
 ## Legacy
 

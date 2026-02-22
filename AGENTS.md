@@ -20,7 +20,7 @@ Repo reality note: this project currently uses custom text `.cfg` files (not YAM
 - Noise models: `noise_models.cpp`
 - Evolved stars / mixed modes: `external/ARMM/*`
 - Activity / Alm model glue: `external/Alm/Alm_cpp/activity.cpp`
-- Modernization roadmap: `docs/Modernization_Plan.md`
+- Project roadmap: see `changelog.md` and `docs/User_Guide.md`
 
 Non-obsolete example configs live in `Configurations/examples_cfg/` (exclude `Configurations/examples_cfg/obselete/`).
 
