@@ -174,7 +174,7 @@ Model-specific manuals are in `docs/models/README.md`. Legacy model notes were m
 
   
 
-No external contribution is expected. This project is constantly improved, so please contact me if you need to see some worthy functionnality implemented.
+This project is still maintained. Please submit an issue or contact me if you want to see something in the code that is not there.
 
   
 
