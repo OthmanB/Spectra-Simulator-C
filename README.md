@@ -7,6 +7,10 @@ Spectrum Simulator in C++. It is intended to create synthetic spectra that follo
 Tests for MacOS and Linux:
  [![CI](https://github.com/OthmanB/Spectra-Simulator-C/actions/workflows/cmake_UbuntuMac.yml/badge.svg?branch=master)](https://github.com/OthmanB/Spectra-Simulator-C/actions/workflows/cmake_UbuntuMac.yml)
 
+### Demo (Subgiant -> RGB) ###
+
+[![Mixed-modes demo (click to play)](docs/assets/mixed_modes_demo_preview.gif)](https://github.com/OthmanB/Spectra-Simulator-C/releases/download/v1.60/mixed_modes_demo_400f_numax200_seq.mp4)
+
 ### Documentation ###
 
 * Online docs (MkDocs): https://othmanb.github.io/Spectra-Simulator-C/

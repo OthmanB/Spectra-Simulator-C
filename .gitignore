@@ -42,3 +42,8 @@ Configurations/tmp/
 dir.list
 site/
 docs/html/
+
+# Local demo artifacts
+graph_tmp.txt
+tmp/demo_*/
+tmp/*demo*.mp4
