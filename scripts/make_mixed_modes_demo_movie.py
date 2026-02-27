@@ -24,6 +24,7 @@ Requirements:
 from __future__ import annotations
 
 import argparse
+import logging
 import math
 import os
 import shutil
@@ -43,6 +44,18 @@ def _require_imports():
             "Missing python deps. Create a venv and install: pip install numpy matplotlib\n"
             f"Original import error: {e}"
         )
+
+
+def _setup_logging(level: str) -> logging.Logger:
+    lvl = getattr(logging, level.upper(), None)
+    if not isinstance(lvl, int):
+        raise SystemExit(f"Invalid --log-level: {level}")
+    logging.basicConfig(
+        level=lvl,
+        format="%(asctime)s %(levelname)s %(funcName)s %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+    return logging.getLogger("specsim_demo")
 
 
 @dataclass
@@ -286,7 +299,16 @@ def write_cfg_for_frame(
     out_cfg_path.write_text("".join(lines), encoding="utf-8")
 
 
-def run_specsim(specsim: Path, cfg_path: Path, out_dir: Path, seed: int, noise_file: str, *, cwd: Path) -> Path:
+def run_specsim(
+    specsim: Path,
+    cfg_path: Path,
+    out_dir: Path,
+    seed: int,
+    noise_file: str,
+    *,
+    cwd: Path,
+    timeout_s: int,
+) -> Path:
     out_dir.mkdir(parents=True, exist_ok=True)
     cmd = [
         str(specsim),
@@ -303,7 +325,19 @@ def run_specsim(specsim: Path, cfg_path: Path, out_dir: Path, seed: int, noise_f
         "--seed",
         str(seed),
     ]
-    subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, cwd=str(cwd))
+    try:
+        subprocess.run(
+            cmd,
+            check=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            cwd=str(cwd),
+            timeout=timeout_s,
+        )
+    except subprocess.TimeoutExpired as e:
+        raise SystemExit(f"specsim timed out after {timeout_s}s: {e.cmd}")
+    except subprocess.CalledProcessError as e:
+        raise SystemExit(f"specsim failed with exit code {e.returncode}: {e.cmd}")
     # We run one combination and one realisation; file naming is 0000001.0.data
     data_file = out_dir / "Spectra_ascii" / "0000001.0.data"
     if not data_file.exists():
@@ -694,7 +728,7 @@ def render_frame(
     plt.close(fig)
 
 
-def encode_mp4(frames_dir: Path, fps: int, out_mp4: Path) -> None:
+def encode_mp4(frames_dir: Path, fps: int, out_mp4: Path, *, timeout_s: int) -> None:
     ffmpeg = shutil.which("ffmpeg")
     if not ffmpeg:
         raise SystemExit("ffmpeg not found in PATH. Install ffmpeg or use --no-encode")
@@ -711,12 +745,15 @@ def encode_mp4(frames_dir: Path, fps: int, out_mp4: Path) -> None:
         "pad=ceil(iw/2)*2:ceil(ih/2)*2",
         str(out_mp4),
     ]
-    subprocess.run(cmd, check=True)
+    try:
+        subprocess.run(cmd, check=True, timeout=timeout_s)
+    except subprocess.TimeoutExpired as e:
+        raise SystemExit(f"ffmpeg timed out after {timeout_s}s: {e.cmd}")
+    except subprocess.CalledProcessError as e:
+        raise SystemExit(f"ffmpeg failed with exit code {e.returncode}: {e.cmd}")
 
 
 def main() -> int:
-    _require_imports()
-
     ap = argparse.ArgumentParser()
     ap.add_argument("--specsim", default="./build/specsim", help="Path to specsim binary")
     ap.add_argument(
@@ -753,6 +790,9 @@ def main() -> int:
     ap.add_argument("--numax-end", type=float, default=400.0)
     ap.add_argument("--zoom-dnu", type=float, default=4.0, help="Half-width of zoom window in units of Dnu")
     ap.add_argument("--no-encode", action="store_true", help="Only render PNG frames")
+    ap.add_argument("--log-level", default="INFO", help="Logging level (DEBUG, INFO, WARNING, ERROR)")
+    ap.add_argument("--specsim-timeout", type=int, default=120, help="Timeout per specsim run (seconds)")
+    ap.add_argument("--ffmpeg-timeout", type=int, default=600, help="Timeout for ffmpeg encoding (seconds)")
 
     # Fixed demo params
     ap.add_argument("--vl1", type=float, default=1.5)
@@ -775,6 +815,11 @@ def main() -> int:
 
     args = ap.parse_args()
 
+    log = _setup_logging(args.log_level)
+
+    # Import heavy plotting deps after argparse so `--help` works without numpy/matplotlib.
+    _require_imports()
+
     repo_root = Path(__file__).resolve().parents[1]
     specsim = (repo_root / args.specsim).resolve() if not os.path.isabs(args.specsim) else Path(args.specsim)
     if not specsim.exists():
@@ -787,15 +832,18 @@ def main() -> int:
     template_name = args.template
     if template_name.lower() == "auto":
         template_name = pick_template_auto(repo_root)
-        print(f"Auto-selected template: {template_name}", file=sys.stderr)
+        log.info("Auto-selected template: %s", template_name)
 
     out_mp4 = Path(args.out).resolve()
 
     workdir = Path(args.workdir).resolve() if args.workdir else None
-    tmp_ctx = None
+    created_temp_workdir = False
     if workdir is None:
-        tmp_ctx = tempfile.TemporaryDirectory(prefix="specsim-mixedmodes-demo-")
-        workdir = Path(tmp_ctx.name)
+        # Use a non-auto-cleaned temp dir so `--no-encode` / partial frame runs can be
+        # encoded manually afterward.
+        workdir = Path(tempfile.mkdtemp(prefix="specsim-mixedmodes-demo-"))
+        created_temp_workdir = True
+        log.info("Using temporary workdir: %s", workdir)
     else:
         if workdir.exists():
             if args.overwrite_workdir:
@@ -858,7 +906,15 @@ def main() -> int:
 
             seed = args.seed if args.seed_mode == "fixed" else (args.seed + i)
             out_dir = runs_dir / f"run_{i:04d}"
-            data_file = run_specsim(specsim, cfg_path, out_dir, seed=seed, noise_file=args.noise_file, cwd=repo_root)
+            data_file = run_specsim(
+                specsim,
+                cfg_path,
+                out_dir,
+                seed=seed,
+                noise_file=args.noise_file,
+                cwd=repo_root,
+                timeout_s=args.specsim_timeout,
+            )
             info_file = out_dir / "Spectra_info" / "0000001.in"
             modes = read_modes_from_info_file(info_file)
             render_frame(
@@ -875,22 +931,25 @@ def main() -> int:
             )
 
             if (i + 1) % 10 == 0 or (i + 1) == len(frames):
-                print(f"Rendered {i+1}/{len(frames)} frames", file=sys.stderr)
+                log.info("Rendered %d/%d frames", i + 1, len(frames))
 
         partial = (start != 0 or end != len(frames))
         if args.no_encode or partial:
             if partial and not args.no_encode:
-                print("Partial frame range rendered; skipping encoding.", file=sys.stderr)
-            print(f"Frames written to: {frames_dir}")
-            print("(Encoding disabled; use ffmpeg manually if desired)")
+                log.warning("Partial frame range rendered; skipping encoding.")
+            log.info("Frames written to: %s", frames_dir)
+            log.info("(Encoding disabled; use ffmpeg manually if desired)")
             return 0
 
-        encode_mp4(frames_dir, fps=args.fps, out_mp4=out_mp4)
-        print(f"Wrote: {out_mp4}")
+        encode_mp4(frames_dir, fps=args.fps, out_mp4=out_mp4, timeout_s=args.ffmpeg_timeout)
+        log.info("Wrote: %s", out_mp4)
+        encoded = True
         return 0
     finally:
-        if tmp_ctx is not None:
-            tmp_ctx.cleanup()
+        # Keep temporary workdir when frames are the final output (no-encode / partial).
+        # Only cleanup if we successfully encoded an mp4.
+        if created_temp_workdir and locals().get("encoded", False):
+            shutil.rmtree(workdir, ignore_errors=True)
 
 
 if __name__ == "__main__":
